@@ -1,3 +1,9 @@
 # Pirate-Game-Online
 
-An online experience that lets you play the pirate game with friends
+Ever wanted to play pirate game on a browser, without all that pesky paperwork? Well now you can!
+
+Developed by:
+  Thomas Wood,
+  Alex Pegg,
+  Jamie Edwards,
+  Owen Pauptit.
