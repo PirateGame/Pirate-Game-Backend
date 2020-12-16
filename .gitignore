@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+#Ignore local virtual environment folder
+pirate-game-online
+
 # User-specific files
 *.rsuser
 *.suo
