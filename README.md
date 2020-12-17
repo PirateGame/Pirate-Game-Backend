@@ -6,4 +6,5 @@ Developed by:
   Thomas Wood,
   Alex Pegg,
   Jamie Edwards,
-  Owen Pauptit.
+  Owen Pauptit,
+  Ben Kyd.
