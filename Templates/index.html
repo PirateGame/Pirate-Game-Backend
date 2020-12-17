@@ -1,9 +1,84 @@
 <!DOCTYPE html>
 <html>
-<title>The Pirate Game</title>
-<link rel="stylesheet" href="/static/style.css">
 
-<body>
-    <H2 class="title-center">The Pirate Game</H2>
-    <img src="/static/play-button.png" style="width:200px;height:200px;" onclick="location.href='./play'"></img>
+<head>
+    <title>The Pirate Game</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="bg-pirate">
+
+    <!--<div class="accountBtns">
+        <button class="bg-red">Login</button>
+        <button class="bg-red">Register</button>
+    </div>-->
+
+    <h2 class="title">The Pirate Game</H2>
+
+    <div class="mainMenu">
+
+        <ul id="menuUL">
+            <li class="bg-blue">
+                <a href="host.html">
+                    Host Game
+                </a>
+            </li>
+            <li class="bg-green" onclick="ShowPopUp()">
+                <a>
+                    Join Game
+                </a>
+            </li>
+            <!--<li class="bg-red">
+                <a>
+                    Exit
+                </a>
+            </li>-->
+            <li id="inputLI">
+            </li>
+        </ul>
+
+    </div>
+
+
+        <!--<a href="play.html">
+            <img src="/static/play-button.png" style="width:200px;height:200px;"></img>
+        </a>-->
 </body>
+
+<script>
+    var popUp = false;
+
+    function ShowPopUp()
+    {
+        if(!popUp)
+        {
+        var li = document.getElementById("inputLI");
+        var input = document.createElement("input");
+        input.value = "Enter Game Code";
+        input.id = "GameCode";
+        input.type = "text";
+        var submit = document.createElement("button");
+        submit.innerText = "GO!"
+        submit.onclick = function GoToGame()
+    {
+        var code = document.getElementById("GameCode").value;
+        var name = document.getElementById("UserName").value;
+        window.location.href = "join.html";
+        alert("Going to game: " + code + ", with name: " + name);
+    };
+        var br = document.createElement("br");
+        var name = document.createElement("input");
+        name.value = "Enter User Name";
+        name.id = "UserName";
+        name.type = "text";
+
+        li.appendChild(input);
+        li.appendChild(submit);
+        li.append(br);
+        li.append(name);
+        popUp = true;
+        }
+    }
+
+    
+</script>
