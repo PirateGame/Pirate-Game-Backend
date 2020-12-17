@@ -12,7 +12,7 @@ body {
     font-family: PirateFont;
     text-align: center;
     font-size: xx-large;
-    margin-top: 5%;
+    padding-top: 10%;
 }
 
 .bg-blue {
@@ -29,10 +29,11 @@ body {
 
 .bg-pirate {
     background-image: url("Media/pirateimg.jpg");
-    height: 100%;
+    height: 100vh;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+    overflow:hidden;
 }
 
 .accountBtns {
