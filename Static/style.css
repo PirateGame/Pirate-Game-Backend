@@ -1,4 +1,78 @@
-.title-center{
-    text-align: center;
-    vertical-align: middle;
+@font-face {
+    font-family: PirateFont;
+    src: url("Fonts/PirateFont.ttf");
+  }
+
+body {
+    font-family: Arial;
+    height: 100%;
 }
+
+.title {
+    font-family: PirateFont;
+    text-align: center;
+    font-size: xx-large;
+    margin-top: 5%;
+}
+
+.bg-blue {
+    background-color: blue;
+}
+
+.bg-red {
+    background-color: crimson;
+}
+
+.bg-green {
+    background-color: green;
+}
+
+.bg-pirate {
+    background-image: url("Media/pirateimg.jpg");
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.accountBtns {
+    position:fixed;
+    top: 3%;
+    right: 3%;
+}
+
+    .accountBtns button {
+        position: sticky;
+        width: max-content;
+    }
+
+.mainMenu {
+    margin: auto;
+    margin-top: 5%;
+    text-align: center;
+    width: 30%;
+    color: white;
+    font-size: xx-large;
+    font-weight: bold;
+}
+
+    .mainMenu ul {
+        list-style: none;
+        
+    }
+
+        .mainMenu ul li {
+            text-decoration: none;
+            margin-top: 5%;
+            padding: 5%;
+            border-radius: 5%;
+        }
+
+        .mainMenu ul li :hover {
+            cursor: pointer;
+        }
+
+            .mainMenu ul li a {
+                text-decoration: none;
+                color: white
+            }
