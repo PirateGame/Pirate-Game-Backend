@@ -5,6 +5,7 @@
 
 #Ignore local virtual environment folder
 pirate-game-online
+environment
 
 # User-specific files
 *.rsuser
