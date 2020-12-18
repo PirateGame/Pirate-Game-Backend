@@ -6,5 +6,7 @@ Developed by:
   Thomas Wood,
   Alex Pegg,
   Jamie Edwards,
-  Owen Pauptit,
+  Owen Pauptit.
+ 
+ Inspired by:
   Ben Kyd.
