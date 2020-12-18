@@ -42,10 +42,11 @@ def gameHandlerThread():
             #A signal should be emitted here to the Vue Server holding the new turn's tile coordinates, for each vue client to process what on their grid
             tileOverride = False #Sample = (1,2) #x,y #If one of the client's processed above was to choose the next turn's tile, this would change accordingly.
             toReturn = [tileOverride]
-        print("@@@ Turn", turnNum, "has been processed.")
+        print("@ Turn", turnNum, "has been processed.")
         return toReturn
     
     def clearAllGames():
+        print("@@@ All games have been cleared.")
         try:
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         except:
@@ -53,7 +54,7 @@ def gameHandlerThread():
             np.save("boards.npy", BOARDS)
 
     def makeGame(ownerID, turnCount, gridDim, clientCount):
-        print("@@@ A game has been started by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions and", clientCount, "clients.")
+        print("@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions and", clientCount, "clients.")
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         BOARDid = len(BOARDS)
         BOARDS.append([[] for i in range(clientCount)])
@@ -61,7 +62,7 @@ def gameHandlerThread():
 
     def runGame(idToRun):
 
-        print("@@@ Game", idToRun, "has started.")
+        print("@@ Game", idToRun, "has started.")
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         clientCount = len(BOARDS[idToRun])
@@ -69,6 +70,7 @@ def gameHandlerThread():
         for turnNum in range(turnCount):
             results = newTurn(idToRun, turnNum, tileOverride, clientCount) #This is the information necessary for the next turn to be processed.
             tileOverride = results[0]
+        print("@@ Game", idToRun, "has ended.")
     
     def deleteGame(idToDelete):
         try:
