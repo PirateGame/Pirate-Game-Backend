@@ -1,14 +1,19 @@
 For any board,
-A Steal
-B Shield
-C Kill
-D Bomb
-E Mirror
-F Present
-G Bank your score
-H Double your score
+
+A - Rob
+B - Kill
+C - Present (Give someone 1000 of YOUR OWN cash)
+D - Skull and Crossbones (Wipe out (Number of players)/3 people)
+E - Swap
+F - Choose Next Square
+G - Shield
+H - Mirror
+I - Bomb (You go to 0)
+J - Double Cash
+K - Bank
 
 For a 7x7 grid (49 cells)
+
 1:49 1x £5000
 2:49 2x £3000
 10:49 10x £1000

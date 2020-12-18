@@ -102,9 +102,6 @@ def gameHandlerThread():
     if shouldMakeGame:
         gridDim = (5,5)
         gridSize = gridDim[0] * gridDim[1]
-        if gridSize < 13:
-            print("@@@ GRID TOO SMALL")
-            shallIContinue = input()
 
         turnCount = gridSize + 1 #maximum of gridSize + 1
         
