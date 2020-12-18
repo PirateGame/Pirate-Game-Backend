@@ -4,7 +4,7 @@ Ever wanted to play pirate game on a browser, without all that pesky paperwork? 
 
 Developed by:
   Thomas Wood,
-  Alex Pegg,
+  Alex P**egg**,
   Jamie Edwards,
   Owen Pauptit.
  
