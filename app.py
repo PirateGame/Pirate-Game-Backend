@@ -16,6 +16,11 @@ def play():
 def host():
     return render_template('host.html')
 
+@app.route('/join')
+def join():
+    return render_template('join.html')
+
+
 
 
 if __name__ == "__main__":
