@@ -3,18 +3,7 @@ import database
 import random
 import numpy as np
 import multiprocessing
-
-###FLASK DEMO ON THE MAIN THREAD###
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/play')
-def play():
-    return render_template('play.html')
-### ###
+from gridGenerator import *
 
 #This can be multi/singleprocessed as a thread for asynchronous behaviour.
 def gameHandlerThread():  
@@ -22,7 +11,8 @@ def gameHandlerThread():
         if turnNum == 0:
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             for client in range(clientCount):
-                BOARDS[BOARDid][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
+                #BOARDS[BOARDid][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
+                BOARDS[BOARDid][client] = makeGrid(gridDim)
             BOARDS = np.save("boards.npy", BOARDS)
             toReturn = [False] #no user decision on which tile to play next yet so return False
         else:
@@ -43,6 +33,12 @@ def gameHandlerThread():
             tileOverride = False #Sample = (1,2) #x,y #If one of the client's processed above was to choose the next turn's tile, this would change accordingly.
             toReturn = [tileOverride]
         print("@ Turn", turnNum, "has been processed.")
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        print("@ The game board looks like this...")
+        for client in range(len(BOARDS[BOARDid])):
+            print("@ Client", client)
+            for x in range(len(BOARDS[BOARDid][client])):
+                print(BOARDS[BOARDid][client][x])
         return toReturn
     
     def clearAllGames():
@@ -61,7 +57,6 @@ def gameHandlerThread():
         np.save("boards.npy", BOARDS)
 
     def runGame(idToRun):
-
         print("@@ Game", idToRun, "has started.")
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -102,6 +97,5 @@ if __name__ == "__main__":
     p = multiprocessing.Process(target=gameHandlerThread, args=())
     p.daemon = True
     processes.append(p)
-    #app.run(debug=False, host="0.0.0.0")
     processes[-1].start()
     processes[-1].join()
