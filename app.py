@@ -12,7 +12,8 @@ def gameHandlerThread():
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             for client in range(clientCount):
                 #BOARDS[BOARDid][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
-                BOARDS[BOARDid][client] = makeGrid(gridDim)
+                gr = makeGrid(gridDim)
+                BOARDS[BOARDid][client] = gr[0]
             BOARDS = np.save("boards.npy", BOARDS)
             toReturn = [False, []] #no user decision on which tile to play next yet so return False, and no turns have been played yet so return an empty list
         else:
@@ -100,7 +101,7 @@ def gameHandlerThread():
     if shouldDeleteGame:
         deleteGame(0)
     if shouldMakeGame:
-        gridDim = (5,5)
+        gridDim = (8,8)
         gridSize = gridDim[0] * gridDim[1]
 
         turnCount = gridSize + 1 #maximum of gridSize + 1
