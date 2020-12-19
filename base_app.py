@@ -5,7 +5,6 @@ app = Flask(__name__)
 
 @app.route('/api/create_game', methods=['POST'])
 def hostGame():
-    print("it has worked")
     data = request.get_json()
     id = data["ID"]
     Sizex = data["Sizex"]
