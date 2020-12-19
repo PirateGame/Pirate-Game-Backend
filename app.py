@@ -34,6 +34,7 @@ def gameHandlerThread(ownerID, turnCount, gridDim, clientCount):
         if turnNum == 0:
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             for client in range(clientCount):
+                print(clientCount)
                 #BOARDS[BOARDid][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
                 gr = makeGrid(gridDim)
                 BOARDS[BOARDid][client] = gr[0]
