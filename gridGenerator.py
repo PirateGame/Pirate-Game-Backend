@@ -3,11 +3,19 @@ import numpy as np
 from scipy import optimize
 
 def gridSizeToActionCount(gridSize):
-    if gridSize < 25:
+    if gridSize <= 25:
         return 1
     else:
         return round((gridSize + 12.5) / 25) - 1
-
+#Is it better to do this for 5000, 3000 and 1000 as well, and then fill the grid with 200s?
+#
+#E.g. for 3000:
+#if gridSize <= 25:
+#   return 2
+#else:
+#   return 2 * (round((gridSize + 12.5) / 25) - 1)
+#
+#That would also make the minimum area 25, as 11 specials, 1 5000, 2 3000 and 10 1000 = 24 squares (+ 1 200)
 
 def makeGrid(gridDim):
     #gridDim = (10,10)
