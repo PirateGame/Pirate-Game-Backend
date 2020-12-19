@@ -8,6 +8,11 @@ def gridSizeToActionCount(gridSize):
     else:
         return round((gridSize + 12.5) / 25) - 1
 #is it better to do this for 5000, 3000 and 1000 as well, and then fill the grid with 200s?
+#E.g. for 3000:
+#if gridSize <= 25:
+#   return 2
+#else:
+#   return 2 * (round((gridSize + 12.5) / 25) - 1)
 
 def makeGrid(gridDim):
     #gridDim = (10,10)
