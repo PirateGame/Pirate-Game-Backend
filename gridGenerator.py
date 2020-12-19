@@ -3,11 +3,11 @@ import numpy as np
 from scipy import optimize
 
 def gridSizeToActionCount(gridSize):
-    if gridSize < 25:
+    if gridSize <= 25:
         return 1
     else:
         return round((gridSize + 12.5) / 25) - 1
-
+#is it better to do this for 5000, 3000 and 1000 as well, and then fill the grid with 200s?
 
 def makeGrid(gridDim):
     #gridDim = (10,10)
