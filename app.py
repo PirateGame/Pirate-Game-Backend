@@ -5,8 +5,31 @@ import numpy as np
 import multiprocessing
 from gridGenerator import *
 
+def clearAllGames():
+    print("@@@@ All games have been cleared.")
+    for i in range(len(processes)):
+        processes[i].terminate()
+    try:
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+    except:
+        BOARDS = []
+        np.save("boards.npy", BOARDS)
+
+def deleteGame(idToDelete):
+    print("@@@@ A game has been deleted with the ID", idToDelete)
+    try:
+        processes[idToDelete].terminate()
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        del BOARDS[idToDelete]
+        np.save("boards.npy", BOARDS)
+    except:
+        pass
+    
+def statusOfGame(idToCheck):
+    print("@@@@ Game", idToCheck, "has alive status", processes[idToCheck].is_alive())
+
 #This can be multi/singleprocessed as a thread for asynchronous behaviour.
-def gameHandlerThread():  
+def gameHandlerThread(ownerID, turnCount, gridDim, clientCount):  
     def newTurn(BOARDid, turnNum, tileOverride, clientCount, chosenTiles, randomCoords):
         if turnNum == 0:
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -49,21 +72,6 @@ def gameHandlerThread():
                         thisRowPrintable.append("#")
                 print(thisRowPrintable)
         return toReturn
-    
-    def clearAllGames():
-        print("@@@@ All games have been cleared.")
-        try:
-            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        except:
-            BOARDS = []
-            np.save("boards.npy", BOARDS)
-
-    def makeGame(ownerID, turnCount, gridDim, clientCount):
-        print("@@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions and", clientCount, "clients.")
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        BOARDid = len(BOARDS)
-        BOARDS.append([[] for i in range(clientCount)])
-        np.save("boards.npy", BOARDS)
 
     def runGame(idToRun):
         print("@@@ Game", idToRun, "has started.")
@@ -83,18 +91,20 @@ def gameHandlerThread():
             tileOverride, chosenTiles = result
         
         print("@@@ Game", idToRun, "has ended.")
-    
-    def deleteGame(idToDelete):
-        print("@@@@ A game has been deleted with the ID", idToDelete)
-        try:
-            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-            del BOARDS[idToDelete]
-            np.save("boards.npy", BOARDS)
-        except:
-            pass
 
     ###RUN (main of this thread)
-    
+
+    print("@@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions and", clientCount, "clients.")
+    BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+    BOARDid = len(BOARDS)
+    BOARDS.append([[] for i in range(clientCount)])
+    np.save("boards.npy", BOARDS)
+
+    runGame(0) #id of the game to run
+
+### MAIN THREAD ###
+processes = []
+if __name__ == "__main__":
     shouldMakeGame = True #This should be ASYNC and waiting for a signal from the vue server that a client has decided to host a game.
     shouldDeleteGame = True#For testing purposes, we're only going to run one game at a time, so this makes sure there's only one in the array.
     shouldRunGame = True
@@ -103,20 +113,11 @@ def gameHandlerThread():
     if shouldMakeGame:
         gridDim = (8,8)
         gridSize = gridDim[0] * gridDim[1]
-
         turnCount = gridSize + 1 #maximum of gridSize + 1
-        
         clientCount = 1
         ownerID = 1
-        makeGame(ownerID, turnCount, gridDim, clientCount)
-    if shouldRunGame:
-        runGame(0) #id of the game to run
-
-### MAIN THREAD ###
-processes = []
-if __name__ == "__main__":
-    p = multiprocessing.Process(target=gameHandlerThread, args=())
-    p.daemon = True
-    processes.append(p)
-    processes[-1].start()
-    processes[-1].join()
+        p = multiprocessing.Process(target=gameHandlerThread, args=(ownerID, turnCount, gridDim, clientCount))
+        p.daemon = True
+        processes.append(p)
+        processes[-1].start()
+        processes[-1].join()
