@@ -5,39 +5,30 @@ import numpy as np
 import multiprocessing
 from gridGenerator import *
 
-def clearAllGames():
-    print("@@@@ All games have been cleared.")
-    for i in range(len(processes)):
-        processes[i].terminate()
-    try:
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-    except:
-        BOARDS = []
-        np.save("boards.npy", BOARDS)
+games = []
 
-def deleteGame(idToDelete):
-    print("@@@@ A game has been deleted with the ID", idToDelete)
-    try:
-        processes[idToDelete].terminate()
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        del BOARDS[idToDelete]
-        np.save("boards.npy", BOARDS)
-    except:
-        pass
-    
-def statusOfGame(idToCheck):
-    print("@@@@ Game", idToCheck, "has alive status", processes[idToCheck].is_alive())
+class gameHandler():
+    def __init__(self, gameIDNum, gameID, ownerID, turnCount, gridDim):
+        self.gameID = gameID
+        self.gameIDNum = gameIDNum
+        self.ownerID = ownerID
+        self.turnCount = turnCount
+        self.gridDim = gridDim
+        self.turnNum = -1
+        self.chosenTiles = []
 
-#This can be multi/singleprocessed as a thread for asynchronous behaviour.
-def gameHandlerThread(ownerID, turnCount, gridDim, clientCount):  
-    def newTurn(BOARDid, turnNum, tileOverride, clientCount, chosenTiles, randomCoords):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        if self.gameIDNum >= len(BOARDS):
+            BOARDS.append([[self.ownerID, self.turnCount, self.gridDim], []])
+            np.save("boards.npy", BOARDS)   
+    def newTurn(self, turnNum, tileOverride, clientCount, chosenTiles, randomCoords):
         if turnNum == 0:
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             for client in range(clientCount):
                 print(clientCount)
-                #BOARDS[BOARDid][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
+                #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
                 gr = makeGrid(gridDim)
-                BOARDS[BOARDid][client] = gr[0]
+                BOARDS[self.gameIDNum][1][client] = gr[0]
             BOARDS = np.save("boards.npy", BOARDS)
             toReturn = [False, []] #no user decision on which tile to play next yet so return False, and no turns have been played yet so return an empty list
         else:
@@ -49,7 +40,7 @@ def gameHandlerThread(ownerID, turnCount, gridDim, clientCount):
             actions = []
             for client in range(clientCount):
                 BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-                #actions.append(BOARDS[BOARDid][client][newTile[0]][newTile[1]])
+                #actions.append(BOARDS[self.gameIDNum][client][newTile[0]][newTile[1]])
             #for a in range(len(actions)):
                 #if actions[a] == #B for bomb, K for kill, so on...
 
@@ -61,10 +52,10 @@ def gameHandlerThread(ownerID, turnCount, gridDim, clientCount):
         print("@@ Turn", turnNum + 1, "has been processed.")
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         print("@ The game board looks like this...")
-        for client in range(len(BOARDS[BOARDid])):
+        for client in range(len(BOARDS[self.gameIDNum][1])):
             print("@ Client", client)
-            for x in range(len(BOARDS[BOARDid][client])):
-                thisRow = BOARDS[BOARDid][client][x]
+            for x in range(len(BOARDS[self.gameIDNum][1][client])):
+                thisRow = BOARDS[self.gameIDNum][1][client][x]
                 thisRowPrintable = []
                 for y in range(len(thisRow)):
                     if (x,y) not in chosenTiles:
@@ -73,52 +64,98 @@ def gameHandlerThread(ownerID, turnCount, gridDim, clientCount):
                         thisRowPrintable.append("#")
                 print(thisRowPrintable)
         return toReturn
+    def status(self):
+        return {"turnNum":self.turnNum}
 
-    def runGame(idToRun):
-        print("@@@ Game", idToRun, "has started.")
+    def start(self, clientCount):
+        print("@@@ Game", self.gameIDNum, "has started.")
+        self.clientCount = clientCount
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        clientCount = len(BOARDS[idToRun])
-        tileOverride = False
-        chosenTiles = []
-        randomCoords = []
+        for client in range(clientCount):
+            BOARDS[self.gameIDNum][1].append([])
+        np.save("boards.npy", BOARDS)   
+
+        self.randomCoords = []
         for x in range(gridDim[0]):
             for y in range(gridDim[1]):
-                randomCoords.append((x,y))
-        random.shuffle(randomCoords)
+                self.randomCoords.append((x,y))
+        random.shuffle(self.randomCoords)
 
-        for turnNum in range(turnCount):
-            result = newTurn(idToRun, turnNum, tileOverride, clientCount, chosenTiles, randomCoords) #This is the information necessary for the next turn to be processed.
-            tileOverride, chosenTiles = result
-        
-        print("@@@ Game", idToRun, "has ended.")
+    def turnHandle(self):
+        self.tileOverride = False
+        self.turnNum += 1
+        result = self.newTurn(self.turnNum, self.tileOverride, self.clientCount, self.chosenTiles, self.randomCoords) #This is the information necessary for the next turn to be processed.
+        self.tileOverride, self.chosenTiles = result
+    
+    def delete(self):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        del BOARDS[self.gameIDNum]
+        np.save("boards.npy", BOARDS)
 
-    ###RUN (main of this thread)
 
-    print("@@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions and", clientCount, "clients.")
+def makeGame(gameIDNum, gameID, ownerID, turnCount, gridDim):
+    print("@@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions.")
+    g = gameHandler(gameIDNum, gameID, ownerID, turnCount, gridDim)
+    games.append(g)
+
+def clearAllGames():
+    print("@@@@ All games have been cleared.")
+    for i in range(len(processes)):
+        processes[i].terminate()
+    try:
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+    except:
+        BOARDS = []
+        np.save("boards.npy", BOARDS)
+
+def deleteGame(idToDelete):
+    try:
+        games[idToDelete].delete()
+        del games[idToDelete]
+        print("@@@@ A game has been deleted with the ID", idToDelete)
+    except:
+        print("@@@@ Game", idToDelete, "doesn't exist, so it can't be deleted!")
+        pass
+
+def status(gameIDNum):
+    if gameIDNum < len(games):
+        return games[gameIDNum].status()
+    else:
+        return False
+
+###Loading games that are "running"
+try:
     BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-    BOARDid = len(BOARDS)
-    BOARDS.append([[] for i in range(clientCount)])
+    for gameIDNum in range(len(BOARDS)):
+        gameID = BOARDS[gameID][0][0]
+        ownerID = BOARDS[gameID][0][1]
+        turnCount = BOARDS[gameID][0][2]
+        gridDim = BOARDS[gameID][0][3]
+        makeGame(gameIDNum, gameID, ownerID, turnCount, gridDim)
+    np.save("boards.npy", BOARDS)
+except:
+    BOARDS = []
     np.save("boards.npy", BOARDS)
 
-    runGame(0) #id of the game to run
 
 ### MAIN THREAD ###
 processes = []
 if __name__ == "__main__":
-    shouldMakeGame = True #This should be ASYNC and waiting for a signal from the vue server that a client has decided to host a game.
-    shouldDeleteGame = True#For testing purposes, we're only going to run one game at a time, so this makes sure there's only one in the array.
-    shouldRunGame = True
-    if shouldDeleteGame:
-        deleteGame(0)
-    if shouldMakeGame:
-        gridDim = (8,8)
-        gridSize = gridDim[0] * gridDim[1]
-        turnCount = gridSize + 1 #maximum of gridSize + 1
-        clientCount = 1
-        ownerID = 1
-        p = multiprocessing.Process(target=gameHandlerThread, args=(ownerID, turnCount, gridDim, clientCount))
-        p.daemon = True
-        processes.append(p)
-        processes[-1].start()
-        processes[-1].join()
+    for gameIDNum in range(len(games)):
+        deleteGame(gameIDNum)
+
+    gridDim = (8,8)
+    gridSize = gridDim[0] * gridDim[1]
+    turnCount = gridSize + 1 #maximum of gridSize + 1
+    ownerID = 1
+    gameID = "Test-Game"
+    gameIDNum = 0
+
+    makeGame(gameIDNum, gameID, ownerID, turnCount, gridDim)
+    clientCount = 1
+    games[0].start(clientCount)
+
+    for turn in range(turnCount):
+        games[0].turnHandle()
+    print("@@@ Game", gameID, "has ended.")
