@@ -9,7 +9,7 @@ def hostGame():
     data = request.get_json()
     id = data["ID"]
     Sizex = data["Sizex"]
-    Sizey = data["sizey"]
+    Sizey = data["Sizey"]
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
 
 
