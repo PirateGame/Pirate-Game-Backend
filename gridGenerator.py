@@ -27,7 +27,7 @@ def makeGrid(gridDim):
     howManyEachAction = gridSizeToActionCount(gridSize)
     howManyActions = howManyEachAction * 11
 
-# Reference for later: maxGameLength = 55 + (5 * gridSize) + (90 * (howManyEachAction * clientCount))
+maxGameLength = 55 + (5 * gridSize) + (90 * (howManyEachAction * clientCount))
     
     def toMinimize(mA, mB, mC, mD, mAs, mBs, mCs, mDs): #The difference between the average monetary value of what the board should have been, and what it is now that tiles are being removed. This needs to be minimized to maintain the economy regardless of board size.
     
