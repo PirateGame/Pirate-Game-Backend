@@ -8,8 +8,6 @@ def gridSizeToActionCount(gridSize):
     else:
         return round((gridSize + 12.5) / 25) - 1
 
-###No, no it isn't.### - Jamie
-
 def makeGrid(gridDim):
     #gridDim = (10,10)
     gridSize = gridDim[0] * gridDim[1]
