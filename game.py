@@ -7,6 +7,8 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 games = {}
 #maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
 
+### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
+
 class gameHandler():
     def whichBoardAmI(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -29,6 +31,8 @@ class gameHandler():
         self.turnNum = -1
         self.chosenTiles = []
 
+        self.clients = {}
+
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.whichBoardAmI() == None:
             BOARDS.append([[self.gameName, self.ownerID, self.gridDim], []])
@@ -36,6 +40,25 @@ class gameHandler():
             print(self.gameName, "@@@@ CREATED by client", str(ownerID), "with", gridDim, "dimensions.")
         else:
             print(self.gameName, "@@@@ RECOVERED by client", str(ownerID), "with", gridDim, "dimensions.")
+        
+    def genNewTile():
+        options = []
+        for x in range(self.gridDim[0]):
+            for y in range(self.gridDim[1]):
+                if (x,y) not in self.chosenTiles:
+                    options.append((x,y))
+        return random.choice(options)
+    
+    def whoIsOnThatLine(rOrC, coord):
+        victims = []
+        for client in self.clients:
+            if rOrC == 1:
+                if self.clients[client].about[column] == coord:
+                    victims.append(client)
+            else:
+                if self.clients[client].about[row] == coord:
+                    victims.append(client)
+        return victims
 
     def newTurn(self, turnNum, tileOverride, clientCount, chosenTiles, randomCoords):
         self.gameIDNum = self.whichBoardAmI()
@@ -83,21 +106,24 @@ class gameHandler():
     def status(self):
         return {"turnNum":self.turnNum}
 
-    def start(self, clientCount):
+    def start(self, clients):
         self.gameIDNum = self.whichBoardAmI()
-        self.clientCount = clientCount
+        self.clientCount = len(clients)
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        for client in range(clientCount):
+        for client in range(self.clientCount):
             BOARDS[self.gameIDNum][1].append([])
         np.save("boards.npy", BOARDS)   
+
+        for key in clients:
+            self.clients[key] = clientHandler(key, clients[key])
 
         self.randomCoords = []
         for x in range(gridDim[0]):
             for y in range(gridDim[1]):
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
-        print(self.gameName, "@@@ STARTED with", clientCount, "clients.")
+        print(self.gameName, "@@@ STARTED with", self.clientCount, "clients.")
 
     def turnHandle(self):
         self.tileOverride = False
@@ -111,7 +137,67 @@ class gameHandler():
         del BOARDS[self.gameIDNum]
         np.save("boards.npy", BOARDS)
 
-#turncount should initialise to 0
+class clientHandler(gameHandler):
+    def __init__(self, clientName, isPlaying):
+        if isPlaying:
+            self.about = {"name":clientName, "money":0, "bank":0, "shield":False, "mirror":False, "column":random.randint(0,self.gridDim[0]), "row":random.randint(0,self.gridDim[1])}
+        else:
+            self.about = {"name":clientName}
+
+    def act(whatHappened, clients, chosenTiles):
+        if whatHappened == "A": #A - Rob
+            return random.choice(self.clients)
+        if whatHappened == "B": #B - Kill
+            return random.choice(self.clients)
+        if whatHappened == "C": #C - Present (Give someone 1000 of YOUR OWN cash)
+            return random.choice(self.clients)
+        if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
+            rOrC = random.randint(0,1)
+            if rOrC == 1:
+                columns = [i for i in range(self.gridDim[0])]
+                columns.remove(self.about[column])
+                choice = random.choice(columns)
+            else:
+                rows = [i for i in range(self.gridDim[1])]
+                rows.remove(self.about[rows])
+                choice = random.choice(rows)
+            victims = whoIsOnThatLine(rOrC, choice)
+            for victim in victims:
+                self.clients[victim].beActedOn("D", self.about) ###ACT
+        if whatHappened == "E": #E - Swap
+            choice = random.choice(self.clients)
+            self.clients[choice].beActedOn("E", self.about) ###ACT
+        if whatHappened == "F": #F - Choose Next Square
+            return self.genNewTile()
+        if whatHappened == "G": #G - Shield
+            self.about[shield] = True ###ACT
+        if whatHappened == "H": #H - Mirror
+            self.about[mirror] = True ###ACT
+        if whatHappened == "I": #I - Bomb (You go to 0)
+            self.about[money] = 0 ###ACT
+        if whatHappened == "J": #J - Double Cash
+            self.about[money] *= 2 ###ACT
+        if whatHappened == "K": #K - Bank
+            self.about[bank] += money ###ACT
+            self.about[money] = 0 ###ACT
+        if whatHappened == "5000": #£5000
+            self.about[money] += 5000 ###ACT
+        if whatHappened == "3000": #£3000
+            self.about[money] += 3000 ###ACT
+        if whatHappened == "1000": #£1000
+            self.about[money] += 1000 ###ACT
+        if whatHappened == "200": #£200
+            self.about[money] += 200 ###ACT
+    
+    def beActedOn(whatHappened, aboutTheSender):
+        #if self.about[shield] or self.about[mirror]:
+            ###check with the vue server here about whether the user wants to use a shield or mirror?
+        if whatHappened == "D":
+            self.about[money], self.clients[aboutTheSender[name]].about[money] = self.clients[aboutTheSender[name]].about[money], self.about[money]
+
+
+### FUNCTIONS THAT ARE NOT INDEPENDENT OF GAMES OR CLIENTS ###
+
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def makeGame(gameName, ownerID, gridDim):
     if gameName not in games:
@@ -172,8 +258,8 @@ if __name__ == "__main__":
     gameName = "Test-Game"
 
     makeGame(gameName, ownerID, gridDim)
-    clientCount = 1
-    games[gameName].start(clientCount)
+    clients = {"Jamie":True}
+    games[gameName].start(clients)
 
     ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
     print("Enter any key to begin turn iteration...")
