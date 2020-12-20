@@ -3,6 +3,8 @@ import numpy as np
 from gridGenerator import *
 import time
 
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
+
 games = {}
 
 #maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
