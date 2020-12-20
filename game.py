@@ -21,22 +21,21 @@ class gameHandler():
         else:
             return boardNum
 
-    def __init__(self, gameName, ownerID, turnCount, gridDim):
+    def __init__(self, gameName, ownerID, gridDim):
         self.gameName = gameName
         self.gameIDNum = None
         self.ownerID = ownerID
-        self.turnCount = turnCount
         self.gridDim = gridDim
         self.turnNum = -1
         self.chosenTiles = []
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.whichBoardAmI() == None:
-            BOARDS.append([[self.gameName, self.ownerID, self.turnCount, self.gridDim], []])
+            BOARDS.append([[self.gameName, self.ownerID, self.gridDim], []])
             np.save("boards.npy", BOARDS)
-            print(self.gameName, "@@@@ CREATED by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions.")
+            print(self.gameName, "@@@@ CREATED by client", str(ownerID), "with", gridDim, "dimensions.")
         else:
-            print(self.gameName, "@@@@ RECOVERED by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions.")
+            print(self.gameName, "@@@@ RECOVERED by client", str(ownerID), "with", gridDim, "dimensions.")
 
     def newTurn(self, turnNum, tileOverride, clientCount, chosenTiles, randomCoords):
         self.gameIDNum = self.whichBoardAmI()
@@ -114,13 +113,13 @@ class gameHandler():
 
 #turncount should initialise to 0
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-def makeGame(gameName, ownerID, turnCount, gridDim):
+def makeGame(gameName, ownerID, gridDim):
     if gameName not in games:
         if gameName == "":
             chars = string.ascii_letters + string.punctuation
             gameName = ''.join(random.choice(chars) for x in range(6))
 
-        g = gameHandler(gameName, ownerID, turnCount, gridDim)
+        g = gameHandler(gameName, ownerID, gridDim)
         games[gameName] = g
     else:
         print(gameName, "@@@@ FAILED GAME CREATION, that game name is already in use.")
@@ -156,9 +155,8 @@ if __name__ == "__main__":
         for gameIDNum in range(len(BOARDS)):
             gameName = BOARDS[gameIDNum][0][0]
             ownerID = BOARDS[gameIDNum][0][1]
-            turnCount = BOARDS[gameIDNum][0][2]
             gridDim = BOARDS[gameIDNum][0][3]
-            makeGame(gameName, ownerID, turnCount, gridDim)
+            makeGame(gameName, ownerID, gridDim)
     except:
         BOARDS = []
         np.save("boards.npy", BOARDS)
@@ -173,7 +171,7 @@ if __name__ == "__main__":
     ownerID = 1
     gameName = "Test-Game"
 
-    makeGame(gameName, ownerID, turnCount, gridDim)
+    makeGame(gameName, ownerID, gridDim)
     clientCount = 1
     games[gameName].start(clientCount)
 
