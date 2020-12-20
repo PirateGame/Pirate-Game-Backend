@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request
-import database
 import random
 import numpy as np
 import multiprocessing
 from gridGenerator import *
+import time
 
 games = []
 
@@ -157,5 +157,6 @@ if __name__ == "__main__":
     games[0].start(clientCount)
 
     for turn in range(turnCount):
+        time.sleep(0.1)
         games[0].turnHandle()
     print("@@@ Game", gameID, "has ended.")
