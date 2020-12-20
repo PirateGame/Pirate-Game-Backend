@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request
-import json
+from flask import Flask, render_template, request,jsonify
 import game
 
 
@@ -8,12 +7,16 @@ app = Flask(__name__)
 @app.route('/api/create_game', methods=['POST'])
 def hostGame():
     data = request.get_json()
-    id = data["ID"]
+    gameID = data["gameID"]
+    ownerID = data["ownerID"]
     Sizex = data["Sizex"]
     Sizey = data["Sizey"]
+    Host = data["isHostPlaying"]
 
-    #game.makeGame(id, Sizex, Sizey)
-    return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+    result = game.makeGame(gameID, ownerID, Sizex, Sizey, Host)
+    print(result)
+    data = {'game': result[1], 'pass': result[0]}
+    return jsonify(data)
     #this should tell the client if everything is ok, or custom name already taken.
 
 

@@ -1,4 +1,4 @@
-import random, string
+import random, string, time
 import numpy as np
 import multiprocessing
 from gridGenerator import *
@@ -6,18 +6,17 @@ from gridGenerator import *
 games = []
 
 class gameHandler():
-    def __init__(self, gameIDNum, gameID, ownerID, turnCount, gridDim):
+    def __init__(self, gameIDNum, ownerID, gameID, gridDim):
         self.gameID = gameID
         self.gameIDNum = gameIDNum
         self.ownerID = ownerID
-        self.turnCount = turnCount
         self.gridDim = gridDim
         self.turnNum = -1
         self.chosenTiles = []
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.gameIDNum >= len(BOARDS):
-            BOARDS.append([[self.ownerID, self.turnCount, self.gridDim], []])
+            BOARDS.append([[self.ownerID, self.gridDim], []])
             np.save("boards.npy", BOARDS)   
     def newTurn(self, turnNum, tileOverride, clientCount, chosenTiles, randomCoords):
         if turnNum == 0:
@@ -100,15 +99,26 @@ class gameHandler():
 #how does gameIDNum work, does it go 1-2-3-4 and we never reuse numbers? is this used in the np array?
 #need to check that gameID is not already taken
 
-def makeGame(gameIDNum, gameID, ownerID, turnCount, gridDim):
-    #something like this:
+def makeGame(gameID, ownerID, gridx, gridy, host):
+    #host. if true then host wants to play.
+
+    #TODO convert gridx and gridy to tuple
+    gridDim = (gridx, gridy)
+
+    chars = string.ascii_letters + string.digits
     if gameID == None:
-        chars = string.ascii_letters + string.punctuation
+        
         gameID = ''.join(random.choice(chars) for x in range(6))
+
+    #TODO if ID already exists find another one.
+    gameIDNum = int(time.time())
+
+    hostPasskey = ''.join(random.choice(chars) for x in range(20))
     
-    print("@@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions.")
-    g = gameHandler(gameIDNum, gameID, ownerID, turnCount, gridDim)
+    print("@@@@ A game has been made by client ", ownerID, "size: ", gridx, "x", gridy, "ID:" , gameIDNum, "Custom Name: ", gameID)
+    g = gameHandler(gameIDNum, gameID, ownerID, gridDim)
     games.append(g)
+    return [hostPasskey, gameIDNum]
 
 #delete all games.
 def clearAllGames():
