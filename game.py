@@ -110,7 +110,7 @@ def makeGame(gameIDNum, gameID, ownerID, turnCount, gridDim):
     g = gameHandler(gameIDNum, gameID, ownerID, turnCount, gridDim)
     games.append(g)
 
-#delee all games.
+#delete all games.
 def clearAllGames():
     print("@@@@ All games have been cleared.")
     for i in range(len(processes)):
@@ -121,7 +121,7 @@ def clearAllGames():
         BOARDS = []
         np.save("boards.npy", BOARDS)
 
-#delete game by ID
+#delete game by ID number
 def deleteGame(idToDelete):
     try:
         games[idToDelete].delete()
@@ -131,14 +131,14 @@ def deleteGame(idToDelete):
         print("@@@@ Game", idToDelete, "doesn't exist, so it can't be deleted!")
         pass
 
-#get the status of a game by ID
+#get the status of a game by ID number
 def status(gameIDNum):
     if gameIDNum < len(games):
         return games[gameIDNum].status()
     else:
         return False
 
-###Loading games that are "running"
+###Loading games that are "running", stored in boards.npy in case the backend crashes or something.
 try:
     BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
     for gameIDNum in range(len(BOARDS)):
@@ -170,6 +170,6 @@ if __name__ == "__main__":
     clientCount = 1
     games[0].start(clientCount)
 
-    for turn in range(turnCount):
+    for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
         games[0].turnHandle()
     print("@@@ Game", gameID, "has ended.")

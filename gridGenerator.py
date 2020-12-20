@@ -17,6 +17,8 @@ def gridSizeToActionCount(gridSize):
 #
 #That would also make the minimum area 25, as 11 specials, 1 5000, 2 3000 and 10 1000 = 24 squares (+ 1 200)
 
+###No, no it isn't.### - Jamie
+
 def makeGrid(gridDim):
     #gridDim = (10,10)
     gridSize = gridDim[0] * gridDim[1]
@@ -34,15 +36,15 @@ def makeGrid(gridDim):
     mC = int(np.ceil(gridSize * (10/49)))
     mD = int(np.ceil(gridSize * (25/49)))
     howManyEachAction = gridSizeToActionCount(gridSize)
-    howManyActions = gridSizeToActionCount(gridSize) * 11
+    howManyActions = howManyEachAction * 11
 
-    def toMinimize(mA, mB, mC, mD, mAs, mBs, mCs, mDs):
+    def toMinimize(mA, mB, mC, mD, mAs, mBs, mCs, mDs): #The difference between the average monetary value of what the board should have been, and what it is now that tiles are being removed. This needs to be minimized to maintain the economy regardless of board size.
         return np.abs((((5000*(mA-mAs))+(3000*(mB-mBs))+(1000*(mC-mCs))+(200*(mD-mDs))) / ((mA-mAs)+(mB-mBs)+(mC-mCs)+(mD-mDs))) - ((((mA)*5000)+((mB)*3000)+((mC)*1000)+((mD)*200)) / (mA+mB+mC+mD)))
 
     total = (mA + mB + mC + mD + howManyActions) - gridSize
     minimum = toMinimize(mA, mB, mC, mD, total, 0, 0, 0)
     minimumInputs = [total,0,0,0]
-    for mAs in range(total):
+    for mAs in range(total): #This tests all the possible board tile removal combinations.
         mAs += 1
         for mBs in range(total-mAs):
             mBs += 1
@@ -55,7 +57,7 @@ def makeGrid(gridDim):
                         if result < minimum:
                             minimum = result
                             minimumInputs = [mAs, mBs, mCs, mDs]
-    mA -= minimumInputs[0]
+    mA -= minimumInputs[0] #Remove the optimal combination from each type of money tile.
     mB -= minimumInputs[1]
     mC -= minimumInputs[2]
     mD -= minimumInputs[3]
@@ -82,4 +84,4 @@ def makeGrid(gridDim):
         for ac in range(howManyEachAction):
             array[coords[c+ac][0]][coords[c+ac][1]] = chr(65 + ((c - (len(mAc) + len(mBc) + len(mCc) + len(mDc)))//howManyEachAction))
     
-    return [array, {"mA":mA, "mB":mB, "mC":mC, "mD":mD, "howManyActions":howManyActions, "gridSize":gridSize}]
+    return [array, {"mA":mA, "mB":mB, "mC":mC, "mD":mD, "howManyActions":howManyActions, "gridSize":gridSize}] #Return a dictionary with all the important stuff.
