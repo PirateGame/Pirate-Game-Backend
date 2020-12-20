@@ -5,6 +5,8 @@ from gridGenerator import *
 
 games = []
 
+#maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
+
 class gameHandler():
     def __init__(self, gameIDNum, gameID, ownerID, turnCount, gridDim):
         self.gameID = gameID
