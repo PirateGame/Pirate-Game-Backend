@@ -1,4 +1,4 @@
-import random
+import random, string
 import numpy as np
 import multiprocessing
 from gridGenerator import *
@@ -92,11 +92,25 @@ class gameHandler():
         np.save("boards.npy", BOARDS)
 
 
+#this should only take gameID, gridX and gridY
+#turncount should initialise to 0
+#ownerID might not exist if host is not playing.
+#if not playing will they need an id to see the game stats or is that spoiling the fun?
+#gameID could come as 'null' if so we need to replace it with a string of 5-6 random chars
+#how does gameIDNum work, does it go 1-2-3-4 and we never reuse numbers? is this used in the np array?
+#need to check that gameID is not already taken
+
 def makeGame(gameIDNum, gameID, ownerID, turnCount, gridDim):
+    #something like this:
+    if gameID == None:
+        chars = string.ascii_letters + string.punctuation
+        gameID = ''.join(random.choice(chars) for x in range(6))
+    
     print("@@@@ A game has been made by client", str(ownerID), "with", turnCount, "turns,", gridDim, "dimensions.")
     g = gameHandler(gameIDNum, gameID, ownerID, turnCount, gridDim)
     games.append(g)
 
+#delee all games.
 def clearAllGames():
     print("@@@@ All games have been cleared.")
     for i in range(len(processes)):
@@ -107,6 +121,7 @@ def clearAllGames():
         BOARDS = []
         np.save("boards.npy", BOARDS)
 
+#delete game by ID
 def deleteGame(idToDelete):
     try:
         games[idToDelete].delete()
@@ -116,6 +131,7 @@ def deleteGame(idToDelete):
         print("@@@@ Game", idToDelete, "doesn't exist, so it can't be deleted!")
         pass
 
+#get the status of a game by ID
 def status(gameIDNum):
     if gameIDNum < len(games):
         return games[gameIDNum].status()

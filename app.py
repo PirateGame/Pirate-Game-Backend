@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 import json
 import game
-import gridGenerator
 
 
 app = Flask(__name__)
@@ -12,7 +11,10 @@ def hostGame():
     id = data["ID"]
     Sizex = data["Sizex"]
     Sizey = data["Sizey"]
+
+    #game.makeGame(id, Sizex, Sizey)
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+    #this should tell the client if everything is ok, or custom name already taken.
 
 
 
