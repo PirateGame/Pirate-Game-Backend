@@ -4,9 +4,7 @@ from gridGenerator import *
 import time
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
-
 games = {}
-
 #maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
 
 class gameHandler():
@@ -114,10 +112,8 @@ class gameHandler():
         del BOARDS[self.gameIDNum]
         np.save("boards.npy", BOARDS)
 
-
 #turncount should initialise to 0
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-
 def makeGame(gameName, ownerID, turnCount, gridDim):
     if gameName not in games:
         if gameName == "":
@@ -145,15 +141,12 @@ def deleteGame(gameNames):
     else:
         print(success, "@@@@ DELETED")
 
-
 #get the status of a game by ID number
 def status(gameName):
     try:
         return games[gameName].status()
     except:
         return False
-
-
 
 ### MAIN THREAD ###
 if __name__ == "__main__":
