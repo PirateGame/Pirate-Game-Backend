@@ -1,6 +1,11 @@
 from flask import Flask, render_template, request,jsonify
 import game
+import pymongo
 
+myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+mydb = myclient["mydatabase"]
+
+mycol = mydb["accounts"]
 
 app = Flask(__name__)
 

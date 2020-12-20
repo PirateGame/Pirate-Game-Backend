@@ -26,8 +26,6 @@ def makeGrid(gridDim):
     mD = int(np.ceil(gridSize * (25/49)))
     howManyEachAction = gridSizeToActionCount(gridSize)
     howManyActions = howManyEachAction * 11
-
-    #maxGameLength = 55 + (5 * gridSize) + (90 * (howManyEachAction * clientCount))
     
     def toMinimize(mA, mB, mC, mD, mAs, mBs, mCs, mDs): #The difference between the average monetary value of what the board should have been, and what it is now that tiles are being removed. This needs to be minimized to maintain the economy regardless of board size.
         return np.abs((((5000*(mA-mAs))+(3000*(mB-mBs))+(1000*(mC-mCs))+(200*(mD-mDs))) / ((mA-mAs)+(mB-mBs)+(mC-mCs)+(mD-mDs))) - ((((mA)*5000)+((mB)*3000)+((mC)*1000)+((mD)*200)) / (mA+mB+mC+mD))) 
