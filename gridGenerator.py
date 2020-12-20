@@ -7,15 +7,6 @@ def gridSizeToActionCount(gridSize):
         return 1
     else:
         return round((gridSize + 12.5) / 25) - 1
-#Is it better to do this for 5000, 3000 and 1000 as well, and then fill the grid with 200s?
-#
-#E.g. for 3000:
-#if gridSize <= 25:
-#   return 2
-#else:
-#   return 2 * (round((gridSize + 12.5) / 25) - 1)
-#
-#That would also make the minimum area 25, as 11 specials, 1 5000, 2 3000 and 10 1000 = 24 squares (+ 1 200)
 
 ###No, no it isn't.### - Jamie
 
@@ -39,6 +30,9 @@ def makeGrid(gridDim):
     howManyActions = howManyEachAction * 11
 
     def toMinimize(mA, mB, mC, mD, mAs, mBs, mCs, mDs): #The difference between the average monetary value of what the board should have been, and what it is now that tiles are being removed. This needs to be minimized to maintain the economy regardless of board size.
+# Reference for later: maxGameLength = 55 + (5 * gridSize) + (90 * (howManyEachAction * clientCount))
+    
+    def toMinimize(mA, mB, mC, mD, mAs, mBs, mCs, mDs):
         return np.abs((((5000*(mA-mAs))+(3000*(mB-mBs))+(1000*(mC-mCs))+(200*(mD-mDs))) / ((mA-mAs)+(mB-mBs)+(mC-mCs)+(mD-mDs))) - ((((mA)*5000)+((mB)*3000)+((mC)*1000)+((mD)*200)) / (mA+mB+mC+mD)))
 
     total = (mA + mB + mC + mD + howManyActions) - gridSize
