@@ -1,16 +1,16 @@
 For any board,
 
-A - Rob
-B - Kill
+A - Rob (Steal someone's balance)
+B - Kill (Make someone's balance AND bank go to 0)
 C - Present (Give someone 1000 of YOUR OWN cash)
-D - Skull and Crossbones (Wipe out (Number of players)/3 people)
-E - Swap
-F - Choose Next Square
-G - Shield
-H - Mirror
-I - Bomb (You go to 0)
-J - Double Cash
-K - Bank
+D - Skull and Crossbones (Very complicated, explained below (for now just say make 3 people's balance 0))
+E - Swap (Swap balances with one other player)
+F - Choose Next Square (Have a guess!)
+G - Shield (Gain a shield - stops an action happening to you)
+H - Mirror (Gain a mirror - reflects the action as if you are doing it to the person who did it to you)
+I - Bomb (Your balance goes to 0)
+J - Double Cash (Your balance is doubled)
+K - Bank (Your balance is added to your bank, and then goes to 0)
 
 For a 7x7 grid (49 cells)
 
@@ -18,3 +18,13 @@ For a 7x7 grid (49 cells)
 2:49 2x £3000
 10:49 10x £1000
 25:49 25x £200
+
+Skull and Crossbones Rules:
+1. At start of game, each player selects a letter and a number (out of A, B or C, and then 1, 2 or 3).
+2. When a player lands on Skull and Crossbones, that player has to select either a letter OR a number.
+3. Any player who has selected that letter or number has their balance go to 0, but it doesn't affect their bank
+4. If two people who have the letter or number selected have a shield and both choose to use it, the action is blocked for all those affected
+5. If two people who have the letter or number selected have a mirror and both choose to use it, the action is reflected back to the letter/number of the person who landed on Skull and Crossbones
+
+E.g. Alex (B3) selects A. Ben (A1) and Charlie (A2) both have A, so both have their balance go to 0.
+However, Ben and Charlie both have a mirror, and use it. Therefore, as Alex picked a letter, everyone who selected B at the start of the game goes to 0 instead of A.
