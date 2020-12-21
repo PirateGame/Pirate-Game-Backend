@@ -301,7 +301,7 @@ if __name__ == "__main__":
         makeGame(gameName, ownerID, gridDim)
         clients = {"Jamie":True, "Tom":True} #Player name, whether they're playing.
         for client in clients:
-            games[gameName].lobbyJoin({client:clients[client]})
+            games[gameName].lobbyJoin({client:clients[client]}) #THis will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
 
         ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to begin turn iteration...")
