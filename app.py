@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request,jsonify
 import game
 import pymongo
+import random, string
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["mydatabase"]
@@ -13,19 +14,39 @@ app = Flask(__name__)
 def hostGame():
     data = request.get_json()
     gameName = data["gameName"]
-    ownerID = data["ownerID"]
+    ownerName = data["ownerName"]
     Sizex = data["Sizex"]
     Sizey = data["Sizey"]
-    Host = data["isHostPlaying"]
+    isPlaying = data["isHostPlaying"]
 
     Dim = (Sizex, Sizey)
+    #session = game.gameHandler(gameName, ownerName, Dim)
+    #result = game.clientHandler(gameName, ownerName, isPlaying)
+    #authCode = result.authCode
 
-    result = game.makeGame(gameName, ownerID, Dim)
-    print(result)
-    #data = {'game': result[1], 'pass': result[0]}
-    data = "Success"
+
+    temp = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))
+    
+    
+    data = {"authCode": temp}
     return jsonify(data)
-    #this should tell the client if everything is ok, or custom name already taken.
+
+
+@app.route('/api/join_game', methods=['POST'])
+def joinGame():
+    data = request.get_json()
+    print(data)
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+
+    #join game
+
+    data = {
+        "authCode": "not-implemented",
+        "gameAvaliable": "not-implemeted"
+    }
+    return jsonify(data)
+
 
 
 

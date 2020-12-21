@@ -12,19 +12,29 @@ games = {}
 class gameHandler():
     def whichBoardAmI(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        notFound = True
+        Found = False
         boardNum = -1
-        while notFound and boardNum + 1 < len(BOARDS):
+        while not Found and boardNum + 1 < len(BOARDS):
             boardNum += 1
-            if BOARDS[boardNum][0]["gameName"] == self.gameName:
-                notFound = False
-        if notFound:
-            return None
-        else:
+            try:
+                if BOARDS[boardNum][0][self.gameName] == self.gameName:
+                    Found = True
+            except Exception:
+                pass
+        if Found:
             return boardNum
+        else:
+            return None
 
     def __init__(self, gameName, ownerID, gridDim):
         self.gameName = gameName
+
+        if self.gameName == None:
+            self.gameName = ''.join(random.choice(string.ascii_lowercase) for x in range(6))
+
+        #This is just so it works for now
+        self.gameName = 1234
+        #####################################
         self.gameIDNum = None
         self.ownerID = ownerID
         self.gridDim = gridDim
@@ -146,10 +156,14 @@ class gameHandler():
 class clientHandler():
     def __init__(self, game, clientName, isPlaying):
         self.game = game
+
+        self.authCode = 45
+
         if isPlaying:
             self.about = {"name":clientName, "isPlaying": isPlaying, "money":0, "bank":0, "shield":False, "mirror":False, "column":random.randint(0,self.game.gridDim[0]-1), "row":random.randint(0,self.game.gridDim[1]-1)}
         else:
             self.about = {"name":clientName, "isPlaying": isPlaying}
+        
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob
