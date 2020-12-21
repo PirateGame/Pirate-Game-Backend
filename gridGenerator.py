@@ -9,6 +9,7 @@ def gridSizeToActionCount(gridSize):
         return round((gridSize + 12.5) / 25) - 1
 
 def makeGrid(gridDim):
+    gridDim = gridDim[::-1]
     #gridDim = (10,10)
     gridSize = gridDim[0] * gridDim[1]
 
@@ -73,4 +74,4 @@ def makeGrid(gridDim):
         for ac in range(howManyEachAction):
             array[coords[c+ac][0]][coords[c+ac][1]] = chr(65 + ((c - (len(mAc) + len(mBc) + len(mCc) + len(mDc)))//howManyEachAction))
     
-    return [array, {"mA":mA, "mB":mB, "mC":mC, "mD":mD, "howManyActions":howManyActions, "gridSize":gridSize}] #Return a dictionary with all the important stuff.
+    return [array, {"mA":mA, "mB":mB, "mC":mC, "mD":mD, "howManyActions":howManyActions, "gridSize":gridSize}] #Return a list with the array and then a dictionary with all the important stuff.
