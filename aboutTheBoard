@@ -28,3 +28,17 @@ Skull and Crossbones Rules:
 
 E.g. Alex (B3) selects A. Ben (A1) and Charlie (A2) both have A, so both have their balance go to 0.
 However, Ben and Charlie both have a mirror, and use it. Therefore, as Alex picked a letter, everyone who selected B at the start of the game goes to 0 instead of A.
+
+What information is broadcasted to the public when each of these actions occur? (in detail please Ben!)
+
+A - Rob - 
+B - Kill - 
+C - Present - 
+D - Skull and Crossbones - 
+E - Swap - 
+F - Choose Next Square - 
+G - Shield - 
+H - Mirror - 
+I - Bomb - 
+J - Double Cash - 
+K - Bank - 
