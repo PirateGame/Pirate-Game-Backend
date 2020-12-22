@@ -45,13 +45,14 @@ def createGame():
     #TODO this needs adjusting in the host control panel
     decisionTime = 30
 
-    session = game.makeGame(gameName, ownerName, gridDim, decisionTime)
-    print(game.status(gameName))
-    print(game.getGame(gameName))
+    game.makeGame(gameName, ownerName, gridDim, decisionTime)
+
     if isPlaying:
-        player = game.getGame(gameName).lobbyJoin({ownerName:{"isPlaying":True}})
-        print(game.status(gameName))
-    #print(game.about["clients"][ownerName].about)
+        game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
+
+    status = game.status(gameName)
+
+    print(status)
     
     
     data = {"stuff":True}#{"authCode": player.about["authCode"]}
