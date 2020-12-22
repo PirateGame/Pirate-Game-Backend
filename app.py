@@ -96,9 +96,11 @@ def gameHandlerThread():
 
 processes = []
 if __name__ == "__main__":
+    '''
     p = multiprocessing.Process(target=gameHandlerThread, args=())
     p.daemon = True
     processes.append(p)
-    app.run(debug=False, host="0.0.0.0")
     processes[-1].start()
     processes[-1].join()
+    '''
+    app.run(debug=False, host="localhost")
