@@ -20,6 +20,10 @@ db = client.pirategame
 #Access the users collection
 users = db.users
 
+
+### MAIN THREAD ###
+app = Flask(__name__)
+
 #Route that will return the first user in the users collection
 @app.route('/')
 def index():
@@ -29,7 +33,7 @@ def index():
 
 
 @app.route('/api/create_game', methods=['POST'])
-def hostGame():
+def createGame():
     data = request.get_json()
     gameName = data["gameName"]
     ownerName = data["ownerName"]
@@ -84,11 +88,6 @@ def getPlayers():
         data = {"game": False}
         return jsonify(data)
     print(session.status(gameName))
-
-
-
-### MAIN THREAD ###
-app = Flask(__name__)
 
 processes = []
 if __name__ == "__main__":
