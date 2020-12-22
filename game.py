@@ -34,7 +34,7 @@ class prettyPrinter():
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 
 class gameHandler():
-    def __init__(self, gameName, ownerID, gridDim):
+    def __init__(self, gameName, ownerID, gridDim, decisionTime):
         def updateBOARDS(whatToUpdate):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             if whatToUpdate[0] == None:
@@ -45,7 +45,7 @@ class gameHandler():
                 BOARDS[self.about["gameName"]] = whatToUpdate
             np.save("boards.npy", BOARDS)
         
-        self.about = {"gameName": gameName, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
+        self.about = {"gameName": gameName, "decisionTime":decisionTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.about["gameName"] not in BOARDS:
@@ -288,13 +288,13 @@ class clientHandler():
 ### FUNCTIONS THAT ARE NOT INDEPENDENT OF GAMES OR CLIENTS ###
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-def makeGame(gameName, ownerID, gridDim):
+def makeGame(gameName, ownerID, gridDim, decisionTime):
     if gameName not in games:
         if gameName == "":
             chars = string.ascii_letters + string.punctuation
             gameName = ''.join(random.choice(chars) for x in range(6))
 
-        g = gameHandler(gameName, ownerID, gridDim)
+        g = gameHandler(gameName, ownerID, gridDim, decisionTime)
         games[gameName] = g
     else:
         print(gameName, "@@@@ FAILED GAME CREATION, that game name is already in use.")
@@ -333,7 +333,8 @@ if __name__ == "__main__":
             gameName = gameName
             ownerID = BOARDS[gameName][0]["ownerID"]
             gridDim = BOARDS[gameName][0]["gridDim"]
-            makeGame(gameName, ownerID, gridDim)
+            decisionTime = BOARDS[gameName][0]["decisionTime"]
+            makeGame(gameName, ownerID, gridDim, decisionTime)
     except:
         BOARDS = {}
         np.save("boards.npy", BOARDS)
@@ -348,9 +349,10 @@ if __name__ == "__main__":
         turnCount = gridSize + 1 #maximum of gridSize + 1
         ownerID = 1
         gameName = "Test-Game " + str(time.time())[-6:]
+        decisionTime = 10
 
         ###Setting up a test game
-        makeGame(gameName, ownerID, gridDim)
+        makeGame(gameName, ownerID, gridDim, decisionTime)
 
         ###Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
