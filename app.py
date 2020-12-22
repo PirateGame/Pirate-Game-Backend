@@ -59,20 +59,12 @@ def joinGame():
     data = request.get_json()
     gameName = data["gameName"]
     playerName = data["playerName"]
-
-    try:
-        game.getGame(gameName)
-    except:
-        print("no game found")
-        data = {"game":False}
-        return jsonify(data)
     
-    print("game found")
-    session = game.getGame(gameName).lobbyJoin({playerName:{"isPlaying":True}})
-    print(game.status(gameName))
+    print(game.joinLobby(gameName, {playerName:{"isPlaying":True}})) #This will show what happened when trying to join each player to the lobby
+    print(game.status(gameName)) #This will show the general status of the game
 
     data = {"game": True}
-    return jsonify(data)
+    return jsonify(data) #This is mega broken
 
 @app.route('/api/getPlayers', methods=['POST'])
 def getPlayers():
