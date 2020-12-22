@@ -11,8 +11,6 @@ from uri import URI
 
 app = Flask(__name__)
 
-game.deleteGame([key for key in game.games])
-
 #Connect to database and assign it to the db object
 client = pymongo.MongoClient(URI)
 db = client.pirategame
