@@ -102,7 +102,7 @@ class gameHandler():
         #A signal should be emitted here to the Vue Server holding the new turn's tile coordinates, for each vue client to process what on their grid
     def status(self):
         return self.about
-    
+
     def leaderboard(self):
         #for w in sorted(d, key=d.get, reverse=True):
             #print(w, d[w])
@@ -323,6 +323,12 @@ def deleteGame(gameNames):
 def status(gameName):
     try:
         return games[gameName].status()
+    except:
+        return False
+
+def getGame(gameName):
+    try:
+        return games[gameName]
     except:
         return False
 
