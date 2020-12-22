@@ -7,6 +7,9 @@
 pirate-game-online
 environment
 
+#Ignore the database
+uri.py
+
 # User-specific files
 *.rsuser
 *.suo

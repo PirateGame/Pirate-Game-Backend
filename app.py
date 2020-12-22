@@ -1,10 +1,25 @@
-from flask import Flask, render_template, request,jsonify
+from flask import Flask, render_template, request
+import random
+import numpy as np
+import multiprocessing
 import game
-import random, string
+
+
+### SET UP DATABASE ###
+import pymongo
+from uri import URI
 
 app = Flask(__name__)
 
 game.deleteGame([key for key in game.games])
+
+#Connect to database and assign it to the db object
+client = pymongo.MongoClient(URI)
+db = client.pirategame
+
+#Access the users collection
+users = db.users
+
 
 @app.route('/api/create_game', methods=['POST'])
 def hostGame():
@@ -15,6 +30,20 @@ def hostGame():
     Sizey = data["Sizey"]
     isPlaying = data["isHostPlaying"]
 
+
+
+
+
+#Route that will return the first user in the users collection
+@app.route('/')
+def index():
+    #Returns the first item of the users collection
+    return users.find_one()
+
+
+
+@app.route('/api/host_game', methods=['POST'])
+def hostGame():
     gridDim = (Sizex, Sizey)
     #TODO this needs adjusting in the host control panel
     decisionTime = 30
@@ -65,5 +94,16 @@ def getPlayers():
 
 
 
+### MAIN THREAD ###
+app = Flask(__name__)
+
+processes = []
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    '''
+    p = multiprocessing.Process(target=gameHandlerThread, args=())
+    p.daemon = True
+    processes.append(p)
+    processes[-1].start()
+    processes[-1].join()
+    '''
+    app.run(debug=False, host="localhost")
