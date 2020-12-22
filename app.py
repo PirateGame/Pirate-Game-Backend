@@ -11,8 +11,6 @@ from uri import URI
 
 app = Flask(__name__)
 
-game.deleteGame([key for key in game.games])
-
 #Connect to database and assign it to the db object
 client = pymongo.MongoClient(URI)
 db = client.pirategame
@@ -45,13 +43,14 @@ def createGame():
     #TODO this needs adjusting in the host control panel
     decisionTime = 30
 
-    session = game.makeGame(gameName, ownerName, gridDim, decisionTime)
-    print(game.status(gameName))
-    print(game.getGame(gameName))
+    game.makeGame(gameName, ownerName, gridDim, decisionTime)
+
     if isPlaying:
-        player = game.getGame(gameName).lobbyJoin({ownerName:{"isPlaying":True}})
-        print(game.status(gameName))
-    #print(game.about["clients"][ownerName].about)
+        game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
+
+    status = game.status(gameName)
+
+    print(status)
     
     
     data = {"stuff":True}#{"authCode": player.about["authCode"]}
