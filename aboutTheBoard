@@ -29,48 +29,50 @@ Skull and Crossbones Rules:
 E.g. Alex (B3) selects A. Ben (A1) and Charlie (A2) both have A, so both have their balance go to 0.
 However, Ben and Charlie both have a mirror, and use it. Therefore, as Alex picked a letter, everyone who selected B at the start of the game goes to 0 instead of A.
 
-What information is broadcasted to the public when each of these actions occur? (in detail please Ben!)
+What information is broadcasted to the public when each of these actions occur?
 
-A - Rob
+For A B D and E, there is a 5 second delay between 'wants to' and 'did' clauses, to allow mirror/shield to be used if they want to.
+
+A - Rob - Public (Player 1 chooses Player 2 to rob, AI shows 'Player 1 has a rob', then 'Player 1 is going to rob Player 2', then 'Player 1 stole "VALUE" from Player 2')
 Sender: [+0, +oo] money
 Receiver: money = 0
 
-B - Kill
+B - Kill - Public (Player 1 chooses Player 2 to kill, AI shows 'Player 1 has a kill', then 'Player 1 is going to kill Player 2', then 'Player 1 killed Player 2')
 Sender:
 Receiver: bank, money = 0, 0
 
-C - Present
+C - Present - Public (Player 1 chooses Player 2 to give present to, AI shows 'Player 1 has a Present', then 'Player 1 gave 1000 to Player 2')
 Sender: [0, -1000] money
 Receiver: [0, +1000] money
 
-D - Skull and Crossbones
+D - Skull and Crossbones - Public (Player 1 chooses letter/number, AI shows 'Player 1 has Skull and Crossbones', then 'Player 1 is going to wipe out team "letter/number"', then 'Player 1 wiped out team "letter/number"')
+Sender:
+Receiver: money = 0
+
+E - Swap - Public (Player 1 choose Player 2 to swap with, AI shows 'Player 1 has a Swap', then 'Player 1 is going to swap with Player 2', then 'Player 1 swapped with Player 2, giving away "VALUE" and receiving "VALUE"')
+Sender:
+Receiver: 
+
+F - Choose Next Square - Public, at end of sequence (Player 1 chooses the next square, AI shows 'Player 1 is choosing the next square', then 'Player 1 chose "GRIDSQUARE"')
 Sender:
 Receiver:
 
-E - Swap
+G - Shield - Private until use, and then public (E.G. Player 2 is being robbed by Player 1, after 'Player 1 is going to rob Player 2', AI shows 'Player 2 has blocked Player 1's rob with a shield')
 Sender:
 Receiver:
 
-F - Choose Next Square
+H - Mirror - Private until use, and then public (E.G. Player 2 is being robbed by Player 1, after 'Player 1 is going to rob Player 2', AI shows 'Player 2 has blocked Player 1's rob with a mirror', then 'Player 2 is going to rob Player 1',...)
 Sender:
 Receiver:
 
-G - Shield
+I - Bomb - Private
 Sender:
 Receiver:
 
-H - Mirror
+J - Double Cash - Private
 Sender:
 Receiver:
 
-I - Bomb
-Sender:
-Receiver:
-
-J - Double Cash
-Sender:
-Receiver:
-
-K - Bank
+K - Bank - Private
 Sender:
 Receiver:
