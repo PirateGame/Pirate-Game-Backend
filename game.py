@@ -366,6 +366,7 @@ if __name__ == "__main__":
             except:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format.")
     except:
+        print("@@@@ No games were loaded.")
         BOARDS = {}
         np.save("boards.npy", BOARDS)
     
