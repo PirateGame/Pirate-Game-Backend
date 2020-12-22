@@ -287,7 +287,8 @@ class clientHandler():
                 self.about["shield"] = False
 
 
-### FUNCTIONS THAT ARE NOT INDEPENDENT OF GAMES OR CLIENTS ###
+### FUNCTIONS THAT ALLOW APP.PY TO INTERACT WITH GAME AND CLIENT OBJECTS, ###
+### and also the main thread, which includes demo code. ###
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def makeGame(gameName, ownerID, gridDim, decisionTime):
@@ -326,11 +327,9 @@ def status(gameName):
     except:
         return False
 
-def getGame(gameName):
-    try:
-        return games[gameName]
-    except:
-        return False
+#get the clients of a game by name
+def listClients(gameName):
+    return games[gameName].about["clients"]
 
 ### MAIN THREAD ###
 if __name__ == "__main__":
