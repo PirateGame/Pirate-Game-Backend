@@ -105,10 +105,13 @@ class gameHandler():
         return self.about
 
     def leaderboard(self):
-        #for w in sorted(d, key=d.get, reverse=True):
-            #print(w, d[w])
-        for client in self.about["clients"]: # sort this using the above code.
-            print(self.about["clients"][client].about["name"], "has score", self.about["clients"][client].about["bank"] + self.about["clients"][client].about["money"])
+        clientByScore = {}
+        for client in self.about["clients"]:
+            clientByScore[client] = self.about["clients"][client].about["scoreHistory"][-1]
+        out = {}
+        for client in sorted(clientByScore, key=clientByScore.get, reverse=True):
+            out[client] = {"score":clientByScore[client], "money":self.about["clients"][client].about["money"], "bank":self.about["clients"][client].about["bank"]}
+        return out
     
     def joinLobby(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -336,6 +339,18 @@ def listClients(gameName):
 def joinLobby(gameName, clients):
     return games[gameName].joinLobby(clients)
 
+def exitLobby(gameName, clients):
+    return games[gameName].exit(clients)
+
+def leaderboard(gameName):
+    return games[gameName].leaderboard()
+
+def turnHandle(gameName):
+    return games[gameName].turnHandle()
+
+def start(gameName):
+    return games[gameName].start()
+
 ### MAIN THREAD ###
 if __name__ == "__main__":
     ###Loading games that are "running", stored in boards.npy in case the backend crashes or something.
@@ -375,18 +390,20 @@ if __name__ == "__main__":
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
         ###Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
-        games[gameName].exit(["Jamie"])
+        exitLobby(gameName, ["Jamie"])
 
         ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to iterate a turn...")
         shallIContinue = input()
 
-        games[gameName].start()
+        start(gameName)
         for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
             shallIContinue = input()
-            games[gameName].turnHandle()
+            turnHandle(gameName)
+            print("Leaderboard:", leaderboard(gameName))
+        
         print(gameName, "@@@ Game over.")
-        games[gameName].leaderboard()
+        print("Leaderboard:", leaderboard(gameName))
         deleteGame([key for key in games])
         for i in range(3):
             print("")
