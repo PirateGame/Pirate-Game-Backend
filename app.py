@@ -1,16 +1,30 @@
 from flask import Flask, render_template, request
-import database
 import random
 import numpy as np
 import multiprocessing
 
-###FLASK DEMO ON THE MAIN THREAD###
-app = Flask(__name__)
 
+### SET UP DATABASE ###
+import pymongo
+from uri import URI
+
+#Connect to database and assign it to the db object
+client = pymongo.MongoClient(URI)
+db = client.pirategame
+
+#Access the users collection
+users = db.users
+
+
+
+#Route that will return the first user in the users collection
 @app.route('/')
 def index():
-    return 'test route'
-### ###
+    #Returns the first item of the users collection
+    return users.find_one()
+
+
+
 
 #This can be multi/singleprocessed as a thread for asynchronous behaviour.
 def gameHandlerThread():  
@@ -93,6 +107,7 @@ def gameHandlerThread():
         runGame(0) #id of the game to run
 
 ### MAIN THREAD ###
+app = Flask(__name__)
 
 processes = []
 if __name__ == "__main__":
