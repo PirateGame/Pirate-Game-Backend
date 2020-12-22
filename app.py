@@ -80,6 +80,7 @@ def joinGame():
 
 @app.route('/api/getPlayers', methods=['POST'])
 def getPlayers():
+    '''
     data = request.get_json()
     gameName = data["gameName"]
     session = game.getGame(gameName)
@@ -87,7 +88,15 @@ def getPlayers():
         print("game not found")
         data = {"game": False}
         return jsonify(data)
-    print(session.status(gameName))
+    '''
+    print("here")
+    data = {
+        "1": "Bob",
+        "2": "Derek",
+        "3": "Sam",
+        "4": "Alan"
+    }
+    return jsonify(data)
 
 processes = []
 if __name__ == "__main__":
