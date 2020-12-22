@@ -20,6 +20,13 @@ db = client.pirategame
 #Access the users collection
 users = db.users
 
+#Route that will return the first user in the users collection
+@app.route('/')
+def index():
+    #Returns the first item of the users collection
+    return users.find_one()
+
+
 
 @app.route('/api/create_game', methods=['POST'])
 def hostGame():
@@ -30,20 +37,6 @@ def hostGame():
     Sizey = data["Sizey"]
     isPlaying = data["isHostPlaying"]
 
-
-
-
-
-#Route that will return the first user in the users collection
-@app.route('/')
-def index():
-    #Returns the first item of the users collection
-    return users.find_one()
-
-
-
-@app.route('/api/host_game', methods=['POST'])
-def hostGame():
     gridDim = (Sizex, Sizey)
     #TODO this needs adjusting in the host control panel
     decisionTime = 30
