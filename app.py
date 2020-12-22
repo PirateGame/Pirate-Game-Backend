@@ -5,7 +5,7 @@ import multiprocessing
 import game
 
 
-### SET UP DATABASE ###
+# SET UP DATABASE #
 import pymongo
 from uri import URI
 
@@ -18,8 +18,7 @@ db = client.pirategame
 #Access the users collection
 users = db.users
 
-
-### MAIN THREAD ###
+#Make the app
 app = Flask(__name__)
 
 #Route that will return the first user in the users collection
@@ -27,8 +26,6 @@ app = Flask(__name__)
 def index():
     #Returns the first item of the users collection
     return users.find_one()
-
-
 
 @app.route('/api/create_game', methods=['POST'])
 def createGame():
@@ -99,11 +96,4 @@ def getPlayers():
 
 processes = []
 if __name__ == "__main__":
-    '''
-    p = multiprocessing.Process(target=gameHandlerThread, args=())
-    p.daemon = True
-    processes.append(p)
-    processes[-1].start()
-    processes[-1].join()
-    '''
     app.run(debug=False, host="localhost")

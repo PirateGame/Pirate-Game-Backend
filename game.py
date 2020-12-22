@@ -1,6 +1,6 @@
 import random, string, time
 import numpy as np
-from gridGenerator import *
+import gridGenerator
 import time
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
@@ -109,19 +109,19 @@ class gameHandler():
         for client in self.about["clients"]: # sort this using the above code.
             print(self.about["clients"][client].about["name"], "has score", self.about["clients"][client].about["bank"] + self.about["clients"][client].about["money"])
     
-    def lobbyJoin(self, clients):
+    def joinLobby(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client, about in clients.items():
             try:
-                gr = makeGrid(gridDim)
+                gr = gridGenerator.makeGrid(self.about["gridDim"])
                 self.about["clients"][client] = clientHandler(self, client, about)
                 if about["isPlaying"]:
                     BOARDS[self.about["gameName"]][1][client] = gr[0]
                 out.append(True)
-            except:
-                out.append(False)
+            except Exception as e:
+                out.append(e)
         BOARDS = np.save("boards.npy", BOARDS)
         return out
     
@@ -333,7 +333,7 @@ def listClients(gameName):
 
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
-    games[gameName].lobbyJoin(clients)
+    return games[gameName].joinLobby(clients)
 
 ### MAIN THREAD ###
 if __name__ == "__main__":
