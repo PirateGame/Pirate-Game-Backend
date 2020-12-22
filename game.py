@@ -331,6 +331,10 @@ def status(gameName):
 def listClients(gameName):
     return games[gameName].about["clients"]
 
+#join one or several clients to a lobby
+def joinLobby(gameName, clients):
+    games[gameName].lobbyJoin(clients)
+
 ### MAIN THREAD ###
 if __name__ == "__main__":
     ###Loading games that are "running", stored in boards.npy in case the backend crashes or something.
@@ -363,7 +367,7 @@ if __name__ == "__main__":
 
         ###Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
-        games[gameName].lobbyJoin(clients) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+        joinLobby(gameName, clients) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
         ###Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
