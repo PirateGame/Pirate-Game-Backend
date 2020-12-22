@@ -365,11 +365,12 @@ if __name__ == "__main__":
         games[gameName].exit(["Jamie"])
 
         ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
-        print("Enter any key to begin turn iteration...")
+        print("Enter any key to iterate a turn...")
         shallIContinue = input()
 
         games[gameName].start()
         for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
+            shallIContinue = input()
             games[gameName].turnHandle()
         print(gameName, "@@@ Game over.")
         games[gameName].leaderboard()
