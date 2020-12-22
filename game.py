@@ -319,7 +319,7 @@ def deleteGame(gameNames):
     else:
         print("@@@@ NOTHING DELETED")
 
-#get the status of a game by ID number
+#get the status of a game by name
 def status(gameName):
     try:
         return games[gameName].status()
