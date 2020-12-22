@@ -104,7 +104,9 @@ class gameHandler():
         return self.about
     
     def leaderboard(self):
-        for client in self.about["clients"]:
+        #for w in sorted(d, key=d.get, reverse=True):
+            #print(w, d[w])
+        for client in self.about["clients"]: # sort this using the above code.
             print(self.about["clients"][client].about["name"], "has score", self.about["clients"][client].about["bank"] + self.about["clients"][client].about["money"])
     
     def lobbyJoin(self, clients):
@@ -123,7 +125,7 @@ class gameHandler():
         BOARDS = np.save("boards.npy", BOARDS)
         return out
     
-    def lobbyExit(self, clients):
+    def exit(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
@@ -359,8 +361,8 @@ if __name__ == "__main__":
         games[gameName].lobbyJoin(clients) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
-        ###Kicking one of the imaginary players.
-        games[gameName].lobbyExit(["Jamie"])
+        ###Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
+        games[gameName].exit(["Jamie"])
 
         ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to begin turn iteration...")
