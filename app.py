@@ -78,12 +78,10 @@ def getPlayers():
         return jsonify(data)
     
     data = game.listClients(gameName)
+    print(data)
+    players = list(data.keys())
 
-    return jsonify(data)
-    
-
-    
-    return jsonify(data)
+    return jsonify(players)
 
 processes = []
 if __name__ == "__main__":
