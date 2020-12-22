@@ -76,22 +76,21 @@ def joinGame():
 
 @app.route('/api/getPlayers', methods=['POST'])
 def getPlayers():
-    '''
+    
     data = request.get_json()
     gameName = data["gameName"]
-    session = game.getGame(gameName)
+    session = game.status(gameName)
     if session == False:
         print("game not found")
         data = {"game": False}
         return jsonify(data)
-    '''
-    print("here")
-    data = {
-        "1": "Bob",
-        "2": "Derek",
-        "3": "Sam",
-        "4": "Alan"
-    }
+    
+    data = game.listClients(gameName)
+
+    return jsonify(data)
+    
+
+    
     return jsonify(data)
 
 processes = []
