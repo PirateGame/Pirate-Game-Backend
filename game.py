@@ -2,6 +2,7 @@ import random, string, time
 import numpy as np
 import gridGenerator
 import time
+import analyse
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 games = {}
@@ -183,6 +184,7 @@ class clientHandler():
 
         if about["isPlaying"]:
             self.about = {"name":client, "isPlaying": about["isPlaying"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
+            self.estimateHandler = analyse.clientEstimateHandler(self)
         else:
             self.about = {"name":client, "isPlaying": about["isPlaying"]}
     
@@ -331,9 +333,26 @@ def status(gameName):
     except:
         return False
 
-#get the clients of a game by name
-def listClients(gameName):
-    return games[gameName].about["clients"]
+#get the clients of a game by name and return either public or private information
+def listClients(about):
+    if about["private"]:
+        out = {}
+        for client in games[about["gameName"]].about["clients"]:
+            out[client] = games[about["gameName"]].about["clients"][client].about
+    else:
+        out = {}
+        for client in games[about["gameName"]].about["clients"]:
+            tempAbout = games[about["gameName"]].about["clients"][client].about
+            tempAbout["authCode"] = None
+            tempAbout["money"] = None
+            tempAbout["bank"] = None
+            tempAbout["scoreHistory"] = None
+            tempAbout["shield"] = None
+            tempAbout["mirror"] = None
+            tempAbout["column"] = None
+            tempAbout["row"] = None
+            out[client] = games[about["gameName"]].about["clients"][client].about
+    return out
 
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
@@ -402,6 +421,7 @@ if __name__ == "__main__":
             shallIContinue = input()
             turnHandle(gameName)
             print("Leaderboard:", leaderboard(gameName))
+            analyse.takeClients(listClients({"gameName":gameName, "private":False}))
         
         print(gameName, "@@@ Game over.")
         print("Leaderboard:", leaderboard(gameName))

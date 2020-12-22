@@ -31,14 +31,46 @@ However, Ben and Charlie both have a mirror, and use it. Therefore, as Alex pick
 
 What information is broadcasted to the public when each of these actions occur? (in detail please Ben!)
 
-A - Rob - 
-B - Kill - 
-C - Present - 
-D - Skull and Crossbones - 
-E - Swap - 
-F - Choose Next Square - 
-G - Shield - 
-H - Mirror - 
-I - Bomb - 
-J - Double Cash - 
-K - Bank - 
+A - Rob
+Sender: [+0, +oo] money
+Receiver: money = 0
+
+B - Kill
+Sender:
+Receiver: bank, money = 0, 0
+
+C - Present
+Sender: [0, -1000] money
+Receiver: [0, +1000] money
+
+D - Skull and Crossbones
+Sender:
+Receiver:
+
+E - Swap
+Sender:
+Receiver:
+
+F - Choose Next Square
+Sender:
+Receiver:
+
+G - Shield
+Sender:
+Receiver:
+
+H - Mirror
+Sender:
+Receiver:
+
+I - Bomb
+Sender:
+Receiver:
+
+J - Double Cash
+Sender:
+Receiver:
+
+K - Bank
+Sender:
+Receiver:

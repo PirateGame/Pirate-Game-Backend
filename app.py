@@ -77,7 +77,7 @@ def getPlayers():
         data = {"game": False}
         return jsonify(data)
     
-    data = game.listClients(gameName)
+    data = game.listClients({"gameName":gameName, "private":True})
     print(data)
     players = list(data.keys())
 
