@@ -34,7 +34,7 @@ class prettyPrinter():
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 
 class gameHandler():
-    def __init__(self, gameName, ownerID, gridDim, decisionTime):
+    def __init__(self, gameName, ownerID, gridDim, turnTime):
         def updateBOARDS(whatToUpdate):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             if whatToUpdate[0] == None:
@@ -45,7 +45,8 @@ class gameHandler():
                 BOARDS[self.about["gameName"]] = whatToUpdate
             np.save("boards.npy", BOARDS)
         
-        self.about = {"gameName": gameName, "decisionTime":decisionTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
+        maxEstTime = turnTime * gridDim[0] * gridDim[1]
+        self.about = {"gameName": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.about["gameName"] not in BOARDS:
@@ -160,7 +161,7 @@ class gameHandler():
             for y in range(gridDim[1]):
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
-        print(self.about["gameName"], "@@@ STARTED with", len(self.about["clients"]), "clients.")
+        print(self.about["gameName"], "@@@ STARTED with", len(self.about["clients"]), "clients and has stats", self.status())
         self.printBoards()
 
     def turnHandle(self):
@@ -291,13 +292,13 @@ class clientHandler():
 ### and also the main thread, which includes demo code. ###
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-def makeGame(gameName, ownerID, gridDim, decisionTime):
+def makeGame(gameName, ownerID, gridDim, turnTime):
     if gameName not in games:
         if gameName == "":
             chars = string.ascii_letters + string.punctuation
             gameName = ''.join(random.choice(chars) for x in range(6))
 
-        g = gameHandler(gameName, ownerID, gridDim, decisionTime)
+        g = gameHandler(gameName, ownerID, gridDim, turnTime)
         games[gameName] = g
     else:
         print(gameName, "@@@@ FAILED GAME CREATION, that game name is already in use.")
@@ -341,11 +342,14 @@ if __name__ == "__main__":
     try:
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         for gameName in BOARDS:
-            gameName = gameName
-            ownerID = BOARDS[gameName][0]["ownerID"]
-            gridDim = BOARDS[gameName][0]["gridDim"]
-            decisionTime = BOARDS[gameName][0]["decisionTime"]
-            makeGame(gameName, ownerID, gridDim, decisionTime)
+            try:
+                gameName = gameName
+                ownerID = BOARDS[gameName][0]["ownerID"]
+                gridDim = BOARDS[gameName][0]["gridDim"]
+                turnTime = BOARDS[gameName][0]["turnTime"]
+                makeGame(gameName, ownerID, gridDim, turnTime)
+            except:
+                print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format.")
     except:
         BOARDS = {}
         np.save("boards.npy", BOARDS)
@@ -360,10 +364,10 @@ if __name__ == "__main__":
         turnCount = gridSize + 1 #maximum of gridSize + 1
         ownerID = 1
         gameName = "Test-Game " + str(time.time())[-6:]
-        decisionTime = 10
+        turnTime = 30
 
         ###Setting up a test game
-        makeGame(gameName, ownerID, gridDim, decisionTime)
+        makeGame(gameName, ownerID, gridDim, turnTime)
 
         ###Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
