@@ -7,6 +7,30 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 games = {}
 #maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
 
+### I may have stole this from https://stackoverflow.com/a/25588771 and edited it quite a bit. -used to make printing pretty of course! ###
+
+class prettyPrinter():
+    def flattenList(self, t):
+        flat_list = [item for sublist in t for item in sublist]
+        return flat_list
+
+    def format__1(self, digits,num):
+        if digits<len(str(num)):
+            raise Exception("digits<len(str(num))")
+        return ' '*(digits-len(str(num))) + str(num)
+    def printmat(self, arr,row_labels, col_labels): #print a 2d numpy array (maybe) or nested list
+        max_chars = max([len(str(item)) for item in self.flattenList(arr)+col_labels]) #the maximum number of chars required to display any item in list
+        if row_labels==[] and col_labels==[]:
+            for row in arr:
+                print('[%s]' %(' '.join(self.format__1(max_chars,i) for i in row)))
+        elif row_labels!=[] and col_labels!=[]:
+            rw = max([len(str(item)) for item in row_labels]) #max char width of row__labels
+            print('%s %s' % (' '*(rw+1), ' '.join(self.format__1(max_chars,i) for i in col_labels)))
+            for row_label, row in zip(row_labels, arr):
+                print('%s [%s]' % (self.format__1(rw,row_label), ' '.join(self.format__1(max_chars,i) for i in row)))
+        else:
+            raise Exception("This case is not implemented...either both row_labels and col_labels must be given, or neither.")
+
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 
 class gameHandler():
@@ -29,6 +53,8 @@ class gameHandler():
             print(self.about["gameName"], "@@@@ CREATED by client", str(ownerID), "with", gridDim, "dimensions.")
         else:
             print(self.about["gameName"], "@@@@ RECOVERED by client", str(ownerID), "with", gridDim, "dimensions.")
+        
+        self.pP = prettyPrinter()
 
     def genNewTile(self):
         options = []
@@ -51,16 +77,22 @@ class gameHandler():
 
     def newTurn(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        print(self.about["gameName"], "@@ ------------ Turn", self.about["turnNum"] + 1, "------------")
         if self.about["tileOverride"] == False:
-            newTile = (self.randomCoords[self.about["turnNum"]-1][0], self.randomCoords[self.about["turnNum"]-1][1]) #x,y
+            notUnique = True
+            while notUnique:
+                newTile = (self.randomCoords[self.about["turnNum"]-1][0], self.randomCoords[self.about["turnNum"]-1][1]) #x,y
+                if newTile not in self.about["chosenTiles"]:
+                    notUnique = False
         else:
             newTile = self.about["tileOverride"]
             self.about["tileOverride"] = False
         self.about["chosenTiles"].append(newTile)
+        print(self.about["gameName"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
+
         actions = []
         for client in self.about["clients"]:
-            self.about["clients"][client].act(BOARDS[self.about["gameName"]][1][client][newTile[0]][newTile[1]])
+            self.about["clients"][client].logScore()
+            self.about["clients"][client].act(BOARDS[self.about["gameName"]][1][client][newTile[1]][newTile[0]])
             
             #actions.append(BOARDS[self.gameIDNum][client][newTile[0]][newTile[1]])
         #for a in range(len(actions)):
@@ -78,13 +110,43 @@ class gameHandler():
     def lobbyJoin(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
-
-        for client, isPlaying in clients.items():
-            gr = makeGrid(gridDim)
-            self.about["clients"][client] = clientHandler(self, client, isPlaying)
-            if isPlaying:
-                BOARDS[self.about["gameName"]][1][client] = gr[0]
+        out = []
+        for client, about in clients.items():
+            try:
+                gr = makeGrid(gridDim)
+                self.about["clients"][client] = clientHandler(self, client, about)
+                if about["isPlaying"]:
+                    BOARDS[self.about["gameName"]][1][client] = gr[0]
+                out.append(True)
+            except:
+                out.append(False)
         BOARDS = np.save("boards.npy", BOARDS)
+        return out
+    
+    def lobbyExit(self, clients):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
+        out = []
+        for client in clients:
+            try:
+                del self.about["clients"][client]
+                del BOARDS[self.about["gameName"]][1][client]
+                out.append(True)
+            except:
+                out.append(False)
+        BOARDS = np.save("boards.npy", BOARDS)
+        return out
+
+    def printBoards(self):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        for client in self.about["clients"]:
+            print(self.about["gameName"], "@ Client", self.about["clients"][client].about["name"], "has stats", self.about["clients"][client].about, "and board...")
+            row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
+            col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
+            tempBOARD = BOARDS[self.about["gameName"]][1][client]
+            for tile in self.about["chosenTiles"]:
+                tempBOARD[tile[1]][tile[0]] = "-"
+            self.pP.printmat(tempBOARD, row_labels, col_labels)
 
     def start(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -97,22 +159,12 @@ class gameHandler():
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
         print(self.about["gameName"], "@@@ STARTED with", len(self.about["clients"]), "clients.")
+        self.printBoards()
 
     def turnHandle(self):
         self.about["turnNum"] += 1
         self.newTurn()
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        for client in self.about["clients"]:
-            print(self.about["gameName"], "@ Client", self.about["clients"][client].about["name"], "has stats", self.about["clients"][client].about, "and board...")
-            for y in range(self.about["gridDim"][1]):
-                thisRow = BOARDS[self.about["gameName"]][1][client][y]
-                thisRowPrintable = []
-                for x in range(len(thisRow)):
-                    if (x,y) not in self.about["chosenTiles"]:
-                        thisRowPrintable.append(thisRow[x])
-                    else:
-                        thisRowPrintable.append("#")
-                print(self.about["gameName"], "@", thisRowPrintable)
+        self.printBoards()
     
     def delete(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -120,16 +172,16 @@ class gameHandler():
         np.save("boards.npy", BOARDS)
 
 class clientHandler():
-    def __init__(self, game, clientName, isPlaying):
+    def __init__(self, game, client, about):
         self.game = game
 
-        self.authCode = 45
-
-        if isPlaying:
-            self.about = {"name":clientName, "isPlaying": isPlaying, "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
+        if about["isPlaying"]:
+            self.about = {"name":client, "isPlaying": about["isPlaying"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
         else:
-            self.about = {"name":clientName, "isPlaying": isPlaying}
-        
+            self.about = {"name":client, "isPlaying": about["isPlaying"]}
+    
+    def logScore(self):
+        self.about["scoreHistory"].append(self.about["money"] + self.about["bank"])
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob
@@ -290,18 +342,23 @@ if __name__ == "__main__":
     deleteGame([key for key in games])
 
     while True:
-        ###Making a new demo game...
+        ###Let's set up a few variables about our new test game...
         gridDim = (8,8)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
         ownerID = 1
-        gameName = "Test-Game " + str(time.time())
+        gameName = "Test-Game " + str(time.time())[-6:]
 
-        ###Setting up a test game, and adding each player sequentially.
+        ###Setting up a test game
         makeGame(gameName, ownerID, gridDim)
-        clients = {"Jamie":True, "Tom":True} #Player name, whether they're playing.
-        for client in clients:
-            games[gameName].lobbyJoin({client:clients[client]}) #THis will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+
+        ###Adding each of the imaginary players to the lobby sequentially.
+        clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
+        games[gameName].lobbyJoin(clients) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+        #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
+        
+        ###Kicking one of the imaginary players.
+        games[gameName].lobbyExit(["Jamie"])
 
         ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to begin turn iteration...")
