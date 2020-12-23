@@ -39,26 +39,26 @@ class gameHandler():
         def updateBOARDS(whatToUpdate):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             if whatToUpdate[0] == None:
-                BOARDS[self.about["gameName"]][1] = whatToUpdate[1]
+                BOARDS[self.about["name"]][1] = whatToUpdate[1]
             elif whatToUpdate[1] == None:
-                BOARDS[self.about["gameName"]][0] = whatToUpdate[0]
+                BOARDS[self.about["name"]][0] = whatToUpdate[0]
             else:
-                BOARDS[self.about["gameName"]] = whatToUpdate
+                BOARDS[self.about["name"]] = whatToUpdate
             np.save("boards.npy", BOARDS)
         
         maxEstTime = turnTime * gridDim[0] * gridDim[1]
-        self.about = {"gameName": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
+        self.about = {"name": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.about["estimateHandler"] = analyse.gameEstimateHandler(self)
         self.tempGroupChoices = []
         
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        if self.about["gameName"] not in BOARDS:
+        if self.about["name"] not in BOARDS:
             updateBOARDS([self.about, {}])
-            print(self.about["gameName"], "@@@@ CREATED by client", str(ownerID), "with", gridDim, "dimensions.")
+            print(self.about["name"], "@@@@ CREATED by client", str(ownerID), "with", gridDim, "dimensions.")
         else:
-            print(self.about["gameName"], "@@@@ RECOVERED by client", str(ownerID), "with", gridDim, "dimensions.")
+            print(self.about["name"], "@@@@ RECOVERED by client", str(ownerID), "with", gridDim, "dimensions.")
         
         self.pP = prettyPrinter()
 
@@ -93,7 +93,7 @@ class gameHandler():
                 else:
                     choice = event["source"].about["row"]
                 victims = self.game.whoIsOnThatLine(rOrC, choice)
-                self.about["events"].append(self.game.about["eventHandler"].make({"event":whatHappened, "source":random.choice(event["targets"]), "targets":[self.game.about["clients"][victim] for victim in victims], "other":[rOrC, choice]})) #EVENT HANDLER
+                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":random.choice(event["targets"]), "targets":[self.game.about["clients"][victim] for victim in victims], "other":[rOrC, choice]})) #EVENT HANDLER
                 for victim in victims:
                     self.game.about["clients"][victim].beActedOn("D", self.about) ###ACT
             elif self.tempGroupChoices.count("shield") > 1: #Shield
@@ -115,12 +115,12 @@ class gameHandler():
             newTile = self.about["tileOverride"]
             self.about["tileOverride"] = False
         self.about["chosenTiles"].append(newTile)
-        print(self.about["gameName"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
+        print(self.about["name"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
 
         actions = []
         for client in self.about["clients"]:
             self.about["clients"][client].logScore()
-            self.about["clients"][client].act(BOARDS[self.about["gameName"]][1][client][newTile[1]][newTile[0]])
+            self.about["clients"][client].act(BOARDS[self.about["name"]][1][client][newTile[1]][newTile[0]])
         if len(self.tempGroupChoices) > 0:
             whatThatLineDoes()
             
@@ -151,7 +151,7 @@ class gameHandler():
                 gr = gridGenerator.makeGrid(self.about["gridDim"])
                 self.about["clients"][client] = clientHandler(self, client, about)
                 if about["isPlaying"]:
-                    BOARDS[self.about["gameName"]][1][client] = gr[0]
+                    BOARDS[self.about["name"]][1][client] = gr[0]
                 out.append(True)
             except Exception as e:
                 out.append(e)
@@ -165,7 +165,7 @@ class gameHandler():
         for client in clients:
             try:
                 del self.about["clients"][client]
-                del BOARDS[self.about["gameName"]][1][client]
+                del BOARDS[self.about["name"]][1][client]
                 out.append(True)
             except:
                 out.append(False)
@@ -175,10 +175,10 @@ class gameHandler():
     def printBoards(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         for client in self.about["clients"]:
-            print(self.about["gameName"], "@ Client", self.about["clients"][client].about["name"], "has stats", self.about["clients"][client].about, "and board...")
+            print(self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has stats", self.about["clients"][client].about, "and board...")
             row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
             col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
-            tempBOARD = BOARDS[self.about["gameName"]][1][client]
+            tempBOARD = BOARDS[self.about["name"]][1][client]
             for tile in self.about["chosenTiles"]:
                 tempBOARD[tile[1]][tile[0]] = "-"
             self.pP.printmat(tempBOARD, row_labels, col_labels)
@@ -193,7 +193,7 @@ class gameHandler():
             for y in range(gridDim[1]):
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
-        print(self.about["gameName"], "@@@ STARTED with", len(self.about["clients"]), "clients and has stats", self.status())
+        print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients and has stats", self.status())
         self.printBoards()
 
     def turnHandle(self):
@@ -203,7 +203,7 @@ class gameHandler():
     
     def delete(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        del BOARDS[self.about["gameName"]]
+        del BOARDS[self.about["name"]]
         np.save("boards.npy", BOARDS)
 
 class clientHandler():
@@ -247,64 +247,66 @@ class clientHandler():
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob
             choice = self.victimChoice()
+            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]}) #EVENT HANDLER
             self.game.about["clients"][choice].beActedOn("A", self.about) ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "robs", self.game.about["clients"][choice].about["name"])
-            self.game.about["eventHandler"].make({"event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]}) #EVENT HANDLER
+            print(self.game.about["name"], "@", self.about["name"], "robs", self.game.about["clients"][choice].about["name"])
         if whatHappened == "B": #B - Kill
             choice = self.victimChoice()
+            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]}) #EVENT HANDLER
             self.game.about["clients"][choice].beActedOn("B", self.about) ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "kills", self.game.about["clients"][choice].about["name"])
+            print(self.game.about["name"], "@", self.about["name"], "kills", self.game.about["clients"][choice].about["name"])
         if whatHappened == "C": #C - Present (Give someone 1000 of YOUR OWN cash)
             choice = self.victimChoice()
+            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]}) #EVENT HANDLER
             self.game.about["clients"][choice].beActedOn("C", self.about) ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gifts", self.game.about["clients"][choice].about["name"])
+            print(self.game.about["name"], "@", self.about["name"], "gifts", self.game.about["clients"][choice].about["name"])
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
             rOrC, choice = self.rOrCandCoordChoice()
             victims = self.game.whoIsOnThatLine(rOrC, choice)
-            self.about["events"].append(self.game.about["eventHandler"].make({"event":whatHappened, "source":self, "targets":[self.game.about["clients"][victim] for victim in victims], "other":[rOrC, choice]})) #EVENT HANDLER
+            self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":self, "targets":[self.game.about["clients"][victim] for victim in victims], "other":[rOrC, choice]})) #EVENT HANDLER
             for victim in victims:
                 self.game.about["clients"][victim].beActedOn("D", self.about) ###ACT
             if rOrC == 1:
-                print(self.game.about["gameName"], "@", self.about["name"], "wiped out column", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
+                print(self.game.about["name"], "@", self.about["name"], "wiped out column", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
             else:
-                print(self.game.about["gameName"], "@", self.about["name"], "wiped out row", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
+                print(self.game.about["name"], "@", self.about["name"], "wiped out row", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
         if whatHappened == "E": #E - Swap
             choice = self.victimChoice()
+            self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]})) #EVENT HANDLER
             self.game.about["clients"][choice].beActedOn("E", self.about) ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
-            self.about["events"].append(self.game.about["eventHandler"].make({"event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]})) #EVENT HANDLER
+            print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
         if whatHappened == "F": #F - Choose Next Square
+            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":self, "targets":[self.game], "other":[]}) #EVENT HANDLER
             self.game.about["tileOverride"] = self.game.genNewTile()
-            print(self.game.about["gameName"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
-            self.game.about["eventHandler"].make({"event":whatHappened, "source":self, "targets":[self.game], "other":[]}) #EVENT HANDLER
+            print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
         if whatHappened == "G": #G - Shield
             self.about["shield"] = True ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gains a shield.")
+            print(self.game.about["name"], "@", self.about["name"], "gains a shield.")
         if whatHappened == "H": #H - Mirror
             self.about["mirror"] = True ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gains a mirror.")
+            print(self.game.about["name"], "@", self.about["name"], "gains a mirror.")
         if whatHappened == "I": #I - Bomb (You go to 0)
             self.about["money"] = 0 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "got bombed.")
+            print(self.game.about["name"], "@", self.about["name"], "got bombed.")
         if whatHappened == "J": #J - Double Cash
             self.about["money"] *= 2 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "got their cash doubled.")
+            print(self.game.about["name"], "@", self.about["name"], "got their cash doubled.")
         if whatHappened == "K": #K - Bank
             self.about["bank"] += self.about["money"] ###ACT
             self.about["money"] = 0 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "banked their money.")
+            print(self.game.about["name"], "@", self.about["name"], "banked their money.")
         if whatHappened == "5000": #£5000
             self.about["money"] += 5000 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gained £5000.")
+            print(self.game.about["name"], "@", self.about["name"], "gained £5000.")
         if whatHappened == "3000": #£3000
             self.about["money"] += 3000 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gained £3000.")
+            print(self.game.about["name"], "@", self.about["name"], "gained £3000.")
         if whatHappened == "1000": #£1000
             self.about["money"] += 1000 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gained £1000.")
+            print(self.game.about["name"], "@", self.about["name"], "gained £1000.")
         if whatHappened == "200": #£200
             self.about["money"] += 200 ###ACT
-            print(self.game.about["gameName"], "@", self.about["name"], "gained £200.")
+            print(self.game.about["name"], "@", self.about["name"], "gained £200.")
     
     def beActedOn(self, whatHappened, aboutTheSender): #These are all the functions that involve interaction between players
         #if self.about[shield] or self.about[mirror]:
@@ -396,12 +398,12 @@ def status(gameName):
 def listClients(about):
     if about["private"]:
         out = {}
-        for client in games[about["gameName"]].about["clients"]:
-            out[client] = games[about["gameName"]].about["clients"][client].about
+        for client in games[about["name"]].about["clients"]:
+            out[client] = games[about["name"]].about["clients"][client].about
     else:
         out = {}
-        for client in games[about["gameName"]].about["clients"]:
-            tempAbout = games[about["gameName"]].about["clients"][client].about
+        for client in games[about["name"]].about["clients"]:
+            tempAbout = games[about["name"]].about["clients"][client].about
             tempAbout["authCode"] = None
             tempAbout["money"] = None
             tempAbout["bank"] = None
@@ -410,7 +412,7 @@ def listClients(about):
             tempAbout["mirror"] = None
             tempAbout["column"] = None
             tempAbout["row"] = None
-            out[client] = games[about["gameName"]].about["clients"][client].about
+            out[client] = games[about["name"]].about["clients"][client].about
     return out
 
 #join one or several clients to a lobby
@@ -429,8 +431,37 @@ def turnHandle(gameName):
 def start(gameName):
     return games[gameName].start()
 
-def allEvents(gameName):
-    return games[gameName].about["eventHandler"].about["log"]
+def returnEvents(gameName, about):
+    if about["public"]:
+        return games[gameName].about["eventHandler"].about["publicLog"]
+    else:
+        return games[gameName].about["eventHandler"].about["privateLog"]
+
+def alterClients(gameName, clientNames, alterations):
+    for clientName in clientNames:
+        if clientName in games[gameName].about["clients"]:
+            for key,value in alterations.items():
+                if key in games[gameName].about["clients"][clientName].about:
+                    games[gameName].about["clients"][clientName].about[key] = value
+                else:
+                    success.append("Key", key, "doesn't exist for value", value, "to be assigned to.")
+        else:
+            for a in alterations.items():
+                success.append("Client", clientName, "doesn't exist.")
+
+def alterGames(gameNames, alterations):
+    for gameName in gameNames:
+        if gameName in games:
+            for key,value in alterations.items():
+                if key in games[gameName].about:
+                    games[gameName].about[key] = value
+                    success.append(True)
+                else:
+                    success.append("Key", key, "doesn't exist for value", value, "to be assigned to.")
+        else:
+            for a in alterations.items():
+                success.append("Game", gameName, "doesn't exist.")
+    return success
 
 ### MAIN THREAD ###
 if __name__ == "__main__":
@@ -482,7 +513,7 @@ if __name__ == "__main__":
         for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
             shallIContinue = input()
             turnHandle(gameName)
-            allEvents(gameName)
+            returnEvents(gameName, {"public":True})
         
         print(gameName, "@@@ Game over.")
         print("Leaderboard:", leaderboard(gameName))

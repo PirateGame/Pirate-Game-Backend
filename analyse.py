@@ -3,12 +3,23 @@ import time
 class gameEventHandler():
     def __init__(self, game):
         self.game = game
-        self.about = {"log":[]}
+        self.about = {"privateLog":[], "publicLog":[]}
+        self.eventDescriptions = {"A":"robbed",
+                                "B":"killed",
+                                "C":"gave a present to",
+                                "D":"skulled and crossboned",
+                                "E":"swapped with",
+                                "F":"chose the next square",
+                                "G":"gained a shield",
+                                "H":"gained a mirror",
+                                "I":"got bombed",
+                                "J":"doubled their cash",
+                                "K":"banked their cash"}
     
     def sortEvents(self, key):
         return sorted(self.about["log"], key=lambda k: k[key])[-1]
     
-    def filterEvents(self, requirements, parses=[]):
+    def filterEvents(self, requirements, parses=[]): #eg: filterEvents({"timestamp":timestamp})
         out = {}
         for event in self.about["log"]:
             success = []
@@ -29,13 +40,25 @@ class gameEventHandler():
                 out[event] = self.about["log"][event]
         return out
     
+    def describe(self, event):
+        out = []
+        for targetNum in range(len(event["targets"])):
+            out.append(str(event["source"].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]))
+        return out
+    
     def printNicely(self, event):
-        pass
+        desc = self.describe(event)
+        for line in desc:
+            print(line)
     
     def make(self, about): #{"event":whatHappened, "source":self, "targets":[self.game.about["clients"][choice]], "other":[]}
-        self.about["log"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "event":about["event"], "source":about["source"], "targets":about["targets"], "other":about["other"]})
-        print("event:", self.about["log"][-1])
-        return self.about["log"][-1]
+        if about["public"]:
+            self.about["publicLog"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "source":about["source"], "targets":about["targets"], "other":about["other"]})
+            self.printNicely(self.about["publicLog"][-1])
+            return self.about["publicLog"][-1]
+        else:
+            self.about["privateLog"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "source":about["source"], "targets":about["targets"], "other":about["other"]})
+            return self.about["privateLog"][-1]
 
 class gameEstimateHandler():
     def __init__(self, client):
