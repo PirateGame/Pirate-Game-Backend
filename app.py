@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import random
 import numpy as np
-import multiprocessing
 import game
 
 
@@ -83,6 +82,5 @@ def getPlayers():
 
     return jsonify(players)
 
-processes = []
 if __name__ == "__main__":
     app.run(debug=False, host="localhost")
