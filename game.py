@@ -1,3 +1,11 @@
+#   _____ .____   _______  _______ _ __    _   ___         _______ __  __ .____         _____  _______     .      ___   .____ 
+#  (      /      '   /    '   /    | |\   |  .'   \       '   /    |   |  /            (      '   /       /|    .'   \  /     
+#   `--.  |__.       |        |    | | \  |  |                |    |___|  |__.          `--.      |      /  \   |       |__.  
+#      |  |          |        |    | |  \ |  |    _           |    |   |  |                |      |     /---'\  |    _  |     
+# \___.'  /----/     /        /    / |   \|   `.___|          /    /   /  /----/      \___.'      /   ,'      \  `.___| /----/
+#
+# ----------------------------------------------------------------------------------------------------------------------------
+
 import random, string, time
 import numpy as np
 import grid
@@ -32,7 +40,14 @@ class prettyPrinter():
         else:
             raise Exception("This case is not implemented...either both row_labels and col_labels must be given, or neither.")
 
+
+#   ___       .    __   __ .____           .    __    _ .___          ___  .     _ .____  __    _  _______        ___   ____    _______ .____    ___   _______   _____
+# .'   \     /|    |    |  /              /|    |\   |  /   `       .'   \ /     | /      |\   |  '   /         .'   `. /   \  '   /    /      .'   \ '   /     (     
+# |         /  \   |\  /|  |__.          /  \   | \  |  |    |      |      |     | |__.   | \  |      |         |     | |,_-<      |    |__.   |          |      `--. 
+# |    _   /---'\  | \/ |  |            /---'\  |  \ |  |    |      |      |     | |      |  \ |      |         |     | |    `     |    |      |          |         | 
+#  `.___|,'      \ /    /  /----/     ,'      \ |   \|  /---/        `.__, /---/ / /----/ |   \|      /          `.__.' `----'  `--/    /----/  `.__,     /    \___.' 
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class gameHandler():
     def __init__(self, gameName, ownerID, gridDim, turnTime):
@@ -215,6 +230,9 @@ class clientHandler():
         else:
             self.about = {"name":client, "isPlaying": about["isPlaying"]}
     
+    def info(self):
+        return {"about":self.about}
+    
     def logScore(self):
         self.about["scoreHistory"].append(self.about["money"] + self.about["bank"])
     
@@ -354,8 +372,15 @@ class clientHandler():
         if whatHappened == "D":
             self.about["money"] = 0
 
+
+# .____ .     . __    _   ___   _______ _   ___   __    _   _____      .____   ___   .___           .    .___  .___ 
+# /     /     / |\   |  .'   \ '   /    | .'   `. |\   |   (           /     .'   `. /   \         /|    /   \ /   \
+# |__.  |     | | \  |  |          |    | |     | | \  |    `--.       |__.  |     | |__-'        /  \   |,_-' |,_-'
+# |     |     | |  \ |  |          |    | |     | |  \ |       |       |     |     | |  \        /---'\  |     |    
+# /      `._.'  |   \|   `.__,     /    /  `.__.' |   \|  \___.'       /      `.__.' /   \     ,'      \ /     /    
 ### FUNCTIONS THAT ALLOW APP.PY TO INTERACT WITH GAME AND CLIENT OBJECTS, ###
 ### and also the main thread, which includes demo code. ###
+# ------------------------------------------------------------------------------------------------------------------
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def makeGame(gameName, ownerID, gridDim, turnTime):
@@ -388,19 +413,25 @@ def deleteGame(gameNames):
         print("@@@@ NOTHING DELETED")
 
 #get the info of a game by name
-def info(gameName):
+def gameInfo(gameName):
     try:
         return games[gameName].info()
-    except:
-        return False
+    except Exception as e:
+        return e
+
+def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) returns {"about":about}
+    try:
+        return games[gameName].about["clients"][about["clientName"]].info()
+    except Exception as e:
+        return e
 
 #get the clients of a game by name and return either public or private information
 def listClients(about):
-    if about["private"]:
+    if not about["public"]:
         out = {}
         for client in games[about["gameName"]].about["clients"]:
             out[client] = games[about["gameName"]].about["clients"][client].about
-    else:
+    elif about["public"]:
         out = {}
         for client in games[about["name"]].about["clients"]:
             tempAbout = games[about["name"]].about["clients"][client].about
@@ -413,6 +444,13 @@ def listClients(about):
             tempAbout["column"] = None
             tempAbout["row"] = None
             out[client] = games[about["name"]].about["clients"][client].about
+    return out
+
+#list the names of all the clients by game name
+def listClientNames(gameName):
+    out = []
+    for client in games[about["gameName"]].about["clients"]:
+        out.append(games[about["gameName"]].about["clients"][client]["name"])
     return out
 
 #join one or several clients to a lobby
@@ -437,6 +475,9 @@ def returnEvents(gameName, about):
     else:
         return games[gameName].about["eventHandler"].about["privateLog"]
 
+#Change the attributes of a client or several by game name
+# eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
+#this would change the name of Jamie to Gemima.
 def alterClients(gameName, clientNames, alterations):
     for clientName in clientNames:
         if clientName in games[gameName].about["clients"]:
@@ -449,6 +490,9 @@ def alterClients(gameName, clientNames, alterations):
             for a in alterations.items():
                 success.append("Client", clientName, "doesn't exist.")
 
+#Change the attributes of a game or several, 
+# eg: alterGames(["game1"], {"name":"game2"})
+#this would change the name of game1 to game2.
 def alterGames(gameNames, alterations):
     for gameName in gameNames:
         if gameName in games:
@@ -464,7 +508,7 @@ def alterGames(gameNames, alterations):
     return success
 
 def bootstrap(about):
-    ###Loading games that are "running", stored in boards.npy in case the backend crashes or something.
+    #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
     try:
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         for gameName in BOARDS:
@@ -481,16 +525,24 @@ def bootstrap(about):
         BOARDS = {}
         np.save("boards.npy", BOARDS)
     
-    ###And then deleting all those recovered games, because they're not necessary to test one new game.
+    #And then deleting all those recovered games, because they're not necessary to test one new game.
     if about["purge"]:
         deleteGame([key for key in games])
 
-### MAIN THREAD ###
+
+# .___   .____  __   __   ___  
+# /   `  /      |    |  .'   `.
+# |    | |__.   |\  /|  |     |
+# |    | |      | \/ |  |     |
+# /---/  /----/ /    /   `.__.'
+### Used for debugging and testing of the overall structure of how a game should operate in relation to the backend. ###
+# -----------------------------
+
+# MAIN THREAD
 if __name__ == "__main__":
     bootstrap({"purge":True})
-
     while True:
-        ###Let's set up a few variables about our new test game...
+        #Let's set up a few variables about our new test game...
         gridDim = (8,8)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
@@ -498,18 +550,18 @@ if __name__ == "__main__":
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
 
-        ###Setting up a test game
+        #Setting up a test game
         makeGame(gameName, ownerID, gridDim, turnTime)
 
-        ###Adding each of the imaginary players to the lobby sequentially.
+        #Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
-        ###Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
+        #Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
         print("exiting client from the lobby", exitLobby(gameName, ["Jamie"]))
 
-        ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
+        #Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to iterate a turn...")
         shallIContinue = input()
 
@@ -517,7 +569,7 @@ if __name__ == "__main__":
         for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
             shallIContinue = input()
             turnHandle(gameName)
-            returnEvents(gameName, {"public":True})
+            print(returnEvents(gameName, {"public":True}))
         
         print(gameName, "@@@ Game over.")
         print("Leaderboard:", leaderboard(gameName))
