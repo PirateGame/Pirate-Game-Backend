@@ -5,18 +5,7 @@ import game
 from game import gameHandler, clientHandler
 
 
-# SET UP DATABASE #
-import pymongo
-from uri import URI
-
 app = Flask(__name__)
-
-#Connect to database and assign it to the db object
-client = pymongo.MongoClient(URI)
-db = client.pirategame
-
-#Access the users collection
-users = db.users
 
 #Make the app
 app = Flask(__name__)
@@ -24,13 +13,15 @@ app = Flask(__name__)
 #Bootstrap old games
 game.bootstrap({"purge":True})
 
-### ROUTES...
 
-#Route that will return the first user in the users collection
-@app.route('/')
-def index():
-    #Returns the first item of the users collection
-    return users.find_one()
+def auth(playerName, gameName, code):
+    secret = game.getAuthCode(playerName, gameName)
+    if code == secret:
+        return True
+    else:
+        return False
+
+### ROUTES...
 
 @app.route('/api/create_game', methods=['POST'])
 def createGame():
@@ -64,6 +55,8 @@ def joinGame():
     gameName = data["gameName"]
     playerName = data["playerName"]
     
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
     print(game.joinLobby(gameName, {playerName:{"isPlaying":True}})) #This will show what happened when trying to join each player to the lobby
     print(game.gameInfo(gameName)) #This will show the general info of the game
 
@@ -81,16 +74,30 @@ def getPlayers():
         data = {"game": False}
         return jsonify(data)
     
-    data = game.listClients({"gameName":gameName, "public":False})
-    print(data)
-    players = list(data.keys())
+    data = game.listClientNames(gameName)
 
-    return jsonify(players)
+    data.update({"game": True})
+    return jsonify(data)
 
 @app.route('/api/getNumTiles', methods=['POST'])
 def getNumTiles():
-    print(game.gameInfo(gameName)["gridTemplate"]["tileNums"])
-    return
+    data = request.get_json()
+    gameName = data["gameName"]
+
+    data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
+    return jsonify(data)
+
+@app.route('/api/startGame', methods=['POST'])
+def startGame():
+    data = request.get_json()
+    gameName = data["gameName"]
+    authCode = data["authCode"]
+    
+    data = {}
+
+    data.update({"game": True})
+    return jsonify(data)
+
 
 #This should return what has just happened in the game.
 @app.route('/api/getNext', methods=['POST'])

@@ -433,8 +433,8 @@ def listClients(about):
             out[client] = games[about["gameName"]].about["clients"][client].about
     elif about["public"]:
         out = {}
-        for client in games[about["name"]].about["clients"]:
-            tempAbout = games[about["name"]].about["clients"][client].about
+        for client in games[about["gameName"]].about["clients"]:
+            tempAbout = games[about["gameName"]].about["clients"][client].about
             tempAbout["authCode"] = None
             tempAbout["money"] = None
             tempAbout["bank"] = None
