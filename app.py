@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import random
 import numpy as np
 import game
+from game import gameHandler, clientHandler
 
 
 # SET UP DATABASE #
@@ -19,6 +20,11 @@ users = db.users
 
 #Make the app
 app = Flask(__name__)
+
+#Bootstrap old games
+game.bootstrap({"purge":True})
+
+### ROUTES...
 
 #Route that will return the first user in the users collection
 @app.route('/')

@@ -463,8 +463,7 @@ def alterGames(gameNames, alterations):
                 success.append("Game", gameName, "doesn't exist.")
     return success
 
-### MAIN THREAD ###
-if __name__ == "__main__":
+def bootstrap(about):
     ###Loading games that are "running", stored in boards.npy in case the backend crashes or something.
     try:
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -475,15 +474,20 @@ if __name__ == "__main__":
                 gridDim = BOARDS[gameName][0]["gridDim"]
                 turnTime = BOARDS[gameName][0]["turnTime"]
                 makeGame(gameName, ownerID, gridDim, turnTime)
-            except:
-                print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format.")
-    except:
-        print("@@@@ No games were loaded.")
+            except Exception as e:
+                print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+    except Exception as e:
+        print("@@@@ FAILED GAME LOADING because:", e)
         BOARDS = {}
         np.save("boards.npy", BOARDS)
     
     ###And then deleting all those recovered games, because they're not necessary to test one new game.
-    deleteGame([key for key in games])
+    if about["purge"]:
+        deleteGame([key for key in games])
+
+### MAIN THREAD ###
+if __name__ == "__main__":
+    bootstrap()
 
     while True:
         ###Let's set up a few variables about our new test game...
