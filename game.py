@@ -1,6 +1,6 @@
 import random, string, time
 import numpy as np
-import gridGenerator
+import grid
 import time
 import analyse
 
@@ -47,7 +47,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = turnTime * gridDim[0] * gridDim[1]
-        self.about = {"name": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}}
+        self.about = {"name": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.about["estimateHandler"] = analyse.gameEstimateHandler(self)
         self.tempGroupChoices = []
@@ -130,8 +130,8 @@ class gameHandler():
             #This needs to be ASYNC so that whenever a client response comes in on what they've chosen to do, it's executed immediately
             #Each client's turn should be processed based on the new tile coordinate, and if it requires user input or not, broadcasted back to the Vue server to be presented to the clients.
         #A signal should be emitted here to the Vue Server holding the new turn's tile coordinates, for each vue client to process what on their grid
-    def status(self):
-        return self.about
+    def info(self):
+        return {"about":self.about, "gridTemplate":self.about["gridTemplate"].about}
 
     def leaderboard(self):
         clientByScore = {}
@@ -148,10 +148,10 @@ class gameHandler():
         out = []
         for client, about in clients.items():
             try:
-                gr = gridGenerator.makeGrid(self.about["gridDim"])
+                gr = self.about["gridTemplate"].build()
                 self.about["clients"][client] = clientHandler(self, client, about)
                 if about["isPlaying"]:
-                    BOARDS[self.about["name"]][1][client] = gr[0]
+                    BOARDS[self.about["name"]][1][client] = gr
                 out.append(True)
             except Exception as e:
                 out.append(e)
@@ -175,7 +175,7 @@ class gameHandler():
     def printBoards(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         for client in self.about["clients"]:
-            print(self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has stats", self.about["clients"][client].about, "and board...")
+            print(self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
             row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
             col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
             tempBOARD = BOARDS[self.about["name"]][1][client]
@@ -193,7 +193,7 @@ class gameHandler():
             for y in range(gridDim[1]):
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
-        print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients and has stats", self.status())
+        print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients, here's more info...", self.info())
         self.printBoards()
 
     def turnHandle(self):
@@ -387,10 +387,10 @@ def deleteGame(gameNames):
     else:
         print("@@@@ NOTHING DELETED")
 
-#get the status of a game by name
-def status(gameName):
+#get the info of a game by name
+def info(gameName):
     try:
-        return games[gameName].status()
+        return games[gameName].info()
     except:
         return False
 
@@ -487,7 +487,7 @@ def bootstrap(about):
 
 ### MAIN THREAD ###
 if __name__ == "__main__":
-    bootstrap()
+    bootstrap({"purge":True})
 
     while True:
         ###Let's set up a few variables about our new test game...
@@ -503,11 +503,11 @@ if __name__ == "__main__":
 
         ###Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
-        joinLobby(gameName, clients) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+        print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
         ###Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
-        exitLobby(gameName, ["Jamie"])
+        print("exiting client from the lobby", exitLobby(gameName, ["Jamie"]))
 
         ###Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to iterate a turn...")

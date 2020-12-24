@@ -50,8 +50,8 @@ def createGame():
     if isPlaying:
         game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
 
-    status = game.status(gameName)
-    print(status)
+    info = game.info(gameName)
+    print(info)
     
     
     data = {"stuff":True}#{"authCode": player.about["authCode"]}
@@ -65,7 +65,7 @@ def joinGame():
     playerName = data["playerName"]
     
     print(game.joinLobby(gameName, {playerName:{"isPlaying":True}})) #This will show what happened when trying to join each player to the lobby
-    print(game.status(gameName)) #This will show the general status of the game
+    print(game.info(gameName)) #This will show the general info of the game
 
     data = {"game": True}
     return jsonify(data) #This is mega broken
@@ -75,7 +75,7 @@ def getPlayers():
     
     data = request.get_json()
     gameName = data["gameName"]
-    session = game.status(gameName)
+    session = game.info(gameName)
     if session == False:
         print("game not found")
         data = {"game": False}
@@ -89,6 +89,7 @@ def getPlayers():
 
 @app.route('/api/getNumTiles', methods=['POST'])
 def getNumTiles():
+    print(game.info(gameName)["gridTemplate"]["tileNums"])
     return
 
 #This should return what has just happened in the game.
