@@ -397,13 +397,13 @@ def info(gameName):
 #get the clients of a game by name and return either public or private information
 def listClients(about):
     if about["private"]:
-        out = {}
+        out = {"names":[]}
         for client in games[about["gameName"]].about["clients"]:
-            out[client] = games[about["gameName"]].about["clients"][client].about
+            out["names"].append(games[about["gameName"]].about["clients"][client].about["name"])
     else:
         out = {}
-        for client in games[about["name"]].about["clients"]:
-            tempAbout = games[about["name"]].about["clients"][client].about
+        for client in games[about["gameName"]].about["clients"]:
+            tempAbout = games[about["gameName"]].about["clients"][client].about
             tempAbout["authCode"] = None
             tempAbout["money"] = None
             tempAbout["bank"] = None
