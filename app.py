@@ -31,8 +31,8 @@ def createGame():
     data = request.get_json()
     gameName = data["gameName"]
     ownerName = data["ownerName"]
-    Sizex = data["Sizex"]
-    Sizey = data["Sizey"]
+    Sizex = int(data["Sizex"])
+    Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
 
     gridDim = (Sizex, Sizey)
@@ -45,7 +45,6 @@ def createGame():
         game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
 
     status = game.status(gameName)
-
     print(status)
     
     
@@ -81,6 +80,29 @@ def getPlayers():
     players = list(data.keys())
 
     return jsonify(players)
+
+@app.route('/api/getNumTiles', methods=['POST'])
+def getNumTiles():
+    return
+
+#This should return what has just happened in the game.
+@app.route('/api/getNext', methods=['POST'])
+def getNext():
+    return
+
+@app.route('/api/setDecisionTime', methods=['POST'])
+def setDecisionTime():
+    return
+    
+
+@app.route('/api/setRandomizeOnly', methods=['POST'])
+def setRandomizeOnly():
+    return
+
+#This should be used for the client to respond with what they want to do.
+@app.route('/api/Action', methods=['POST'])
+def Action():
+    return
 
 if __name__ == "__main__":
     app.run(debug=False, host="localhost")
