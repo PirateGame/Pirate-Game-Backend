@@ -398,8 +398,8 @@ def status(gameName):
 def listClients(about):
     if about["private"]:
         out = {}
-        for client in games[about["name"]].about["clients"]:
-            out[client] = games[about["name"]].about["clients"][client].about
+        for client in games[about["gameName"]].about["clients"]:
+            out[client] = games[about["gameName"]].about["clients"][client].about
     else:
         out = {}
         for client in games[about["name"]].about["clients"]:

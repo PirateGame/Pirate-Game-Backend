@@ -51,7 +51,6 @@ def createGame():
         game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
 
     status = game.status(gameName)
-    print(status)
     
     
     data = {"stuff":True}#{"authCode": player.about["authCode"]}
