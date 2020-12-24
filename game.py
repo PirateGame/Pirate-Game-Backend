@@ -415,6 +415,9 @@ def listClients(about):
             out[client] = games[about["name"]].about["clients"][client].about
     return out
 
+def getAuthCode(playerName, gameName):
+    return False #This needs to get the auth code of a player.
+
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
     return games[gameName].joinLobby(clients)
