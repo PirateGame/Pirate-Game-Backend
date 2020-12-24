@@ -39,7 +39,7 @@ def createGame():
     game.makeGame(gameName, ownerName, gridDim, decisionTime)
 
     if isPlaying:
-        game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
+        print(game.joinLobby(gameName, {ownerName:{"isPlaying":True}}))
 
     info = game.gameInfo(gameName)
     print(info)
