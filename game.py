@@ -449,8 +449,8 @@ def listClients(about):
 #list the names of all the clients by game name
 def listClientNames(gameName):
     out = []
-    for client in games[about["gameName"]].about["clients"]:
-        out.append(games[about["gameName"]].about["clients"][client]["name"])
+    for client in games[gameName].about["clients"]:
+        out.append(games[gameName].about["clients"][client].about["name"])
     return out
 
 #join one or several clients to a lobby
