@@ -112,8 +112,8 @@ def getNext():
 
 #Set randomize only and decision time.
 #when requesting from here, use json to with 
-@app.route('/api/mpdifyGame', methods=['POST'])
-def mpdifyGame():
+@app.route('/api/modifyGame', methods=['POST'])
+def modifyGame():
     data = request.get_json()
     gameName = data["gameName"]
     playerName = data["playerName"]
