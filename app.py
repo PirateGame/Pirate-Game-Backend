@@ -15,7 +15,7 @@ game.bootstrap({"purge":True})
 
 
 def auth(playerName, gameName, code):
-    secret = game.getAuthCode(playerName, gameName)
+    secret = "test"#get auth code
     if code == secret:
         return True
     else:
@@ -74,9 +74,11 @@ def getPlayers():
         data = {"game": False}
         return jsonify(data)
     
-    data = game.listClientNames(gameName)
+    data = {"names":game.listClientNames(gameName)}
 
     data.update({"game": True})
+    print("------------------------")
+    print(data)
     return jsonify(data)
 
 @app.route('/api/getNumTiles', methods=['POST'])
@@ -91,12 +93,16 @@ def getNumTiles():
 def startGame():
     data = request.get_json()
     gameName = data["gameName"]
+    playerName = data["playerName"]
     authCode = data["authCode"]
-    
-    data = {}
 
-    data.update({"game": True})
-    return jsonify(data)
+    if auth(playerName, gameName, authCode):
+        game.start(gameName)
+        data = ({"auth": True})
+        return jsonify(data)
+    else:
+        data = ({"auth": False})
+        return jsonify(data)
 
 
 #This should return what has just happened in the game.
@@ -104,13 +110,26 @@ def startGame():
 def getNext():
     return
 
-@app.route('/api/setDecisionTime', methods=['POST'])
-def setDecisionTime():
-    return
-    
+#Set randomize only and decision time.
+#when requesting from here, use json to with 
+@app.route('/api/mpdifyGame', methods=['POST'])
+def mpdifyGame():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+    action = data["action"]
+    print(action)
+    #TODO work out how to get action into dict
+    if auth(playerName, gameName, authCode):
+        game.alterGames([gameName], {"name":"game2"})
+        data = ({"auth": True})
+        return jsonify(data)
+    else:
+        data = ({"auth": False})
+        return jsonify(data)
 
-@app.route('/api/setRandomizeOnly', methods=['POST'])
-def setRandomizeOnly():
+    #use altergames function
     return
 
 #This should be used for the client to respond with what they want to do.
