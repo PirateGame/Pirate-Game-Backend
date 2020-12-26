@@ -50,7 +50,7 @@ class prettyPrinter():
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class gameHandler():
-    def __init__(self, gameName, ownerID, gridDim, turnTime):
+    def __init__(self, gameName, ownerName, gridDim, turnTime):
         def updateBOARDS(whatToUpdate):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             if whatToUpdate[0] == None:
@@ -62,7 +62,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = turnTime * gridDim[0] * gridDim[1]
-        self.about = {"name": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerID": ownerID, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
+        self.about = {"name": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerName": ownerName, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.about["estimateHandler"] = analyse.gameEstimateHandler(self)
         self.tempGroupChoices = []
@@ -71,9 +71,9 @@ class gameHandler():
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.about["name"] not in BOARDS:
             updateBOARDS([self.about, {}])
-            print(self.about["name"], "@@@@ CREATED by client", str(ownerID), "with", gridDim, "dimensions.")
+            print(self.about["name"], "@@@@ CREATED by client", str(ownerName), "with", gridDim, "dimensions.")
         else:
-            print(self.about["name"], "@@@@ RECOVERED by client", str(ownerID), "with", gridDim, "dimensions.")
+            print(self.about["name"], "@@@@ RECOVERED by client", str(ownerName), "with", gridDim, "dimensions.")
         
         self.pP = prettyPrinter()
 
@@ -108,7 +108,7 @@ class gameHandler():
                 else:
                     choice = event["source"].about["row"]
                 victims = self.game.whoIsOnThatLine(rOrC, choice)
-                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "source":random.choice(event["targets"]), "targets":[self.game.about["clients"][victim] for victim in victims], "other":[rOrC, choice]})) #EVENT HANDLER
+                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":event["event"], "source":random.choice(event["targets"]), "targets":[self.game.about["clients"][victim] for victim in victims], "other":[rOrC, choice]})) #EVENT HANDLER
                 for victim in victims:
                     self.game.about["clients"][victim].beActedOn("D", self.about) ###ACT
             elif self.tempGroupChoices.count("shield") > 1: #Shield
@@ -136,8 +136,6 @@ class gameHandler():
         for client in self.about["clients"]:
             self.about["clients"][client].logScore()
             self.about["clients"][client].act(BOARDS[self.about["name"]][1][client][newTile[1]][newTile[0]])
-        if len(self.tempGroupChoices) > 0:
-            whatThatLineDoes()
             
             #actions.append(BOARDS[self.gameIDNum][client][newTile[0]][newTile[1]])
         #for a in range(len(actions)):
@@ -384,13 +382,13 @@ class clientHandler():
 # ------------------------------------------------------------------------------------------------------------------
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-def makeGame(gameName, ownerID, gridDim, turnTime):
+def makeGame(gameName, ownerName, gridDim, turnTime):
     if gameName not in games:
         if gameName == "":
             chars = string.ascii_letters + string.punctuation
             gameName = ''.join(random.choice(chars) for x in range(6))
 
-        g = gameHandler(gameName, ownerID, gridDim, turnTime)
+        g = gameHandler(gameName, ownerName, gridDim, turnTime)
         games[gameName] = g
         return True
     else:
@@ -416,12 +414,13 @@ def deleteGame(gameNames):
         print("@@@@ NOTHING DELETED")
 
 #get the info of a game by name
-def gameInfo(gameName):
+def gameInfo(gameName): #gameInfo("testGame")["about"]["ownerName"]
     try:
         return games[gameName].info()
     except Exception as e:
         return e
 
+#get the info of a client by name and game name
 def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) returns {"about":about}
     try:
         gameName = about.get("gameName")
@@ -524,10 +523,10 @@ def bootstrap(about):
         for gameName in BOARDS:
             try:
                 gameName = gameName
-                ownerID = BOARDS[gameName][0]["ownerID"]
+                ownerName = BOARDS[gameName][0]["ownerName"]
                 gridDim = BOARDS[gameName][0]["gridDim"]
                 turnTime = BOARDS[gameName][0]["turnTime"]
-                makeGame(gameName, ownerID, gridDim, turnTime)
+                makeGame(gameName, ownerName, gridDim, turnTime)
             except Exception as e:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
     except Exception as e:
@@ -556,12 +555,12 @@ if __name__ == "__main__":
         gridDim = (8,8)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
-        ownerID = 1
+        ownerName = "Jamie"
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
 
         #Setting up a test game
-        makeGame(gameName, ownerID, gridDim, turnTime)
+        makeGame(gameName, ownerName, gridDim, turnTime)
 
         #Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
