@@ -113,9 +113,9 @@ class grid():
                 id = (y * self.about["gridDim"][1]) + x
                 tile = array[y][x]
                 if not tile.isdigit():
-                    content = "<br>"+self.eventDescriptions[tile]+"<br>"
+                    content = self.eventDescriptions[tile] #"<br>"+self.eventDescriptions[tile]+"<br>"
                 else:
-                    content = "<br>"+str(tile)+"<br>"
+                    content = str(tile) #"<br>"+str(tile)+"<br>"
                 if positions:
                     serialFile.append({"x":x, "y":y, "w":1, "h":1, "id":id, "content":content, "noResize": True, "noMove":False})
                 else:
