@@ -156,22 +156,18 @@ class gameHandler():
         return out
     
     def joinLobby(self, clients):
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client, about in clients.items():
             if client not in list(self.about["clients"].keys()):
                 try:
-                    gr = self.about["gridTemplate"].build()
                     self.about["clients"][client] = clientHandler(self, client, about)
-                    if about["isPlaying"]:
-                        BOARDS[self.about["name"]][1][client] = gr
+                    self.about["clients"][client].buildRandomBoard()
                     out.append(True)
                 except Exception as e:
                     out.append(e)
             else:
                 out.append("That username already exists!")
-        BOARDS = np.save("boards.npy", BOARDS)
         return out
     
     def exit(self, clients):
@@ -198,6 +194,10 @@ class gameHandler():
             for tile in self.about["chosenTiles"]:
                 tempBOARD[tile[1]][tile[0]] = "-"
             self.pP.printmat(tempBOARD, row_labels, col_labels)
+    
+    def serialiseBoard(self, clientName, positions):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        return self.about["gridTemplate"].serialise(BOARDS[self.about["name"]][1][clientName], positions)
 
     def start(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -223,13 +223,19 @@ class gameHandler():
         np.save("boards.npy", BOARDS)
 
 class clientHandler():
-    def __init__(self, game, client, about):
+    def __init__(self, game, clientName, about):
         self.game = game
 
         if about["isPlaying"]:
-            self.about = {"name":client, "isPlaying": about["isPlaying"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
+            self.about = {"name":clientName, "isPlaying": about["isPlaying"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
         else:
-            self.about = {"name":client, "isPlaying": about["isPlaying"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
+            self.about = {"name":clientName, "isPlaying": about["isPlaying"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
+    
+    def buildRandomBoard(self):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        gr = self.game.about["gridTemplate"].build()
+        BOARDS[self.game.about["name"]][1][self.about["name"]] = gr
+        BOARDS = np.save("boards.npy", BOARDS)
     
     def info(self):
         return {"about":self.about}
@@ -484,6 +490,13 @@ def returnEvents(gameName, about):
     else:
         return games[gameName].about["eventHandler"].about["privateLog"]
 
+def serialiseBoard(gameName, clientName, positions=True):
+    return games[gameName].serialiseBoard(clientName, positions)
+
+def randomiseBoard(gameName, clientName):
+    return games[gameName].about["clients"][clientName].buildRandomBoard()
+
+
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
 #this would change the name of Jamie to Gemima.
@@ -584,7 +597,9 @@ if __name__ == "__main__":
         for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
             shallIContinue = input()
             turnHandle(gameName)
-            print(returnEvents(gameName, {"public":True}))
+            #randomiseBoard(gameName, "Tom")
+            #print("event log:", returnEvents(gameName, {"public":True}))
+            #print("tom's serialised board:", serialiseBoard(gameName, "Tom"))
         
         print(gameName, "@@@ Game over.")
         print("Leaderboard:", leaderboard(gameName))

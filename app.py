@@ -92,59 +92,14 @@ def getPlayers():
     return jsonify(data)
 
 @app.route('/api/getNumTiles', methods=['POST'])
-def getNumTiles():
+def getNumTiles(): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
     data = request.get_json()
     gameName = data["gameName"]
         
     data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
-    bigdata = []
+    clientName = "????"
     
-    for i in range (0,data["A"]):
-        bigdata.append({"content": 'Steal', "noResize": True, "noMove":False})
-
-    for i in range (0, data["B"]):
-        bigdata.append({"content": 'Kill', "noResize": True, "noMove":False})
-
-    for i in range (0,data["C"]):
-        bigdata.append({"content": 'Present', "noResize": True, "noMove":False})
-
-    for i in range (0, data["D"]):
-        bigdata.append({"content": 'Skull and Crossbones', "noResize": True, "noMove":False})
-
-    for i in range (0,data["E"]):
-        bigdata.append({"content": 'Swap', "noResize": True, "noMove":False})
-
-    for i in range (0, data["F"]):
-        bigdata.append({"content": 'Choose Next Square', "noResize": True, "noMove":False})
-
-    for i in range (0,data["G"]):
-        bigdata.append({"content": 'Shield', "noResize": True, "noMove":False})
-
-    for i in range (0, data["H"]):
-        bigdata.append({"content": 'Mirror', "noResize": True, "noMove":False})
-
-    for i in range (0,data["I"]):
-        bigdata.append({"content": 'Bomb', "noResize": True, "noMove":False})
-
-    for i in range (0, data["J"]):
-        bigdata.append({"content": 'Double', "noResize": True, "noMove":False})
-
-    for i in range (0,data["K"]):
-        bigdata.append({"content": 'Bank', "noResize": True, "noMove":False})
-
-    for i in range (0,data["5000"]-1): #one less as one already in grid
-        bigdata.append({"content": '5000', "noResize": True, "noMove":False})
-
-    for i in range (0, data["3000"]):
-        bigdata.append({"content": '3000', "noResize": True, "noMove":False})
-
-    for i in range (0,data["1000"]):
-        bigdata.append({"content": '1000', "noResize": True, "noMove":False})
-
-    for i in range (0, data["200"]):
-        bigdata.append({"content": '200', "noResize": True, "noMove":False})
-
-    return jsonify(bigdata)
+    return jsonify(game.serialiseBoard(gameName, clientName, positions=False))
 
 @app.route('/api/startGame', methods=['POST'])
 def startGame():
