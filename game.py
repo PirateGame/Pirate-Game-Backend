@@ -62,7 +62,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = turnTime * gridDim[0] * gridDim[1]
-        self.about = {"name": gameName, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerName": ownerName, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
+        self.about = {"name": gameName, "status":"lobby", "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerName": ownerName, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.about["estimateHandler"] = analyse.gameEstimateHandler(self)
         self.tempGroupChoices = []
@@ -145,6 +145,9 @@ class gameHandler():
         #A signal should be emitted here to the Vue Server holding the new turn's tile coordinates, for each vue client to process what on their grid
     def info(self):
         return {"about":self.about, "gridTemplate":self.about["gridTemplate"].about}
+    
+    def status(self): #= lobby, active, dormant
+        return self.about["status"]
 
     def leaderboard(self):
         clientByScore = {}
@@ -200,9 +203,7 @@ class gameHandler():
         return self.about["gridTemplate"].serialise(BOARDS[self.about["name"]][1][clientName], positions)
 
     def start(self):
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-
-        np.save("boards.npy", BOARDS)   
+        self.about["status"] = "active"
 
         self.randomCoords = []
         for x in range(self.about["gridDim"][0]):
@@ -214,8 +215,16 @@ class gameHandler():
 
     def turnHandle(self):
         self.about["turnNum"] += 1
-        self.newTurn()
-        self.printBoards()
+        if self.about["turnNum"] < self.about["gridDim"][0] * self.about["gridDim"][1]:
+            self.newTurn()
+            self.printBoards()
+        else:
+            self.about["status"] = "dormant" #this is for when the game doesn't end immediatedly after the turn count is up
+            print(gameName, "@@@ Game over.")
+            print("Leaderboard:", leaderboard(gameName))
+            self.delete()
+            deleteGame([self.about["name"]])
+
     
     def delete(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -484,6 +493,9 @@ def turnHandle(gameName):
 def start(gameName):
     return games[gameName].start()
 
+def status(gameName):
+    return games[gameName].status()
+
 def returnEvents(gameName, about):
     if about["public"]:
         return games[gameName].about["eventHandler"].about["publicLog"]
@@ -594,15 +606,13 @@ if __name__ == "__main__":
         shallIContinue = input()
 
         start(gameName)
-        for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
+        for turn in range(turnCount + 1): #Simulate the frontend calling the new turns over and over.
             shallIContinue = input()
             turnHandle(gameName)
             #randomiseBoard(gameName, "Tom")
             #print("event log:", returnEvents(gameName, {"public":True}))
             #print("tom's serialised board:", serialiseBoard(gameName, "Tom"))
         
-        print(gameName, "@@@ Game over.")
-        print("Leaderboard:", leaderboard(gameName))
         deleteGame([key for key in games])
         for i in range(3):
             print("")
