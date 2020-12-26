@@ -205,8 +205,8 @@ class gameHandler():
         np.save("boards.npy", BOARDS)   
 
         self.randomCoords = []
-        for x in range(gridDim[0]):
-            for y in range(gridDim[1]):
+        for x in range(self.about["gridDim"][0]):
+            for y in range(self.about["gridDim"][1]):
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
         print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients, here's more info...", self.info())
