@@ -15,7 +15,8 @@ game.bootstrap({"purge":True})
 
 
 def auth(playerName, gameName, code):
-    secret = "test"#get auth code
+    secret = game.clientInfo({"gameName":gameName, "clientName":playerName})
+    secret = secret["about"]["authCode"]
     if code == secret:
         return True
     else:
