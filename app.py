@@ -91,15 +91,15 @@ def getPlayers():
     data.update({"game": True})
     return jsonify(data)
 
-@app.route('/api/getNumTiles', methods=['POST'])
-def getNumTiles(): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
+@app.route('/api/getBarTiles', methods=['POST'])
+def getBarTiles(): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
     data = request.get_json()
     gameName = data["gameName"]
+    playerName = data["playerName"]
         
     data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
-    clientName = "????"
     
-    return jsonify(game.serialiseBoard(gameName, clientName, positions=False))
+    return jsonify(game.serialiseBoard(gameName, playerName, positions=False))
 
 @app.route('/api/startGame', methods=['POST'])
 def startGame():
