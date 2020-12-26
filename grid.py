@@ -91,3 +91,6 @@ class grid():
                 array[coords[c+ac][0]][coords[c+ac][1]] = chr(65 + ((c - (len(mAc) + len(mBc) + len(mCc) + len(mDc)))//self.about["actionCount"]))
         
         return array #Return a list with the array and then a dictionary with all the important stuff.
+    
+    def buildJSON(self):
+        print(array)
