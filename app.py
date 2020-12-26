@@ -33,7 +33,7 @@ def createGame():
     isPlaying = data["isHostPlaying"]
 
     gridDim = (Sizex, Sizey)
-    #TODO this needs adjusting in the host control panel
+    #This sets the standard decison time
     decisionTime = 30
 
     game.makeGame(gameName, ownerName, gridDim, decisionTime)
@@ -54,13 +54,14 @@ def joinGame():
     data = request.get_json()
     gameName = data["gameName"]
     playerName = data["playerName"]
-    
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
-    print(game.joinLobby(gameName, {playerName:{"isPlaying":True}})) #This will show what happened when trying to join each player to the lobby
-    print(game.gameInfo(gameName)) #This will show the general info of the game
+    #TODO get auth code.
+    authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
 
-    data = {"game": True}
+
+    data = {
+        "game": True
+        }
     return jsonify(data) #This is mega broken
 
 @app.route('/api/getPlayers', methods=['POST'])
@@ -77,8 +78,6 @@ def getPlayers():
     data = {"names":game.listClientNames(gameName)}
 
     data.update({"game": True})
-    print("------------------------")
-    print(data)
     return jsonify(data)
 
 @app.route('/api/getNumTiles', methods=['POST'])
@@ -130,6 +129,27 @@ def modifyGame():
         return jsonify(data)
 
     #use altergames function
+    return
+
+
+#Set team/ship
+@app.route('/api/setTeam', methods=['POST'])
+def setTeam():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+    team = data["Team"]
+    ship = data["Ship"]
+
+    if auth(playerName, gameName, authCode):
+        game.alterClients(gameName, [playerName], {"row": ship}) #Ship
+        game.alterClients(gameName, [playerName], {"column": team}) #team
+        data = ({"auth": True})
+        return jsonify(data)
+    else:
+        data = ({"auth": False})
+        return jsonify(data)
     return
 
 #This should be used for the client to respond with what they want to do.

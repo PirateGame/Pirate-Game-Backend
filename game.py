@@ -228,7 +228,7 @@ class clientHandler():
         if about["isPlaying"]:
             self.about = {"name":client, "isPlaying": about["isPlaying"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
         else:
-            self.about = {"name":client, "isPlaying": about["isPlaying"]}
+            self.about = {"name":client, "isPlaying": about["isPlaying"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
     
     def info(self):
         return {"about":self.about}
@@ -421,6 +421,8 @@ def gameInfo(gameName):
 
 def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) returns {"about":about}
     try:
+        gameName = about.get("gameName")
+        clientName = about.get("clientName")
         return games[gameName].about["clients"][about["clientName"]].info()
     except Exception as e:
         return e
@@ -479,6 +481,7 @@ def returnEvents(gameName, about):
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
 #this would change the name of Jamie to Gemima.
 def alterClients(gameName, clientNames, alterations):
+    success = []
     for clientName in clientNames:
         if clientName in games[gameName].about["clients"]:
             for key,value in alterations.items():
@@ -494,6 +497,7 @@ def alterClients(gameName, clientNames, alterations):
 # eg: alterGames(["game1"], {"name":"game2"})
 #this would change the name of game1 to game2.
 def alterGames(gameNames, alterations):
+    success = []
     for gameName in gameNames:
         if gameName in games:
             for key,value in alterations.items():
