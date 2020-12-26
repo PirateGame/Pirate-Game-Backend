@@ -160,16 +160,17 @@ class gameHandler():
     def joinLobby(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
-        out = []
+        out = ''
         for client, about in clients.items():
             try:
                 gr = self.about["gridTemplate"].build()
                 self.about["clients"][client] = clientHandler(self, client, about)
                 if about["isPlaying"]:
                     BOARDS[self.about["name"]][1][client] = gr
-                out.append(True)
+                out = True
             except Exception as e:
-                out.append(e)
+                print(e)
+                out =  False
         BOARDS = np.save("boards.npy", BOARDS)
         return out
     
@@ -459,7 +460,10 @@ def listClientNames(gameName):
 
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
-    return games[gameName].joinLobby(clients)
+    try:
+        return games[gameName].joinLobby(clients)
+    except:
+        return False
 
 def exitLobby(gameName, clients):
     return games[gameName].exit(clients)
