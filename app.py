@@ -95,16 +95,10 @@ def getPlayers():
 def getNumTiles():
     data = request.get_json()
     gameName = data["gameName"]
-
-    #TODO add {"game":True} if game exists.
-
-    
-    #TODO format like this: {content: 'Kill',noResize: true, noMove:false}
         
     data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
-    print(data)
-
     bigdata = []
+    
     for i in range (0,data["A"]):
         bigdata.append({"content": 'Steal', "noResize": True, "noMove":False})
 
@@ -149,8 +143,7 @@ def getNumTiles():
 
     for i in range (0, data["200"]):
         bigdata.append({"content": '200', "noResize": True, "noMove":False})
-    
-    print(bigdata)
+
     return jsonify(bigdata)
 
 @app.route('/api/startGame', methods=['POST'])
@@ -235,6 +228,23 @@ def saveBoard():
     else:
         data = {"game": False}
         return jsonify(data)
+
+
+
+@app.route('/api/randomiseBoard', methods=['POST'])
+def randomiseBoard():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+
+    randomiseBoard(gameName, playerName)
+
+    board = serialiseBoard(gameName, playerName)
+
+    print('board')
+
+    return jsonify(board)
 
 
 if __name__ == "__main__":
