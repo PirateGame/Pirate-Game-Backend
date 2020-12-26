@@ -158,17 +158,19 @@ class gameHandler():
     def joinLobby(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
-        out = ''
+        out = []
         for client, about in clients.items():
-            try:
-                gr = self.about["gridTemplate"].build()
-                self.about["clients"][client] = clientHandler(self, client, about)
-                if about["isPlaying"]:
-                    BOARDS[self.about["name"]][1][client] = gr
-                out = True
-            except Exception as e:
-                print(e)
-                out =  False
+            if client not in list(self.about["clients"].keys()):
+                try:
+                    gr = self.about["gridTemplate"].build()
+                    self.about["clients"][client] = clientHandler(self, client, about)
+                    if about["isPlaying"]:
+                        BOARDS[self.about["name"]][1][client] = gr
+                    out.append(True)
+                except Exception as e:
+                    out.append(e)
+            else:
+                out.append("That username already exists!")
         BOARDS = np.save("boards.npy", BOARDS)
         return out
     
@@ -567,6 +569,10 @@ if __name__ == "__main__":
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
+        clients = {"Jamie":{"isPlaying":True}} #This is to verify that duplicate usernames aren't allowed.
+        print("joining a dupe client to the lobby", joinLobby(gameName, clients))
+
+
         #Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
         print("exiting client from the lobby", exitLobby(gameName, ["Jamie"]))
 
