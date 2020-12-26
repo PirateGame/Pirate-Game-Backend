@@ -10,3 +10,4 @@ print("".join([str(i) + "\n" for i in exampleGrid]))
 
 print("SerialFile:")
 print("".join([str(i) + "\n" for i in serialFile]))
+print(serialFile)

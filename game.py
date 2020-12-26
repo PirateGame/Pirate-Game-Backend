@@ -198,6 +198,10 @@ class gameHandler():
             for tile in self.about["chosenTiles"]:
                 tempBOARD[tile[1]][tile[0]] = "-"
             self.pP.printmat(tempBOARD, row_labels, col_labels)
+    
+    def serialiseBoard(self, clientName):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        return self.about["gridTemplate"].buildJSON(BOARDS[self.about["name"]][1][clientName])
 
     def start(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -484,6 +488,10 @@ def returnEvents(gameName, about):
     else:
         return games[gameName].about["eventHandler"].about["privateLog"]
 
+def serialiseBoard(gameName, clientName):
+    return games[gameName].serialiseBoard(clientName)
+
+
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
 #this would change the name of Jamie to Gemima.
@@ -584,7 +592,8 @@ if __name__ == "__main__":
         for turn in range(turnCount): #Simulate the frontend calling the new turns over and over.
             shallIContinue = input()
             turnHandle(gameName)
-            print(returnEvents(gameName, {"public":True}))
+            print("event log:", returnEvents(gameName, {"public":True}))
+            print("tom's serialised board:", serialiseBoard(gameName, "Tom"))
         
         print(gameName, "@@@ Game over.")
         print("Leaderboard:", leaderboard(gameName))
