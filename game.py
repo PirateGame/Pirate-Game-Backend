@@ -391,8 +391,10 @@ def makeGame(gameName, ownerID, gridDim, turnTime):
 
         g = gameHandler(gameName, ownerID, gridDim, turnTime)
         games[gameName] = g
+        return True
     else:
         print(gameName, "@@@@ FAILED GAME CREATION, that game name is already in use.")
+        return False
 
 #delete game(s) by Name
 def deleteGame(gameNames):

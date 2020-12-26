@@ -36,16 +36,22 @@ def createGame():
     #This sets the standard decison time
     decisionTime = 30
 
-    game.makeGame(gameName, ownerName, gridDim, decisionTime)
+    if game.makeGame(gameName, ownerName, gridDim, decisionTime):
+        pass
+    else:
+        data = {"game": False}
+        return jsonify(data)
 
     if isPlaying:
-        print(game.joinLobby(gameName, {ownerName:{"isPlaying":True}}))
+        game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
+    else:
+        game.joinLobby(gameName, {ownerName:{"isPlaying":False}})
 
-    info = game.gameInfo(gameName)
-    print(info)
+    authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})
+    authcode = authcode["about"]["authCode"]
     
     
-    data = {"stuff":True}#{"authCode": player.about["authCode"]}
+    data = {"game":True, "authcode": authcode}
     return jsonify(data)
 
 
@@ -57,6 +63,7 @@ def joinGame():
 
     #TODO get auth code.
     authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
+    print(authcode)
 
 
     data = {
