@@ -8,6 +8,6 @@ gridHeight = len(exampleGrid)
 gridWidth = len(exampleGrid[0])
 for y in range(gridHeight):
     for x in range(gridWidth):
-        JSON.append({"x":x, "y":y, "w":1, "h":1, "id":((y+1) * gridWidth) + x, "content":""})
+        JSON.append({"x":x, "y":y, "w":1, "h":1, "id":(y * gridWidth) + x, "content":""})
 
 print(JSON)
