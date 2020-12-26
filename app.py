@@ -99,7 +99,7 @@ def getBarTiles(): #This is used for building the list of tiles that are going t
         
     data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
     
-    return jsonify(game.serialiseBoard(gameName, playerName, positions=False))
+    return jsonify(game.serialReadBoard(gameName, playerName, positions=False))
 
 @app.route('/api/startGame', methods=['POST'])
 def startGame():
@@ -195,7 +195,7 @@ def randomiseBoard():
 
     randomiseBoard(gameName, playerName)
 
-    board = serialiseBoard(gameName, playerName)
+    board = serialReadBoard(gameName, playerName)
 
     print('board')
 

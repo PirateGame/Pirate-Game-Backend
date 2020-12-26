@@ -105,11 +105,11 @@ class grid():
         
         return array #Return a list with the array and then a dictionary with all the important stuff.
     
-    def serialise(self, array, positions):
+    def serialReadBoard(self, array, positions):
         serialFile = []
 
-        for y in range(self.about["gridDim"][0]):
-            for x in range(self.about["gridDim"][1]):
+        for x in range(self.about["gridDim"][0]):
+            for y in range(self.about["gridDim"][1]):
                 id = (y * self.about["gridDim"][1]) + x
                 tile = array[y][x]
                 if not tile.isdigit():
@@ -122,3 +122,14 @@ class grid():
                     serialFile.append({"id":id, "content":content, "noResize": True, "noMove":False})
 
         return serialFile
+    
+    def serialWriteBoard(self, array, serial):
+        for tile in serial:
+            if not tile["content"].isdigit():
+                for key,value in self.eventDescriptions.items():
+                    if value == tile["content"]:
+                        event = key
+            else:
+                event = tile["content"]
+            array[tile["y"]][tile["x"]] = event
+        return array
