@@ -92,5 +92,13 @@ class grid():
         
         return array #Return a list with the array and then a dictionary with all the important stuff.
     
-    def buildJSON(self):
-        print(array)
+    def buildJSON(self, array):
+        serialFile = []
+
+        for y in range(self.about["gridDim"][0]):
+            for x in range(self.about["gridDim"][1]):
+                id = (y * self.about["gridDim"][1]) + x
+                content = "<br>"+str(array[y][x])+"<br>"
+                serialFile.append({"x":x, "y":y, "w":1, "h":1, "id":id, "content":content})
+
+        return serialFile
