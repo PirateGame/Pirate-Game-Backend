@@ -10,6 +10,19 @@ def gridSizeToActionCount(gridSize):
     
 class grid():
     def __init__(self, gridDim):
+        self.eventDescriptions = {"A":"Rob",
+                                "B":"Kill",
+                                "C":"Present",
+                                "D":"Skull and Crossbones",
+                                "E":"Swap",
+                                "F":"Choose Next Square",
+                                "G":"Shield",
+                                "H":"Mirror",
+                                "I":"Bomb",
+                                "J":"Double",
+                                "K":"Bank"}
+
+        ### Build an optimised blueprint for grid building
         gridSize = gridDim[0] * gridDim[1]
         mA = int(np.ceil(gridSize * (1/49)))
         mB = int(np.ceil(gridSize * (2/49)))
@@ -92,13 +105,20 @@ class grid():
         
         return array #Return a list with the array and then a dictionary with all the important stuff.
     
-    def buildJSON(self, array):
+    def serialise(self, array, positions):
         serialFile = []
 
         for y in range(self.about["gridDim"][0]):
             for x in range(self.about["gridDim"][1]):
                 id = (y * self.about["gridDim"][1]) + x
-                content = "<br>"+str(array[y][x])+"<br>"
-                serialFile.append({"x":x, "y":y, "w":1, "h":1, "id":id, "content":content})
+                tile = array[y][x]
+                if not tile.isdigit():
+                    content = "<br>"+self.eventDescriptions[tile]+"<br>"
+                else:
+                    content = "<br>"+str(tile)+"<br>"
+                if positions:
+                    serialFile.append({"x":x, "y":y, "w":1, "h":1, "id":id, "content":content, "noResize": True, "noMove":False})
+                else:
+                    serialFile.append({"id":id, "content":content, "noResize": True, "noMove":False})
 
         return serialFile
