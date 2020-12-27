@@ -62,7 +62,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name": about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueness":about["nameUniqueness"], "nameNaughtiness":about["nameNaughtiness"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name": about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         
@@ -168,9 +168,9 @@ class gameHandler():
         return out
     
     def joinLobby(self, clients):
-        #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client, about in clients.items():
+            if 
             if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
                 if self.about["status"] == "lobby":
                     if client not in list(self.about["clients"].keys()):
@@ -190,7 +190,6 @@ class gameHandler():
     
     def exit(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client in clients:
             try:
@@ -597,9 +596,9 @@ def bootstrap(about):
                 gridDim = BOARDS[gameName][0]["gridDim"]
                 turnTime = BOARDS[gameName][0]["turnTime"]
                 playerCap = BOARDS[gameName][0]["playerCap"]
-                nameUniqueness = BOARDS[gameName][0]["nameUniqueness"]
-                nameNaughtiness = BOARDS[gameName][0]["nameNaughtiness"]
-                gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueness":nameUniqueness, "nameNaughtiness":nameNaughtiness}
+                nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
+                nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
+                gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
                 makeGame(gameAbout)
             except Exception as e:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
@@ -633,11 +632,11 @@ if __name__ == "__main__":
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
         playerCap = 5
-        nameNaughtiness = 0
-        nameUniqueness = 0
+        nameNaughtyFilter = 0
+        nameUniqueFilter = 0
 
         #Setting up a test game
-        about = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueness":nameUniqueness, "nameNaughtiness":nameNaughtiness}
+        about = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.

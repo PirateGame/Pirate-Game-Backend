@@ -38,10 +38,10 @@ def createGame():
     #This sets the standard decison time
     decisionTime = 30
 
-    nameUniqueness = False
-    nameNaughtiness = False
+    nameUniqueFilter = None
+    nameNaughtyFilter = None
 
-    gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueness":nameUniqueness, "nameNaughtiness":nameNaughtiness}
+    gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueness, "nameNaughtyFilter":nameNaughtyFilter}
 
     if not game.makeGame(gameAbout):
         data = {"game": False}
