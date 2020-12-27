@@ -22,7 +22,7 @@ def auth(playerName, gameName, code):
         return False
 
 def isHost(gameName, playerName):
-    secret = game.gameInfo({"gameName":gameName, "playerName":playerName})["about"]["ownerName"]
+    secret = game.gameInfo(gameName)["about"]["ownerName"]
     if playerName == secret:
         return True
     else:
@@ -99,7 +99,9 @@ def joinGame():
             data = {"error": "Your name can only contain letters"}
             return jsonify(data)
 
-    if game.joinLobby(gameName, playerName):
+
+    client = {playerName:{"isPlaying":True}}
+    if game.joinLobby(gameName, client):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         data = {"error": False, "authcode": authcode}
         return jsonify(data)
@@ -184,7 +186,7 @@ def modifyGame():
     naughty = data["naughty"]
     similar = data["similar"]
     DecisionTime = data["DecisionTime"]
-    randmoiseOnly = data["randomiseonly"]
+    randmoiseOnly = data["randomiseOnly"]
     playerCap = data["playerLimit"]
 
     if auth(playerName, gameName, authCode):
