@@ -171,26 +171,22 @@ class gameHandler():
     def joinLobby(self, clients):
         out = []
         for clientName, about in clients.items():
-            #nameCheck = nameFilter.checkString()
-            nameCheck = True
-            if nameCheck:
+            nameCheck = nameFilter.checkString(self.about["clients"].keys(), clientName, nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
+            if nameCheck == None: #(no problems with the name)
                 if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
                     if self.about["status"] == "lobby":
-                        if clientName not in list(self.about["clients"].keys()):
-                            try:
-                                self.about["clients"][clientName] = clientHandler(self, clientName, about)
-                                self.about["clients"][clientName].buildRandomBoard()
-                                out.append(True)
-                            except Exception as e:
-                                out.append(e)
-                        else:
-                            out.append("That username already exists!")
+                        try:
+                            self.about["clients"][clientName] = clientHandler(self, clientName, about)
+                            self.about["clients"][clientName].buildRandomBoard()
+                            out.append(True)
+                        except Exception as e:
+                            out.append(e)
                     else:
                         out.append("The game is not in the lobby stage, it is in: " + self.about["status"])
                 else:
                     out.append("The player cap of " + str(self.about["playerCap"]) + " has been reached.")
             else:
-                out.append("The username", clientName, "doesn't pass the name filters.")
+                out.append("The username " + clientName + " doesn't pass the name filters: " + str(nameCheck))
         return out
     
     def exit(self, clients):

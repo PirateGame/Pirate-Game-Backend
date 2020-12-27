@@ -1,6 +1,6 @@
 import numpy as np
 
-import itertools
+from better_profanity import profanity
 
 def levenshtein_ratio_and_distance(s, t, ratio_calc = False):
     """ levenshtein_ratio_and_distance:
@@ -53,15 +53,19 @@ def checkString(otherNames, name, nameNaughtyFilter, nameUniqueFilter):
         for otherName in otherNames:
             ratio = levenshtein_ratio_and_distance(name, otherName, ratio_calc = True)
             if ratio >= nameUniqueFilter:
-                fails[ratio] = ("'" + name + str("' is too close to another client's name: ") + otherName + "'" + " with similarity ratio " + str(ratio))
+                fails[ratio] = ("'" + name + str("' is too close to another client's name '") + otherName + "'" + " with similarity ratio " + str(ratio))
     if nameNaughtyFilter != None:
-        pass
-        #ratio = predict_prob(name)
-        #if ratio >= nameUniqueFilter:
-            #fails[ratio] = "profane, with similarity ratio" + str(ratio)
-    if len(fails) > 0:
+        if profanity.contains_profanity(name):
+            ratio = 1
+        else:
+            ratio = 0
+        if ratio >= nameUniqueFilter:
+            fails[ratio] = "profane"#, with similarity ratio" + str(ratio)
+    if len(fails.keys()) > 0:
         return fails[max(fails.keys())]
     else:
-        return True
+        return None
 
-print(checkString(["Kenny", "AwesomeKid123"], "AldgdfgdexBiytryrtyrtrtyrtch", nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85))
+result = checkString(["Kenny", "AwesomeKid123"], "Bitch", nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
+if result == None:
+    print(result)
