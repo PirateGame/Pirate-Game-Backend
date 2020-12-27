@@ -82,7 +82,6 @@ def getPlayers():
     gameName = data["gameName"]
     session = game.gameInfo(gameName)
     if session == False:
-        print("game not found")
         data = {"game": False}
         return jsonify(data)
     
@@ -100,6 +99,17 @@ def getBarTiles(): #This is used for building the list of tiles that are going t
     data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
     
     return jsonify(game.serialReadBoard(gameName, playerName, positions=False))
+
+@app.route('/api/getGridDim', methods=['POST'])
+def getGridDim():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+
+    data = {"x": 8, "y": 6}
+
+    return jsonify(data)
+
 
 @app.route('/api/startGame', methods=['POST'])
 def startGame():
@@ -177,6 +187,8 @@ def saveBoard():
     authCode = data["authCode"]
     board = data["board"]
 
+    print(board)
+
     if sucess:
         data = {"game": True}
         return jsonify(data)
@@ -193,11 +205,9 @@ def randomiseBoard():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    randomiseBoard(gameName, playerName)
+    game.randomiseBoard(gameName, playerName)
 
-    board = serialReadBoard(gameName, playerName)
-
-    print('board')
+    board = game.serialiseBoard(gameName, playerName)
 
     return jsonify(board)
 
