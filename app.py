@@ -210,9 +210,6 @@ def modifyGame():
         data = ({"error": "Authentication failed"})
         return jsonify(data)
 
-    #use altergames function
-    return
-
 
 #Set team/ship
 @app.route('/api/setTeam', methods=['POST'])
@@ -270,6 +267,20 @@ def randomiseBoard():
     else:
         data = ({"error": "Authentication failed"})
         return jsonify(data)
+
+@app.route('/api/getBoard', methods=['POST'])
+def getBoard():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+
+    if auth(playerName, gameName, authCode):
+        board = game.serialReadBoard(gameName, playerName)
+        return jsonify(board)
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
     
 
 @app.route('/api/getGameState', methods=['POST'])
@@ -282,6 +293,26 @@ def getGameState():
     data = {"error": False, "state":state}
 
     return jsonify(data)
+
+@app.route('/api/amIHost', methods=['POST'])
+def amIHost():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+
+    if auth(playerName, gameName, authCode):
+        if isHost(gameName, playerName):
+            data = ({"error": False})
+            return jsonify(data)
+        else:
+            data = ({"error": "You do not have permission to do this"})
+            return jsonify(data)
+
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
+
 
 
 if __name__ == "__main__":
