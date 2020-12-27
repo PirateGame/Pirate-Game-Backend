@@ -208,7 +208,7 @@ def randomiseBoard():
 
     game.randomiseBoard(gameName, playerName)
 
-    board = game.serialiseBoard(gameName, playerName)
+    board = game.serialReadBoard(gameName, playerName)
 
     return jsonify(board)
 
