@@ -55,26 +55,36 @@ def createGame():
     return jsonify(data)
 
 
+
+#TODO this needs major fixing, check that game exists and playercap stuff
 @app.route('/api/join_game', methods=['POST'])
 def joinGame():
     data = request.get_json()
     gameName = data["gameName"]
     playerName = data["playerName"]
 
-    if not game.joinLobby(gameName, playerName):
-        data = {"game": False}
-        return jsonify(data)
+    
+
+    join = game.joinLobby(gameName, playerName)
+
+    if join:
+        authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
+        authcode = authcode["about"]["authCode"]
+        data = {
+        "game": True,
+        "authcode": "not - authcode",
+        }
 
 
-    authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
-    authcode = authcode["about"]["authCode"]
+    #authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
+    #authcode = authcode["about"]["authCode"]
 
 
     data = {
         "game": True,
-        "authcode": authcode,
+        "authcode": "not - authcode",
         }
-    return jsonify(data) #This is mega broken
+    return jsonify(data)
 
 @app.route('/api/getPlayers', methods=['POST'])
 def getPlayers():
