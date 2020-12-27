@@ -11,6 +11,7 @@ import numpy as np
 import grid
 import time
 import analyse
+import nameFilter
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 games = {}
@@ -169,22 +170,27 @@ class gameHandler():
     
     def joinLobby(self, clients):
         out = []
-        for client, about in clients.items():
-            if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
-                if self.about["status"] == "lobby":
-                    if client not in list(self.about["clients"].keys()):
-                        try:
-                            self.about["clients"][client] = clientHandler(self, client, about)
-                            self.about["clients"][client].buildRandomBoard()
-                            out.append(True)
-                        except Exception as e:
-                            out.append(e)
+        for clientName, about in clients.items():
+            #nameCheck = nameFilter.checkString()
+            nameCheck = True
+            if nameCheck:
+                if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
+                    if self.about["status"] == "lobby":
+                        if clientName not in list(self.about["clients"].keys()):
+                            try:
+                                self.about["clients"][clientName] = clientHandler(self, clientName, about)
+                                self.about["clients"][clientName].buildRandomBoard()
+                                out.append(True)
+                            except Exception as e:
+                                out.append(e)
+                        else:
+                            out.append("That username already exists!")
                     else:
-                        out.append("That username already exists!")
+                        out.append("The game is not in the lobby stage, it is in: " + self.about["status"])
                 else:
-                    out.append("The game is not in the lobby stage, it is in: " + self.about["status"])
+                    out.append("The player cap of " + str(self.about["playerCap"]) + " has been reached.")
             else:
-                out.append("The player cap of " + str(self.about["playerCap"]) + " has been reached.")
+                out.append("The username", clientName, "doesn't pass the name filters.")
         return out
     
     def exit(self, clients):
