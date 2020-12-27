@@ -50,7 +50,7 @@ class prettyPrinter():
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class gameHandler():
-    def __init__(self, gameName, ownerName, gridDim, turnTime, playerCap):
+    def __init__(self, about):
         def updateBOARDS(whatToUpdate):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             if whatToUpdate[0] == None:
@@ -61,8 +61,8 @@ class gameHandler():
                 BOARDS[self.about["name"]] = whatToUpdate
             np.save("boards.npy", BOARDS)
         
-        maxEstTime = turnTime * gridDim[0] * gridDim[1]
-        self.about = {"name": gameName, "status":"lobby", "playerCap":playerCap, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerName": ownerName, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
+        maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
+        self.about = {"name": about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         
@@ -70,9 +70,9 @@ class gameHandler():
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.about["name"] not in BOARDS:
             updateBOARDS([self.about, {}])
-            print(self.about["name"], "@@@@ CREATED by client", str(ownerName), "with", gridDim, "dimensions.")
+            print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with", self.about, "properties.")
         else:
-            print(self.about["name"], "@@@@ RECOVERED by client", str(ownerName), "with", gridDim, "dimensions.")
+            print(self.about["name"], "@@@@ RECOVERED by client", str(self.about["ownerName"]), "with", self.about, "properties.")
         
         self.pP = prettyPrinter()
 
@@ -168,9 +168,9 @@ class gameHandler():
         return out
     
     def joinLobby(self, clients):
-        #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client, about in clients.items():
+            if 
             if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
                 if self.about["status"] == "lobby":
                     if client not in list(self.about["clients"].keys()):
@@ -190,7 +190,6 @@ class gameHandler():
     
     def exit(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client in clients:
             try:
@@ -437,17 +436,17 @@ class clientHandler():
 # ------------------------------------------------------------------------------------------------------------------
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-def makeGame(gameName, ownerName, gridDim, turnTime, playerCap):
-    if gameName not in games:
-        if gameName == "":
+def makeGame(about):
+    if about["gameName"] not in games:
+        if about["gameName"] == "":
             chars = string.ascii_letters + string.punctuation
-            gameName = ''.join(random.choice(chars) for x in range(6))
+            about["gameName"] = ''.join(random.choice(chars) for x in range(6))
 
-        g = gameHandler(gameName, ownerName, gridDim, turnTime, playerCap)
-        games[gameName] = g
+        g = gameHandler(about)
+        games[about["gameName"]] = g
         return True
     else:
-        print(gameName, "@@@@ FAILED GAME CREATION, that game name is already in use.")
+        print(about["gameName"], "@@@@ FAILED GAME CREATION, that game name is already in use.")
         return False
 
 #delete game(s) by Name
@@ -596,7 +595,11 @@ def bootstrap(about):
                 ownerName = BOARDS[gameName][0]["ownerName"]
                 gridDim = BOARDS[gameName][0]["gridDim"]
                 turnTime = BOARDS[gameName][0]["turnTime"]
-                makeGame(gameName, ownerName, gridDim, turnTime)
+                playerCap = BOARDS[gameName][0]["playerCap"]
+                nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
+                nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
+                gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+                makeGame(gameAbout)
             except Exception as e:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
     except Exception as e:
@@ -629,12 +632,15 @@ if __name__ == "__main__":
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
         playerCap = 5
+        nameNaughtyFilter = 0
+        nameUniqueFilter = 0
 
         #Setting up a test game
-        makeGame(gameName, ownerName, gridDim, turnTime, playerCap)
+        about = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+        makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = {"Jamie":{"isPlaying":True}, "Tom1":{"isPlaying":True}, "Tom2":{"isPlaying":True}, "Tom3":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
+        clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
