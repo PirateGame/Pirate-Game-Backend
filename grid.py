@@ -124,6 +124,8 @@ class grid():
         return serialFile
     
     def serialWriteBoard(self, array, serial):
+        tileTally = {}
+        toAdd = []
         for tile in serial:
             if not tile["content"].isdigit():
                 for key,value in self.eventDescriptions.items():
@@ -131,5 +133,16 @@ class grid():
                         event = key
             else:
                 event = tile["content"]
-            array[tile["y"]][tile["x"]] = event
-        return array
+            if not event in tileTally.keys:
+                tileTally[event] = 1
+            else:
+                tileTally[event] += 1
+            toAdd.append(event)
+        if tileTally == self.about["tileNums"]:
+            tileNum = -1
+            for tile in serial:
+                tileNum += 1
+                array[tile["y"]][tile["x"]] = toAdd[tileNum]
+            return array
+        else:
+            return "Format" + str(tileTally) + "does not abide by" + str(self.about["tileNums"]) #inauthentic board
