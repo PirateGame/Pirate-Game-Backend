@@ -438,13 +438,13 @@ class clientHandler():
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def makeGame(about):
-    if about["gameName"] not in games:
-
+    nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
+    if nameCheck == None:
         g = gameHandler(about)
         games[about["gameName"]] = g
         return True
     else:
-        print(about["gameName"], "@@@@ FAILED GAME CREATION, that game name is already in use.")
+        print(about["gameName"], "@@@@ FAILED GAME CREATION:", ("The game name " + about["gameName"] + " doesn't pass the name filters: " + str(nameCheck)))
         return False
 
 #delete game(s) by Name
