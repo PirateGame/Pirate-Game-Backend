@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-import random
+import random, string
 import numpy as np
 import game
 from game import gameHandler, clientHandler
@@ -33,6 +33,21 @@ def createGame():
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
     playerCap = 10 #MODIFY THIS
+
+    if len(gameName)<1:
+        gameName = ''.join(random.choice(string.ascii_letters) for x in range(6))
+    if len(ownerName)<1:
+        ownerName = ''.join(random.choice(string.ascii_letters) for x in range(6))
+
+    for char in gameName:
+        if char not in string.ascii_letters:
+            data = {"error": "Game name can only contain letters"}
+            return jsonify(data)
+
+    for char in ownerName:
+        if char not in string.ascii_letters:
+            data = {"error": "Your name can only contain letters"}
+            return jsonify(data)
 
     gridDim = (Sizex, Sizey)
     #This sets the standard decison time
