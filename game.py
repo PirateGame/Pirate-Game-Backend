@@ -171,7 +171,8 @@ class gameHandler():
     def joinLobby(self, clients):
         out = []
         for clientName, about in clients.items():
-            nameCheck = nameFilter.checkString()
+            #nameCheck = nameFilter.checkString()
+            nameCheck = True
             if nameCheck:
                 if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
                     if self.about["status"] == "lobby":

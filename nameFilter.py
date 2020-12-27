@@ -2,8 +2,6 @@ import numpy as np
 
 import itertools
 
-from profanity_check import predict, predict_prob
-
 def levenshtein_ratio_and_distance(s, t, ratio_calc = False):
     """ levenshtein_ratio_and_distance:
         Calculates levenshtein distance between two strings.
@@ -57,9 +55,10 @@ def checkString(otherNames, name, nameNaughtyFilter, nameUniqueFilter):
             if ratio >= nameUniqueFilter:
                 fails[ratio] = ("'" + name + str("' is too close to another client's name: ") + otherName + "'" + " with similarity ratio " + str(ratio))
     if nameNaughtyFilter != None:
-        ratio = predict_prob(name)
-        if ratio >= nameUniqueFilter:
-            fails[ratio] = "profane, with similarity ratio" + str(ratio)
+        pass
+        #ratio = predict_prob(name)
+        #if ratio >= nameUniqueFilter:
+            #fails[ratio] = "profane, with similarity ratio" + str(ratio)
     if len(fails) > 0:
         return fails[max(fails.keys())]
     else:
