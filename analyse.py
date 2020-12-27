@@ -44,13 +44,21 @@ class gameEventHandler():
         out = []
         for targetNum in range(len(event["targets"])):
             for sourceNum in range(len(event["sources"])):
-                out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]))
+                if event["isMirrored"]:
+                    out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]) + " (mirror)")
+                elif event["isShielded"]:
+                    out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]) + " (shield)")
+                else:
+                    out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]))
         return out
     
     def printNicely(self, event):
-        desc = self.describe(event)
-        for line in desc:
-            print(line)
+        if event["public"]:
+            desc = self.describe(event)
+            for line in desc:
+                print(line)
+        else:
+            print(event)
     
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
         if about["public"]:
@@ -60,6 +68,7 @@ class gameEventHandler():
             return self.about["publicLog"][-1]
         else:
             self.about["privateLog"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "targets":about["targets"], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
+            self.printNicely(self.about["privateLog"][-1])
             return self.about["privateLog"][-1]
 
 class clientEstimateHandler():
