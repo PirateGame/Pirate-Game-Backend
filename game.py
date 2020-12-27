@@ -442,9 +442,6 @@ class clientHandler():
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def makeGame(about):
     if about["gameName"] not in games:
-        if about["gameName"] == "":
-            chars = string.ascii_letters + string.punctuation
-            about["gameName"] = ''.join(random.choice(chars) for x in range(6))
 
         g = gameHandler(about)
         games[about["gameName"]] = g
@@ -558,6 +555,7 @@ def randomiseBoard(gameName, clientName):
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
 #this would change the name of Jamie to Gemima.
+#nameUniqueFilter, nameNaughtyFilter, turnTime
 def alterClients(gameName, clientNames, alterations):
     success = []
     for clientName in clientNames:
