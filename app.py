@@ -51,7 +51,7 @@ def createGame():
             return jsonify(data)
 
     for char in ownerName:
-        if char not in string.ascii_letters:
+        if char not in (string.ascii_letters + ' '):
             data = {"error": "Your name can only contain letters"}
             return jsonify(data)
 
@@ -89,13 +89,22 @@ def joinGame():
     gameName = data["gameName"]
     playerName = data["playerName"]
 
+
+    if len(gameName)<1:
+        data = {"error": "Please enter a game name"}
+        return jsonify(data)
+    if len(playerName)<1:
+        data = {"error": "please enter a name"}
+        return jsonify(data)
+
+
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
             return jsonify(data)
 
     for char in playerName:
-        if char not in string.ascii_letters:
+        if char not in (string.ascii_letters + ' '):
             data = {"error": "Your name can only contain letters"}
             return jsonify(data)
 
@@ -141,7 +150,6 @@ def getGridDim():
     playerName = data["playerName"]
 
     data = game.gameInfo(gameName)["about"]["gridDim"]
-    print(data)
     out = {"x": data[0], "y": data[1]}
 
     return jsonify(out)
@@ -187,7 +195,7 @@ def modifyGame():
     similar = data["similar"]
     DecisionTime = data["DecisionTime"]
     randmoiseOnly = data["randomiseOnly"]
-    playerCap = data["playerLimit"]
+    playerCap = int(data["playerLimit"])
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
@@ -269,7 +277,9 @@ def getGameState():
     data = request.get_json()
     gameName = data["gameName"]
 
-    data = game.status(gameName)
+    state = game.status(gameName)
+
+    data = {"error": False, "state":state}
 
     return jsonify(data)
 
