@@ -32,12 +32,13 @@ def createGame():
     Sizex = int(data["Sizex"])
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
+    playerCap = 10 #MODIFY THIS
 
     gridDim = (Sizex, Sizey)
     #This sets the standard decison time
     decisionTime = 30
 
-    if not game.makeGame(gameName, ownerName, gridDim, decisionTime):
+    if not game.makeGame(gameName, ownerName, gridDim, decisionTime, playerCap):
         data = {"game": False}
         return jsonify(data)
 
