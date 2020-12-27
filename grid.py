@@ -20,7 +20,7 @@ class grid():
                                 "H":"Mirror",
                                 "I":"Bomb",
                                 "J":"Double",
-                                "K":"Bank"}
+                                "K":"Chest"}
 
         ### Build an optimised blueprint for grid building
         gridSize = gridDim[0] * gridDim[1]
@@ -145,4 +145,4 @@ class grid():
                 array[tile["y"]][tile["x"]] = toAdd[tileNum]
             return array
         else:
-            return "Format" + str(tileTally) + "does not abide by" + str(self.about["tileNums"]) #inauthentic board
+            raise ValueError("Format" + str(tileTally) + "does not abide by" + str(self.about["tileNums"])) #inauthentic board
