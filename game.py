@@ -50,7 +50,7 @@ class prettyPrinter():
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class gameHandler():
-    def __init__(self, gameName, ownerName, gridDim, turnTime):
+    def __init__(self, gameName, ownerName, gridDim, turnTime, playerCap):
         def updateBOARDS(whatToUpdate):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             if whatToUpdate[0] == None:
@@ -62,7 +62,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = turnTime * gridDim[0] * gridDim[1]
-        self.about = {"name": gameName, "status":"lobby", "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerName": ownerName, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
+        self.about = {"name": gameName, "status":"lobby", "playerCap":playerCap, "turnTime":turnTime, "maxEstTime":maxEstTime, "ownerName": ownerName, "gridDim":gridDim, "turnNum":-1, "tileOverride":False, "chosenTiles":[], "clients":{}, "gridTemplate":grid.grid(gridDim)}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         
@@ -171,18 +171,21 @@ class gameHandler():
         #BOARDS[self.gameIDNum][client] = [[]] #whatever the fuck the vue server sent back about each user's grid
         out = []
         for client, about in clients.items():
-            if self.about["status"] == "lobby":
-                if client not in list(self.about["clients"].keys()):
-                    try:
-                        self.about["clients"][client] = clientHandler(self, client, about)
-                        self.about["clients"][client].buildRandomBoard()
-                        out.append(True)
-                    except Exception as e:
-                        out.append(e)
+            if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
+                if self.about["status"] == "lobby":
+                    if client not in list(self.about["clients"].keys()):
+                        try:
+                            self.about["clients"][client] = clientHandler(self, client, about)
+                            self.about["clients"][client].buildRandomBoard()
+                            out.append(True)
+                        except Exception as e:
+                            out.append(e)
+                    else:
+                        out.append("That username already exists!")
                 else:
-                    out.append("That username already exists!")
+                    out.append("The game is not in the lobby stage, it is in: " + self.about["status"])
             else:
-                out.append("The game is not in the lobby stage, it is in:", self.about["status"])
+                out.append("The player cap of " + str(self.about["playerCap"]) + " has been reached.")
         return out
     
     def exit(self, clients):
@@ -434,13 +437,13 @@ class clientHandler():
 # ------------------------------------------------------------------------------------------------------------------
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
-def makeGame(gameName, ownerName, gridDim, turnTime):
+def makeGame(gameName, ownerName, gridDim, turnTime, playerCap):
     if gameName not in games:
         if gameName == "":
             chars = string.ascii_letters + string.punctuation
             gameName = ''.join(random.choice(chars) for x in range(6))
 
-        g = gameHandler(gameName, ownerName, gridDim, turnTime)
+        g = gameHandler(gameName, ownerName, gridDim, turnTime, playerCap)
         games[gameName] = g
         return True
     else:
@@ -511,10 +514,7 @@ def listClientNames(gameName):
 
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
-    try:
-        return games[gameName].joinLobby(clients)
-    except:
-        return False
+    return games[gameName].joinLobby(clients)
 
 def exitLobby(gameName, clients):
     return games[gameName].exit(clients)
@@ -628,12 +628,13 @@ if __name__ == "__main__":
         ownerName = "Jamie"
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
+        playerCap = 5
 
         #Setting up a test game
-        makeGame(gameName, ownerName, gridDim, turnTime)
+        makeGame(gameName, ownerName, gridDim, turnTime, playerCap)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
+        clients = {"Jamie":{"isPlaying":True}, "Tom1":{"isPlaying":True}, "Tom2":{"isPlaying":True}, "Tom3":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
