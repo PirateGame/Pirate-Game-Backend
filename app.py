@@ -111,6 +111,17 @@ def getGridDim():
     return jsonify(data)
 
 
+@app.route('/api/getGridDim', methods=['POST'])
+def getGridDim():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+
+    data = {"x": 8, "y": 6}
+
+    return jsonify(data)
+
+
 @app.route('/api/startGame', methods=['POST'])
 def startGame():
     data = request.get_json()
