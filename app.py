@@ -15,9 +15,15 @@ game.bootstrap({"purge":True})
 
 
 def auth(playerName, gameName, code):
-    secret = game.clientInfo({"gameName":gameName, "clientName":playerName})
-    secret = secret["about"]["authCode"]
+    secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
     if code == secret:
+        return True
+    else:
+        return False
+
+def isHost(gameName, playerName):
+    secret = game.gameInfo({"gameName":gameName, "playerName":playerName})["about"]["ownerName"]
+    if playerName == secret:
         return True
     else:
         return False
@@ -51,15 +57,16 @@ def createGame():
 
     gridDim = (Sizex, Sizey)
     #This sets the standard decison time
-    decisionTime = 30
+    turnTime = 30
 
     nameUniqueFilter = None
     nameNaughtyFilter = None
 
-    gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueness, "nameNaughtyFilter":nameNaughtyFilter}
+    gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
 
+    
     if not game.makeGame(gameAbout):
-        data = {"game": False}
+        data = {"error": "could not create game"}
         return jsonify(data)
 
     if isPlaying:
@@ -67,11 +74,10 @@ def createGame():
     else:
         game.joinLobby(gameName, {ownerName:{"isPlaying":False}})
 
-    authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})
-    authcode = authcode["about"]["authCode"]
+    authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["authCode"]
     
     
-    data = {"game":True, "authcode": authcode}
+    data = {"error": False, "authcode": authcode}
     return jsonify(data)
 
 
@@ -83,28 +89,23 @@ def joinGame():
     gameName = data["gameName"]
     playerName = data["playerName"]
 
-    
+    for char in gameName:
+        if char not in string.ascii_letters:
+            data = {"error": "Game name can only contain letters"}
+            return jsonify(data)
 
-    join = game.joinLobby(gameName, playerName)
+    for char in playerName:
+        if char not in string.ascii_letters:
+            data = {"error": "Your name can only contain letters"}
+            return jsonify(data)
 
-    if join:
-        authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
-        authcode = authcode["about"]["authCode"]
-        data = {
-        "game": True,
-        "authcode": "not - authcode",
-        }
-
-
-    #authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
-    #authcode = authcode["about"]["authCode"]
-
-
-    data = {
-        "game": True,
-        "authcode": "not - authcode",
-        }
-    return jsonify(data)
+    if game.joinLobby(gameName, playerName):
+        authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
+        data = {"error": False, "authcode": authcode}
+        return jsonify(data)
+    else:
+        data = {"error": "Something went wrong"}
+        return jsonify(data)
 
 @app.route('/api/getPlayers', methods=['POST'])
 def getPlayers():
@@ -113,12 +114,12 @@ def getPlayers():
     gameName = data["gameName"]
     session = game.gameInfo(gameName)
     if session == False:
-        data = {"game": False}
+        data = {"error": "game not found"}
         return jsonify(data)
     
     data = {"names":game.listClientNames(gameName)}
 
-    data.update({"game": True})
+    data.update({"error": False})
     return jsonify(data)
 
 @app.route('/api/getBarTiles', methods=['POST'])
@@ -153,14 +154,18 @@ def startGame():
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
-        if game.start(gameName):
-            data = ({"auth": True}, {"game":True})
-            return jsonify(data)
+        if isHost(gameName, playerName):
+            if game.start(gameName):
+                data = ({"error":False})
+                return jsonify(data)
+            else:
+                data = ({"error":"game not found"})
+                return jsonify(data)
         else:
-            data = ({"auth": True}, {"game":False})
+            data = ({"error":"You can't do this"})
             return jsonify(data)
     else:
-        data = ({"auth": False})
+        data = ({"error": "Authentication failed"})
         return jsonify(data)
 
 
@@ -169,23 +174,30 @@ def startGame():
 def getNext():
     return
 
-#Set randomize only and decision time.
-#when requesting from here, use json to with 
+
 @app.route('/api/modifyGame', methods=['POST'])
 def modifyGame():
     data = request.get_json()
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
-    action = data["action"]
-    print(action)
-    #TODO work out how to get action into dict
+    naughty = data["naughty"]
+    similar = data["similar"]
+    DecisionTime = data["DecisionTime"]
+    randmoiseOnly = data["randomiseonly"]
+    playerCap = data["playerLimit"]
+
     if auth(playerName, gameName, authCode):
-        game.alterGames([gameName], {"name":"game2"})
-        data = ({"auth": True})
-        return jsonify(data)
+        if isHost(gameName, playerName):
+            game.alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap})
+            data = ({"error": False})
+            return jsonify(data)
+        else:
+            data = ({"error": "You do not have permission to do this"})
+            return jsonify(data)
+
     else:
-        data = ({"auth": False})
+        data = ({"error": "Authentication failed"})
         return jsonify(data)
 
     #use altergames function
@@ -205,10 +217,10 @@ def setTeam():
     if auth(playerName, gameName, authCode):
         game.alterClients(gameName, [playerName], {"row": ship}) #Ship
         game.alterClients(gameName, [playerName], {"column": team}) #team
-        data = ({"auth": True})
+        data = ({"error": False})
         return jsonify(data)
     else:
-        data = ({"auth": False})
+        data = ({"error": "Authentication failed"})
         return jsonify(data)
     return
 
@@ -221,15 +233,16 @@ def saveBoard():
     authCode = data["authCode"]
     board = data["board"]
 
-    print(board)
-
-    if game.serialWriteBoard(gameName, playerName, board):
-        data = {"game": True}
-        return jsonify(data)
+    if auth(playerName, gameName, authCode):
+        if game.serialWriteBoard(gameName, playerName, board):
+            data = {"error": False}
+            return jsonify(data)
+        else:
+            data = {"error": "board did not fit requirements"}
+            return jsonify(data)
     else:
-        data = {"game": "board did not fit requirements"}
+        data = ({"error": "Authentication failed"})
         return jsonify(data)
-
 
 
 @app.route('/api/randomiseBoard', methods=['POST'])
@@ -239,11 +252,15 @@ def randomiseBoard():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    game.randomiseBoard(gameName, playerName)
+    if auth(playerName, gameName, authCode):
+        game.randomiseBoard(gameName, playerName)
 
-    board = game.serialReadBoard(gameName, playerName)
-
-    return jsonify(board)
+        board = game.serialReadBoard(gameName, playerName)
+        return jsonify(board)
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
+    
 
 @app.route('/api/getGameState', methods=['POST'])
 def getGameState():

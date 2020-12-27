@@ -170,7 +170,6 @@ class gameHandler():
     def joinLobby(self, clients):
         out = []
         for client, about in clients.items():
-            if 
             if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
                 if self.about["status"] == "lobby":
                     if client not in list(self.about["clients"].keys()):
@@ -551,6 +550,7 @@ def randomiseBoard(gameName, clientName):
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
 #this would change the name of Jamie to Gemima.
+#nameUniqueFilter, nameNaughtyFilter, turnTime
 def alterClients(gameName, clientNames, alterations):
     success = []
     for clientName in clientNames:
