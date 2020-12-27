@@ -38,7 +38,12 @@ def createGame():
     #This sets the standard decison time
     decisionTime = 30
 
-    if not game.makeGame(gameName, ownerName, gridDim, decisionTime, playerCap):
+    nameUniqueness = False
+    nameNaughtiness = False
+
+    gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueness":nameUniqueness, "nameNaughtiness":nameNaughtiness}
+
+    if not game.makeGame(gameAbout):
         data = {"game": False}
         return jsonify(data)
 
