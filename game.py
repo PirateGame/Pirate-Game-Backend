@@ -596,7 +596,8 @@ def bootstrap(about):
                 ownerName = BOARDS[gameName][0]["ownerName"]
                 gridDim = BOARDS[gameName][0]["gridDim"]
                 turnTime = BOARDS[gameName][0]["turnTime"]
-                makeGame(gameName, ownerName, gridDim, turnTime)
+                playerCap = BOARDS[gameName][0]["playerCap"]
+                makeGame(gameName, ownerName, gridDim, turnTime, playerCap)
             except Exception as e:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
     except Exception as e:
@@ -634,7 +635,7 @@ if __name__ == "__main__":
         makeGame(gameName, ownerName, gridDim, turnTime, playerCap)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = {"Jamie":{"isPlaying":True}, "Tom1":{"isPlaying":True}, "Tom2":{"isPlaying":True}, "Tom3":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
+        clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
