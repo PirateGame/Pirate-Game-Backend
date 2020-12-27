@@ -65,7 +65,7 @@ def joinGame():
         return jsonify(data)
 
 
-    authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})
+    authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})
     authcode = authcode["about"]["authCode"]
 
 
@@ -106,9 +106,11 @@ def getGridDim():
     gameName = data["gameName"]
     playerName = data["playerName"]
 
-    data = {"x": 8, "y": 6}
+    data = game.gameInfo(gameName)["about"]["gridDim"]
+    print(data)
+    out = {"x": data[0], "y": data[1]}
 
-    return jsonify(data)
+    return jsonify(out)
 
 
 
@@ -190,11 +192,11 @@ def saveBoard():
 
     print(board)
 
-    if sucess:
+    if game.serialWriteBoard(gameName, playerName, board):
         data = {"game": True}
         return jsonify(data)
     else:
-        data = {"game": False}
+        data = {"game": "board did not fit requirements"}
         return jsonify(data)
 
 
@@ -211,6 +213,15 @@ def randomiseBoard():
     board = game.serialReadBoard(gameName, playerName)
 
     return jsonify(board)
+
+@app.route('/api/getGameState', methods=['POST'])
+def getGameState():
+    data = request.get_json()
+    gameName = data["gameName"]
+
+    data = game.status(gameName)
+
+    return jsonify(data)
 
 
 if __name__ == "__main__":
