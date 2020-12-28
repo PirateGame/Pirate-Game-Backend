@@ -561,10 +561,10 @@ def alterClients(gameName, clientNames, alterations):
                 if key in games[gameName].about["clients"][clientName].about:
                     games[gameName].about["clients"][clientName].about[key] = value
                 else:
-                    success.append("Key", key, "doesn't exist for value", value, "to be assigned to.")
+                    success.append("Key: " + str(key) + " doesn't exist for value " + str(value) + " to be assigned to.")
         else:
             for a in alterations.items():
-                success.append("Client", clientName, "doesn't exist.")
+                success.append("Client" + clientName + "doesn't exist.")
 
 #Change the attributes of a game or several, 
 # eg: alterGames(["game1"], {"name":"game2"})
