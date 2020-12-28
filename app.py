@@ -40,9 +40,9 @@ def createGame():
     isPlaying = data["isHostPlaying"]
     playerCap = 10 #MODIFY THIS
 
-    if len(gameName)<1:
+    if gameName is None:
         gameName = ''.join(random.choice(string.ascii_letters) for x in range(6))
-    if len(ownerName)<1:
+    if ownerName is None:
         ownerName = ''.join(random.choice(string.ascii_letters) for x in range(6))
 
     for char in gameName:
@@ -77,7 +77,7 @@ def createGame():
     authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["authCode"]
     
     
-    data = {"error": False, "authcode": authcode}
+    data = {"error": False, "authcode": authcode, "playerName":ownerName, "gameName":gameName}
     return jsonify(data)
 
 
