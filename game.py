@@ -12,6 +12,7 @@ import grid
 import time
 import analyse
 import nameFilter
+import waitOnApp
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 games = {}
@@ -143,7 +144,8 @@ class gameHandler():
         print(self.about["name"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
 
         actions = []
-        clientsShuffled = random.shuffle(self.about["clients"])
+        clientsShuffled = list(self.about["clients"].keys())
+        random.shuffle(clientsShuffled)
         for client in clientsShuffled:
             self.about["clients"][client].logScore()
             self.about["clients"][client].act(BOARDS[self.about["name"]][1][client][newTile[1]][newTile[0]])
@@ -257,12 +259,11 @@ class clientHandler():
         self.game = game
 
         if about["type"] == "player" or about["type"] == "AI":
-            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
+            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,2), "row":random.randint(0,2)}
         elif about["type"] == "spectator":
             self.about = {"name":clientName, "type": about["type"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
         self.about["estimateHandler"] = analyse.clientEstimateHandler(self)
-        self.about["frontendQueue"] = []
-    
+
     def buildRandomBoard(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         gr = self.game.about["gridTemplate"].build()
@@ -279,35 +280,37 @@ class clientHandler():
         if self.about["type"] == "AI":
             rOrC = random.randint(0,1)
             if rOrC == 1:
-                columns = [i for i in range(self.game.about["gridDim"][0])]
+                columns = [i for i in range(3)]
                 columns.remove(self.about["column"])
                 choice = random.choice(columns)
             else:
-                rows = [i for i in range(self.game.about["gridDim"][1])]
+                rows = [i for i in range(3)]
                 rows.remove(self.about["row"])
                 choice = random.choice(rows)
             return rOrC, choice
-        elif self.about["type"] = "player":
-            self.about["frontendQueue"].append([])
-            self.about["frontendQueue"].append()
+        elif self.about["type"] == "player":
+            waitOnApp.awaitResponse({"options":[["row", "column"],[0,1,2]], "labels":["Do you want to attack a row or column?", "Which team would you like to attack?"]})
+
 
     def responseChoice(self):
+        options = []
+        for key,value in {"none":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
+            if value:
+                options.append(key)
         if self.about["type"] == "AI":
-            options = []
-            for key,value in {"none":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
-                if value:
-                    options.append(key)
             return random.choice(options)
-        elif self.about["type"] = "player":
+        elif self.about["type"] == "player":
+            waitOnApp.awaitResponse({"options":options, "labels":["How do you want to respond?"]})
     
     def victimChoice(self):
+        options = []
+        for client in self.game.about["clients"]:
+            if client != self.about["name"]:
+                options.append(client)
         if self.about["type"] == "AI":
-            options = []
-            for client in self.game.about["clients"]:
-                if client != self.about["name"]:
-                    options.append(client)
             return random.choice(options)
-        elif self.about["type"] = "player":
+        elif self.about["type"] == "player":
+            waitOnApp.awaitResponse({"options":options, "labels":["Who do you want to be your victim?"]})
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob

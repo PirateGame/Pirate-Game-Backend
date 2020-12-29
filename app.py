@@ -28,6 +28,12 @@ def isHost(gameName, playerName):
     else:
         return False
 
+def awaitResponseProcess(choice):
+    @app.route('/api/decision_made', methods=['POST'])
+    def decision_made():
+        response = request.get_json()
+        result_available.set()
+
 ### ROUTES...
 
 @app.route('/api/create_game', methods=['POST'])
