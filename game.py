@@ -300,7 +300,7 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "player":
-            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
+            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":[options], "labels":["How do you want to respond?"]})
     
     def victimChoice(self):
         options = []
@@ -310,7 +310,7 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "player":
-            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":options, "labels":["Who do you want to be your victim?"]})
+            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":[options], "labels":["Who do you want to be your victim?"]})
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob
