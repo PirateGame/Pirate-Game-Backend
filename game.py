@@ -289,7 +289,7 @@ class clientHandler():
                 choice = random.choice(rows)
             return rOrC, choice
         elif self.about["type"] == "player":
-            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":[["row", "column"],[0,1,2]], "labels":["Do you want to attack a row or column?", "Which team would you like to attack?"]})
+            waitOnApp.awaitResponse({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["row", "column"],[0,1,2]], "labels":["Do you want to attack a row or column?", "Which team would you like to attack?"]})
 
 
     def responseChoice(self):
@@ -300,7 +300,7 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "player":
-            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":[options], "labels":["How do you want to respond?"]})
+            waitOnApp.awaitResponse({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["How do you want to respond?"]})
     
     def victimChoice(self):
         options = []
@@ -310,7 +310,7 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "player":
-            waitOnApp.awaitResponse({"clientName": self.about["name"], "options":[options], "labels":["Who do you want to be your victim?"]})
+            waitOnApp.awaitResponse({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Who do you want to be your victim?"]})
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob

@@ -33,6 +33,7 @@ def awaitResponseProcess(choice):
     def decision_made():
         response = request.get_json()
         result_available.set()
+        return response
 
 ### ROUTES...
 
