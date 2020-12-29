@@ -28,7 +28,8 @@ def isHost(gameName, playerName):
     else:
         return False
 
-def awaitResponseProcess(choice):
+def awaitResponseProcess(queue):
+    print("waiting on these choices to be made...", queue)
     @app.route('/api/decision_made', methods=['POST'])
     def decision_made():
         response = request.get_json()

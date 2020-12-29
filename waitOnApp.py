@@ -34,9 +34,10 @@ class AsAThread(Thread):
 result_available = threading.Event()
 global response
 response = []
+queue = []
 def awaitResponse(choice):
-    print("waiting on", choice)
-    thread = AsAThread(target=app.awaitResponseProcess, args=[choice])
+    queue.append(choice)
+    thread = AsAThread(target=app.awaitResponseProcess, args=[queue])
     thread.start()
     # wait here for the result to be available before continuing
     result_available.wait()
