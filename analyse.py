@@ -58,7 +58,7 @@ class gameEventHandler():
             for line in desc:
                 print(line)
         else:
-            print(event)
+            print("EVENT:", event)
     
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
         if about["public"]:
