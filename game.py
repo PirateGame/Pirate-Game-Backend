@@ -255,11 +255,12 @@ class clientHandler():
     def __init__(self, game, clientName, about):
         self.game = game
 
-        if about["isPlaying"]:
-            self.about = {"name":clientName, "isPlaying": about["isPlaying"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
-        else:
-            self.about = {"name":clientName, "isPlaying": about["isPlaying"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
+        if about["type"] == "player" or about["type"] == "AI":
+            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "shield":False, "mirror":False, "column":random.randint(0,self.game.about["gridDim"][0]-1), "row":random.randint(0,self.game.about["gridDim"][1]-1)}
+        elif about["type"] == "spectator":
+            self.about = {"name":clientName, "type": about["type"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
         self.about["estimateHandler"] = analyse.clientEstimateHandler(self)
+        self.about["frontendQueue"] = []
     
     def buildRandomBoard(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -274,30 +275,38 @@ class clientHandler():
         self.about["scoreHistory"].append(self.about["money"] + self.about["bank"])
     
     def rOrCandCoordChoice(self):
-        rOrC = random.randint(0,1)
-        if rOrC == 1:
-            columns = [i for i in range(self.game.about["gridDim"][0])]
-            columns.remove(self.about["column"])
-            choice = random.choice(columns)
-        else:
-            rows = [i for i in range(self.game.about["gridDim"][1])]
-            rows.remove(self.about["row"])
-            choice = random.choice(rows)
-        return rOrC, choice
+        if about["type"] == "AI":
+            rOrC = random.randint(0,1)
+            if rOrC == 1:
+                columns = [i for i in range(self.game.about["gridDim"][0])]
+                columns.remove(self.about["column"])
+                choice = random.choice(columns)
+            else:
+                rows = [i for i in range(self.game.about["gridDim"][1])]
+                rows.remove(self.about["row"])
+                choice = random.choice(rows)
+            return rOrC, choice
+        elif about["type"] = "player":
+            self.about["frontendQueue"].append([])
+            self.about["frontendQueue"].append()
 
     def responseChoice(self):
-        options = []
-        for key,value in {"none":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
-            if value:
-                options.append(key)
-        return random.choice(options)
+        if about["type"] == "AI":
+            options = []
+            for key,value in {"none":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
+                if value:
+                    options.append(key)
+            return random.choice(options)
+        elif about["type"] = "player":
     
     def victimChoice(self):
-        options = []
-        for client in self.game.about["clients"]:
-            if client != self.about["name"]:
-                options.append(client)
-        return random.choice(options)
+        if about["type"] == "AI":
+            options = []
+            for client in self.game.about["clients"]:
+                if client != self.about["name"]:
+                    options.append(client)
+            return random.choice(options)
+        elif about["type"] = "player":
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob
@@ -639,11 +648,11 @@ if __name__ == "__main__":
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = {"Jamie":{"isPlaying":True}, "Tom":{"isPlaying":True}, "Alex":{"isPlaying":True}} #Player name, then info about them which currently consists of whether they're playing.
+        clients = {"Jamie":{"type":"player"}, "Tom":{"type":"player"}, "Alex":{"type":"player"}} #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
-        clients = {"Jamie":{"isPlaying":True}} #This is to verify that duplicate usernames aren't allowed.
+        clients = {"Jamie":{"type":"player"}} #This is to verify that duplicate usernames aren't allowed.
         print("joining a dupe client to the lobby", joinLobby(gameName, clients))
 
 
