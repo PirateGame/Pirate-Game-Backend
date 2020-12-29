@@ -143,7 +143,8 @@ class gameHandler():
         print(self.about["name"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
 
         actions = []
-        for client in self.about["clients"]:
+        clientsShuffled = random.shuffle(self.about["clients"])
+        for client in clientsShuffled:
             self.about["clients"][client].logScore()
             self.about["clients"][client].act(BOARDS[self.about["name"]][1][client][newTile[1]][newTile[0]])
             
@@ -275,7 +276,7 @@ class clientHandler():
         self.about["scoreHistory"].append(self.about["money"] + self.about["bank"])
     
     def rOrCandCoordChoice(self):
-        if about["type"] == "AI":
+        if self.about["type"] == "AI":
             rOrC = random.randint(0,1)
             if rOrC == 1:
                 columns = [i for i in range(self.game.about["gridDim"][0])]
@@ -286,27 +287,27 @@ class clientHandler():
                 rows.remove(self.about["row"])
                 choice = random.choice(rows)
             return rOrC, choice
-        elif about["type"] = "player":
+        elif self.about["type"] = "player":
             self.about["frontendQueue"].append([])
             self.about["frontendQueue"].append()
 
     def responseChoice(self):
-        if about["type"] == "AI":
+        if self.about["type"] == "AI":
             options = []
             for key,value in {"none":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
                 if value:
                     options.append(key)
             return random.choice(options)
-        elif about["type"] = "player":
+        elif self.about["type"] = "player":
     
     def victimChoice(self):
-        if about["type"] == "AI":
+        if self.about["type"] == "AI":
             options = []
             for client in self.game.about["clients"]:
                 if client != self.about["name"]:
                     options.append(client)
             return random.choice(options)
-        elif about["type"] = "player":
+        elif self.about["type"] = "player":
 
     def act(self, whatHappened): ###THIS IS CURRENTLY ALL RANDOMISED, ALL THE RANDOM CODE PARTS SHOULD BE REPLACED WITH COMMUNICATION WITH VUE.
         if whatHappened == "A": #A - Rob
