@@ -7,7 +7,7 @@ result_available = threading.Event()
 global response
 response = []
 def awaitResponse(choice):
-    print(choice)
+    print("waiting on", choice)
     thread = threading.Thread(target=app.awaitResponseProcess, args=[choice])
     thread.start()
     # wait here for the result to be available before continuing
