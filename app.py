@@ -14,6 +14,7 @@ app = Flask(__name__)
 game.bootstrap({"purge":True})
 
 
+
 def auth(playerName, gameName, code):
     secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
     if code == secret:
@@ -27,14 +28,6 @@ def isHost(gameName, playerName):
         return True
     else:
         return False
-
-def awaitResponseProcess(queue):
-    print("waiting on these choices to be made...", queue)
-    @app.route('/api/decision_made', methods=['POST'])
-    def decision_made():
-        response = request.get_json()
-        result_available.set()
-        return response
 
 ### ROUTES...
 
