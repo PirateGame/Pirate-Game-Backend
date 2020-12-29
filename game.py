@@ -728,7 +728,7 @@ if __name__ == "__main__":
         shallIContinue = input()
 
         start(gameName)
-        for turn in range(turnCount + 1): #Simulate the frontend calling the new turns over and over.
+        while gameInfo(gameName)["about"]["turnNum"] < turnCount + 1: #Simulate the frontend calling the new turns over and over.
             print(status(gameName))
             #shallIContinue = input()
             if status(gameName) != "awaiting":
