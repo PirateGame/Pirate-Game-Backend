@@ -64,12 +64,12 @@ def createGame():
     nameNaughtyFilter = None
 
     gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
-
     
     if not game.makeGame(gameAbout):
         data = {"error": "could not create game"}
         return jsonify(data)
 
+    print("game created with tag:" + gameName)
     if isPlaying:
         game.joinLobby(gameName, {ownerName:{"type":"player"}})
     else:
@@ -113,6 +113,7 @@ def joinGame():
     client = {playerName:{"type":"player"}}
     if game.joinLobby(gameName, client):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
+        print(playerName + " joined game " + gameName)
         data = {"error": False, "authcode": authcode}
         return jsonify(data)
     else:
@@ -167,6 +168,7 @@ def startGame():
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
             if game.start(gameName):
+                print(gameName + "has been started")
                 data = ({"error":False})
                 return jsonify(data)
             else:
@@ -179,6 +181,26 @@ def startGame():
         data = ({"error": "Authentication failed"})
         return jsonify(data)
 
+
+@app.route('/api/startBuilding', methods=['POST'])
+def startBuilding():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+
+    if auth(playerName, gameName, authCode):
+        if isHost(gameName, playerName):
+            game.setStatus(gameName, "building")
+            data = ({"error":False})
+            return jsonify(data)
+
+        else:
+            data = ({"error":"You can't do this"})
+            return jsonify(data)
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
 
 #This should return what has just happened in the game.
 @app.route('/api/getNext', methods=['POST'])
@@ -251,10 +273,12 @@ def saveBoard():
     board = data["board"]
 
     if auth(playerName, gameName, authCode):
+        print(game.serialWriteBoard(gameName, playerName, board))
         if game.serialWriteBoard(gameName, playerName, board):
             data = {"error": False}
             return jsonify(data)
         else:
+
             data = {"error": "board did not fit requirements"}
             return jsonify(data)
     else:
@@ -302,7 +326,13 @@ def getGameState():
 
     data = {"error": False, "state":state}
 
-    return jsonify(data)
+    #if player number == number of boards submitted then we should send a state of ready to the host.
+    #this will turn their start button from red to green, and allow them to press it.
+    print(str(game.playerCount(gameName)) + "  :  " + str(game.submittedCount(gameName)))
+    if game.playerCount(gameName) == game.submittedCount(gameName):
+        data = {"error": False, "state":"ready"}
+    else:
+         return jsonify(data)
 
 @app.route('/api/amIHost', methods=['POST'])
 def amIHost():
