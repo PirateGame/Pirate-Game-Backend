@@ -69,7 +69,6 @@ def createGame():
         data = {"error": "could not create game"}
         return jsonify(data)
 
-    print("game created with tag:" + gameName)
     if isPlaying:
         game.joinLobby(gameName, {ownerName:{"type":"player"}})
     else:
@@ -203,8 +202,8 @@ def startBuilding():
         return jsonify(data)
 
 #This should return what has just happened in the game.
-@app.route('/api/getNext', methods=['POST'])
-def getNext():
+@app.route('/api/getEvent', methods=['POST'])
+def getEvent():
     data = request.get_json()
     gameName = data["gameName"]
     playerName = data["playerName"]
@@ -213,7 +212,7 @@ def getNext():
     events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]']))
     print(events)
 
-    data = ({"error":"hmmmm, something went wrong"})
+    data = events
     return jsonify(data)
 
 
@@ -273,7 +272,6 @@ def saveBoard():
     board = data["board"]
 
     if auth(playerName, gameName, authCode):
-        print(game.serialWriteBoard(gameName, playerName, board))
         if game.serialWriteBoard(gameName, playerName, board):
             data = {"error": False}
             return jsonify(data)
@@ -328,11 +326,12 @@ def getGameState():
 
     #if player number == number of boards submitted then we should send a state of ready to the host.
     #this will turn their start button from red to green, and allow them to press it.
-    print(str(game.playerCount(gameName)) + "  :  " + str(game.submittedCount(gameName)))
     if game.playerCount(gameName) == game.submittedCount(gameName):
         data = {"error": False, "state":"ready"}
+        return jsonify(data)
     else:
-         return jsonify(data)
+        data = data
+        return jsonify(data)
 
 @app.route('/api/amIHost', methods=['POST'])
 def amIHost():
