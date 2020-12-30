@@ -71,9 +71,9 @@ class gameHandler():
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.about["name"] not in BOARDS:
             updateBOARDS([self.about, {}])
-            print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with", self.about, "properties.")
+            print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with properties...", self.about)
         else:
-            print(self.about["name"], "@@@@ RECOVERED by client", str(self.about["ownerName"]), "with", self.about, "properties.")
+            print(self.about["name"], "@@@@ RECOVERED by client", str(self.about["ownerName"]), "with properties...", self.about)
         
         self.pP = prettyPrinter()
 
@@ -188,6 +188,7 @@ class gameHandler():
                             self.about["clients"][clientName] = clientHandler(self, clientName, about)
                             self.about["clients"][clientName].buildRandomBoard()
                             out.append(True)
+                            print(self.about["name"], "@@@@", clientName, "has joined the lobby.")
                         except Exception as e:
                             out.append(e)
                     else:
@@ -201,11 +202,12 @@ class gameHandler():
     def exit(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         out = []
-        for client in clients:
+        for clientName in clients:
             try:
-                del self.about["clients"][client]
-                del BOARDS[self.about["name"]][1][client]
+                del self.about["clients"][clientName]
+                del BOARDS[self.about["name"]][1][clientName]
                 out.append(True)
+                print(self.about["name"], "@@@@", clientName, "has left the lobby.")
             except:
                 out.append(False)
         BOARDS = np.save("boards.npy", BOARDS)
