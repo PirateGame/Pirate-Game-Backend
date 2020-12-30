@@ -631,7 +631,7 @@ def sortEvents(gameName, key, events=None):
         return games[gameName].about["eventHandler"].sortEvents(events, key)
 
 def shownToClient(gameName, timestamp):
-    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, returnNums)
+    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, True)
     for eventNum in eventNums:
         games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
 
