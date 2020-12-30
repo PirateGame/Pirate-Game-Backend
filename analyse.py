@@ -6,7 +6,7 @@ class gameEventHandler():
         self.about = {"log":[]}
     
     def sortEvents(self, events, key): # sortEvents(games[gameName].about["eventHandler"].about["log"], "timestamp")
-        return sorted(events, key=lambda k: k[key])[-1]
+        return sorted(events, key=lambda k: k[key])
     
     def filterEvents(self, events, requirements, parses=[], returnNums=False): #eg: filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp})
         out = []
