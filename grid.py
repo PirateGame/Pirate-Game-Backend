@@ -133,7 +133,7 @@ class grid():
                         event = key
             else:
                 event = tile["content"]
-            if not event in tileTally.keys:
+            if not event in tileTally.keys():
                 tileTally[event] = 1
             else:
                 tileTally[event] += 1

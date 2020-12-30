@@ -620,14 +620,14 @@ def serialReadBoard(gameName, clientName, positions=True):
     return games[gameName].serialReadBoard(clientName, positions)
 
 def serialWriteBoard(gameName, clientName, serial):
-    #try:
-    games[gameName].serialWriteBoard(gameName, clientName, serial)
-    #this should work as each player only submits their board once
-    games[gameName].about["submitted"] += 1
-    print("added one to board tally")
-    return True
-    #except Exception as e:
-        #return e
+    try:
+        games[gameName].serialWriteBoard(gameName, clientName, serial)
+        #this should work as each player only submits their board once
+        games[gameName].about["submitted"] += 1
+        print("added one to board tally")
+        return True
+    except Exception as e:
+        return e
 
 def randomiseBoard(gameName, clientName):
     return games[gameName].about["clients"][clientName].buildRandomBoard()
