@@ -63,7 +63,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name": about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name": about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "submitted":0, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         
@@ -234,7 +234,7 @@ class gameHandler():
         BOARDS = np.save("boards.npy", BOARDS)
 
     def start(self):
-        self.about["status"] = "active"
+        self.about["status"] = "paused"
         self.about["turnNum"] += 1
 
         self.randomCoords = []
@@ -600,6 +600,16 @@ def start(gameName):
 def status(gameName):
     return games[gameName].status()
 
+def setStatus(gameName, status):
+    games[gameName].about["status"] = status
+    return True
+
+def playerCount(gameName):
+    return len(games[gameName].about["clients"])
+
+def submittedCount(gameName):
+    return games[gameName].about["submitted"]
+
 def returnEvents(gameName, about):
     if about["public"]:
         return games[gameName].about["eventHandler"].about["publicLog"]
@@ -612,6 +622,9 @@ def serialReadBoard(gameName, clientName, positions=True):
 def serialWriteBoard(gameName, clientName, serial):
     try:
         games[gameName].serialWriteBoard(gameName, clientName, serial)
+        #this should work as each player only submits their board once
+        games[gameName].about["submitted"] += 1
+        print("added one to board tally")
         return True
     except Exception as e:
         return e
