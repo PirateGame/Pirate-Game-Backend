@@ -266,6 +266,7 @@ class clientHandler():
     def __init__(self, game, clientName, about):
         self.game = game
 
+        ##TYPE = AI, spectator, player
         if about["type"] == "player" or about["type"] == "AI":
             self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "column":random.randint(0,2), "row":random.randint(0,2)}
         elif about["type"] == "spectator":

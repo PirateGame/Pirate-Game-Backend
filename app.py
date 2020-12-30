@@ -71,9 +71,9 @@ def createGame():
         return jsonify(data)
 
     if isPlaying:
-        game.joinLobby(gameName, {ownerName:{"isPlaying":True}})
+        print(game.joinLobby(gameName, {ownerName:{"type":"player"}}))
     else:
-        game.joinLobby(gameName, {ownerName:{"isPlaying":False}})
+        print(game.joinLobby(gameName, {ownerName:{"type":"spectator"}}))
 
     authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["authCode"]
     
@@ -110,7 +110,7 @@ def joinGame():
             return jsonify(data)
 
 
-    client = {playerName:{"isPlaying":True}}
+    client = {playerName:{"type":"player"}}
     if game.joinLobby(gameName, client):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         data = {"error": False, "authcode": authcode}
