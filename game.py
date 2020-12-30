@@ -621,6 +621,15 @@ def FRONTresponse(gameName, clientName, choice):
     self.game.about["status"] = "active"
     games[gameName].turnHandle()
 
+def filterEvents(gameName, requirements, parses=[]):
+    return games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], requirements, parses)
+
+def sortEvents(gameName, key, events=None):
+    if events == None:
+        return games[gameName].about["eventHandler"].sortEvents(games[gameName].about["eventHandler"].about["log"], key)
+    else:
+        return games[gameName].about["eventHandler"].sortEvents(events, key)
+
 
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
@@ -732,6 +741,8 @@ if __name__ == "__main__":
             #shallIContinue = input()
             if status(gameName) != "awaiting":
                 turnHandle(gameName)
+                playerName = "Alex"
+                print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]'])))
                 print("~", status(gameName), "~")
             #randomiseBoard(gameName, "Tom")
             #print("event log:", returnEvents(gameName, {"public":True}))

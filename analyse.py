@@ -3,14 +3,14 @@ import time
 class gameEventHandler():
     def __init__(self, game):
         self.game = game
-        self.about = {"privateLog":[], "publicLog":[]}
+        self.about = {"log":[]}
     
-    def sortEvents(self, key):
-        return sorted(self.about["log"], key=lambda k: k[key])[-1]
+    def sortEvents(self, events, key): # sortEvents(games[gameName].about["eventHandler"].about["log"], "timestamp")
+        return sorted(events, key=lambda k: k[key])[-1]
     
-    def filterEvents(self, requirements, parses=[]): #eg: filterEvents({"timestamp":timestamp})
-        out = {}
-        for event in self.about["log"]:
+    def filterEvents(self, events, requirements, parses=[]): #eg: filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp})
+        out = []
+        for event in events:
             success = []
             for key,value in requirements:
                 if value == requirement:
@@ -26,7 +26,7 @@ class gameEventHandler():
                 except:
                     pass
             if False not in success:
-                out[event] = self.about["log"][event]
+                out.append(event)
         return out
     
     def describe(self, event):
@@ -61,15 +61,10 @@ class gameEventHandler():
             print("EVENT:", event)
     
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
-        if about["public"]:
-            self.about["publicLog"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "targets":about["targets"], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
-            self.printNicely(self.about["publicLog"][-1])
-            #self.game.processEvent
-            return self.about["publicLog"][-1]
-        else:
-            self.about["privateLog"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "targets":about["targets"], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
-            self.printNicely(self.about["privateLog"][-1])
-            return self.about["privateLog"][-1]
+        self.about["log"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
+        self.printNicely(self.about["log"][-1])
+        #self.game.processEvent
+        return self.about["log"][-1]
 
 class clientEstimateHandler():
     def __init__(self, client):
@@ -77,4 +72,4 @@ class clientEstimateHandler():
         self.about = {"knownTiles":[]}
     
     def estimate(self):
-        filterEvents({"sources":[self.client.about["name"]]})
+        pass
