@@ -71,9 +71,9 @@ class gameHandler():
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if self.about["name"] not in BOARDS:
             updateBOARDS([self.about, {}])
-            print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with", self.about, "properties.")
+            print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with properties...", self.about)
         else:
-            print(self.about["name"], "@@@@ RECOVERED by client", str(self.about["ownerName"]), "with", self.about, "properties.")
+            print(self.about["name"], "@@@@ RECOVERED by client", str(self.about["ownerName"]), "with properties...", self.about)
         
         self.pP = prettyPrinter()
 
