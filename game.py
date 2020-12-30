@@ -621,14 +621,20 @@ def FRONTresponse(gameName, clientName, choice):
     self.game.about["status"] = "active"
     games[gameName].turnHandle()
 
-def filterEvents(gameName, requirements, parses=[]):
-    return games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], requirements, parses)
+def filterEvents(gameName, requirements, parses=[], returnNums=False):
+    return games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], requirements, parses, returnNums)
 
 def sortEvents(gameName, key, events=None):
     if events == None:
         return games[gameName].about["eventHandler"].sortEvents(games[gameName].about["eventHandler"].about["log"], key)
     else:
         return games[gameName].about["eventHandler"].sortEvents(events, key)
+
+def shownToClient(gameName, timestamp):
+    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, returnNums)
+    for eventNum in eventNums:
+        games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
+
 
 
 #Change the attributes of a client or several by game name
