@@ -621,7 +621,7 @@ def randomiseBoard(gameName, clientName):
 
 def FRONTresponse(gameName, clientName, choice):
     return games[gameName].about["clients"][clientName].FRONTresponse(choice)
-    self.game.about["status"] = "active"
+    games[gameName].about["status"] = "active"
     games[gameName].turnHandle()
 
 def filterEvents(gameName, requirements, parses=[], returnNums=False):
