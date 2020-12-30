@@ -183,7 +183,16 @@ def startGame():
 #This should return what has just happened in the game.
 @app.route('/api/getNext', methods=['POST'])
 def getNext():
-    return
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+
+    events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]']))
+    print(events)
+
+    data = ({"error":"hmmmm, something went wrong"})
+    return jsonify(data)
 
 
 @app.route('/api/modifyGame', methods=['POST'])
