@@ -47,21 +47,24 @@ class gameEventHandler():
                                 "H":"gained a mirror",
                                 "I":"got bombed",
                                 "J":"doubled their cash",
-                                "K":"banked their cash"
+                                "K":"banked their cash",
                                 "5000":"gave £5000 to",
                                 "3000":"gave £3000 to",
                                 "1000":"gave £1000 to",
                                 "200":"gave £200 to"}
         out = []
         for event in events:
-            for targetNum in range(len(event["targets"])):
-                for sourceNum in range(len(event["sources"])):
+            print("a")
+            for targetNum in range(len(event["targetNames"])):
+                print("b")
+                for sourceNum in range(len(event["sourceNames"])):
+                    print("c")
                     if event["isMirrored"]:
-                        out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targets"][targetNum].about["name"]) + " (mirror)")
+                        out.append(str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
-                        out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targets"][targetNum].about["name"]) + " (shield)")
+                        out.append(str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]) + " (shield)")
                     else:
-                        out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targets"][targetNum].about["name"]))
+                        out.append(str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]))
         return out
     
     def updateEvents(eventNums, updates):

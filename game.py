@@ -422,22 +422,22 @@ class clientHandler():
             #print(self.game.about["name"], "@", self.about["name"], "banked their money.")
             return True
         if whatHappened == "5000": #£5000
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["money"] += 5000 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "gained £5000.")
             return True
         if whatHappened == "3000": #£3000
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["money"] += 3000 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "gained £3000.")
             return True
         if whatHappened == "1000": #£1000
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["money"] += 1000 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "gained £1000.")
             return True
         if whatHappened == "200": #£200
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["money"] += 200 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "gained £200.")
             return True
@@ -638,7 +638,7 @@ def filterEvents(gameName, requirements, parses=[], returnNums=False):
     return games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], requirements, parses, returnNums)
 
 def describeEvents(gameName, events):
-    games[gameName].about["eventHandler"].describe(events)
+    return games[gameName].about["eventHandler"].describe(events)
 
 def sortEvents(gameName, key, events=None):
     if events == None:
