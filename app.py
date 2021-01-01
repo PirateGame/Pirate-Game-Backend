@@ -210,13 +210,14 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    ###
-    events = game.describeEvents(game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]'])))
-    print(events)
-    ###
 
-    events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]']))
+    events = game.describeEvents(gameName, game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]'])))
+    print("----------------EVENTS---------------------")
+    print(events)
+
     questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+    print("----------------QUESTIONS------------------")
+    print(questions)
     try:
         print(events[0])
         return jsonify(events[0])
