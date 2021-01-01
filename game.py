@@ -88,7 +88,7 @@ class gameHandler():
     def whoIsOnThatLine(self, rOrC, coord):
         victims = []
         for client in self.about["clients"]:
-            if rOrC == 1:
+            if rOrC == "column":
                 if self.about["clients"][client].about["column"] == coord:
                     victims.append(client)
             else:
@@ -303,8 +303,8 @@ class clientHandler():
 
     def rOrCandCoordChoice(self):
         if self.about["type"] == "AI":
-            rOrC = random.randint(0,1)
-            if rOrC == 1:
+            rOrC = random.choice("row", "column")#randint(0,1)
+            if rOrC == "column":
                 columns = [i for i in range(3)]
                 columns.remove(self.about["column"])
                 choice = random.choice(columns)
@@ -378,7 +378,7 @@ class clientHandler():
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[rOrC, choice]})) #EVENT HANDLER
                 for victim in victims:
                     self.game.about["clients"][victim].beActedOn("D", self) ###ACT
-                #if rOrC == 1:
+                #if rOrC == "column":
                     #print(self.game.about["name"], "@", self.about["name"], "wiped out column", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
                 #else:
                     #print(self.game.about["name"], "@", self.about["name"], "wiped out row", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
