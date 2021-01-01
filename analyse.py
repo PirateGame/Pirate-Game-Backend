@@ -54,11 +54,8 @@ class gameEventHandler():
                                 "200":"gave £200 to"}
         out = []
         for event in events:
-            print("a")
             for targetNum in range(len(event["targetNames"])):
-                print("b")
                 for sourceNum in range(len(event["sourceNames"])):
-                    print("c")
                     if event["isMirrored"]:
                         out.append(str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
