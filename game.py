@@ -244,6 +244,7 @@ class gameHandler():
         random.shuffle(self.randomCoords)
         print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients, here's more info...", self.info())
         self.printBoards()
+        return True
 
     def turnHandle(self):
         if self.about["turnNum"] < self.about["gridDim"][0] * self.about["gridDim"][1]:

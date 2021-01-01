@@ -166,8 +166,9 @@ def startGame():
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
+            print(game.start(gameName))
             if game.start(gameName):
-                print(gameName + "has been started")
+                game.turnHandle(gameName)
                 data = ({"error":False})
                 return jsonify(data)
             else:
@@ -209,11 +210,25 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
+    ###
     events = game.describeEvents(game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]'])))
     print(events)
+    ###
 
-    data = events
-    return jsonify(data)
+    events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]']))
+    questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+    try:
+        print(events[0])
+        return jsonify(events[0])
+    except IndexError:
+        print("event queue is empty")
+        try:
+            print(questions[0])
+            return jsonify(questions[0])
+        except:
+            data = {"error": "empty"}
+            return jsonify(data)
+
 
 
 @app.route('/api/modifyGame', methods=['POST'])
@@ -326,7 +341,7 @@ def getGameState():
 
     #if player number == number of boards submitted then we should send a state of ready to the host.
     #this will turn their start button from red to green, and allow them to press it.
-    if game.playerCount(gameName) == game.submittedCount(gameName):
+    if game.playerCount(gameName) == game.submittedCount(gameName) and game.status(gameName) != "active" and game.status(gameName) != "paused":
         data = {"error": False, "state":"ready"}
         return jsonify(data)
     else:
