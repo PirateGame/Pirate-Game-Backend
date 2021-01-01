@@ -36,7 +36,7 @@ class gameEventHandler():
         else:
             return out
     
-    def describe(self, event):
+    def describe(self, events):
         self.eventDescriptions = {"A":"robbed",
                                 "B":"killed",
                                 "C":"gave a present to",
@@ -49,14 +49,15 @@ class gameEventHandler():
                                 "J":"doubled their cash",
                                 "K":"banked their cash"}
         out = []
-        for targetNum in range(len(event["targets"])):
-            for sourceNum in range(len(event["sources"])):
-                if event["isMirrored"]:
-                    out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]) + " (mirror)")
-                elif event["isShielded"]:
-                    out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]) + " (shield)")
-                else:
-                    out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]))
+        for event in events:
+            for targetNum in range(len(event["targets"])):
+                for sourceNum in range(len(event["sources"])):
+                    if event["isMirrored"]:
+                        out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]) + " (mirror)")
+                    elif event["isShielded"]:
+                        out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]) + " (shield)")
+                    else:
+                        out.append(str(event["sources"][sourceNum].about["name"]) + " -> " + self.eventDescriptions[event["event"]] + " -> " + str(event["targets"][targetNum].about["name"]))
         return out
     
     def updateEvents(eventNums, updates):
@@ -66,7 +67,7 @@ class gameEventHandler():
     
     def printNicely(self, event):
         if event["public"]:
-            desc = self.describe(event)
+            desc = self.describe([event])
             for line in desc:
                 print(line)
         else:

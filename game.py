@@ -611,10 +611,7 @@ def submittedCount(gameName):
     return games[gameName].about["submitted"]
 
 def returnEvents(gameName, about):
-    if about["public"]:
-        return games[gameName].about["eventHandler"].about["publicLog"]
-    else:
-        return games[gameName].about["eventHandler"].about["privateLog"]
+    return games[gameName].about["eventHandler"].about["log"]
 
 def serialReadBoard(gameName, clientName, positions=True):
     return games[gameName].serialReadBoard(clientName, positions)
@@ -638,6 +635,9 @@ def FRONTresponse(gameName, clientName, choice):
 
 def filterEvents(gameName, requirements, parses=[], returnNums=False):
     return games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], requirements, parses, returnNums)
+
+def describeEvents(gameName, events):
+    games[gameName].about["eventHandler"].describe(events)
 
 def sortEvents(gameName, key, events=None):
     if events == None:
