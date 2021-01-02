@@ -80,7 +80,7 @@ class gameEventHandler():
     
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
         self.about["log"].append({"shownToClient":False, "timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
-        self.printNicely(self.about["log"][-1])
+        #self.printNicely(self.about["log"][-1])
         #self.game.processEvent
         return self.about["log"][-1]
 

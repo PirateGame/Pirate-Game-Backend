@@ -63,7 +63,7 @@ class gameHandler():
             np.save("boards.npy", BOARDS)
         
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name": about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "submitted":0, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "submitted":0, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         
@@ -634,8 +634,8 @@ def FRONTresponse(gameName, clientName, choice):
     games[gameName].about["status"] = "active"
     games[gameName].turnHandle()
 
-def filterEvents(gameName, requirements, parses=[], returnNums=False):
-    return games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], requirements, parses, returnNums)
+def filterEvents(gameName, requirements, parses=[], returnNums=False, events=games[gameName].about["eventHandler"].about["log"]):
+    return games[gameName].about["eventHandler"].filterEvents(events, requirements, parses, returnNums)
 
 def describeEvents(gameName, events):
     return games[gameName].about["eventHandler"].describe(events)
@@ -703,6 +703,7 @@ def bootstrap(about):
                 nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
                 gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
                 makeGame(gameAbout)
+                turnHandle(gameName)
             except Exception as e:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
     except Exception as e:
