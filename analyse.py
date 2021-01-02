@@ -26,7 +26,8 @@ class gameEventHandler():
                         success.append(True)
                     else:
                         success.append(False)
-                except:
+                except Exception as e:
+                    print(e)
                     pass
             if False not in success:
                 out.append(event)

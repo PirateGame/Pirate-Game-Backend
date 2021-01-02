@@ -391,32 +391,32 @@ class clientHandler():
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "F": #F - Choose Next Square
-            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.game.about["tileOverride"] = self.game.genNewTile()
+            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
             #print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
             return True
         if whatHappened == "G": #G - Shield
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["shield"] = True ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "gains a shield.")
             return True
         if whatHappened == "H": #H - Mirror
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["mirror"] = True ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "gains a mirror.")
             return True
         if whatHappened == "I": #I - Bomb (You go to 0)
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["money"] = 0 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "got bombed.")
             return True
         if whatHappened == "J": #J - Double Cash
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["money"] *= 2 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "got their cash doubled.")
             return True
         if whatHappened == "K": #K - Bank
-            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["bank"] += self.about["money"] ###ACT
             self.about["money"] = 0 ###ACT
             #print(self.game.about["name"], "@", self.about["name"], "banked their money.")
@@ -752,7 +752,7 @@ if __name__ == "__main__":
 
 
         #Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
-        print("exiting client from the lobby", exitLobby(gameName, ["Jamie"]))
+        #print("exiting client from the lobby", exitLobby(gameName, ["Jamie"]))
 
         #Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to iterate a turn...")
@@ -764,7 +764,7 @@ if __name__ == "__main__":
             if status(gameName) != "awaiting":
                 turnHandle(gameName)
                 playerName = "Alex"
-                print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]'])))
+                print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
                 print("~", status(gameName), "~")
             #randomiseBoard(gameName, "Tom")
             #print("event log:", returnEvents(gameName, {"public":True}))
