@@ -211,7 +211,9 @@ def getEvent():
     authCode = data["authCode"]
 
 
-    events = game.describeEvents(gameName, game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
+    events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+    descriptions = game.describeEvents(gameName, events)
+    timestamps = [event["timestamp"] for event in events]
     print("----------------EVENTS---------------------")
     print(events)
 
@@ -219,12 +221,13 @@ def getEvent():
     print("----------------QUESTIONS------------------")
     print(questions)
     try:
-        print(events[0])
-        return jsonify(events[0])
+        data = descriptions[0]
+        print(data)
+        game.shownToClient(gameName, timestamps[0])
+        return jsonify(data)
     except IndexError:
         print("event queue is empty")
         try:
-            print(questions[0])
             return jsonify(questions[0])
         except:
             data = {"error": "empty"}
