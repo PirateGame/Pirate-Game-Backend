@@ -634,8 +634,8 @@ def FRONTresponse(gameName, clientName, choice):
     games[gameName].about["status"] = "active"
     games[gameName].turnHandle()
 
-def filterEvents(gameName, requirements, parses=[], returnNums=False, events=[]]):
-    if events = []
+def filterEvents(gameName, requirements, parses=[], returnNums=False, events=[]):
+    if events == []:
         events = games[gameName].about["eventHandler"].about["log"]
     return games[gameName].about["eventHandler"].filterEvents(events, requirements, parses, returnNums)
 
