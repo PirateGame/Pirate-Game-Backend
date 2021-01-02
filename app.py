@@ -211,7 +211,7 @@ def getEvent():
     authCode = data["authCode"]
 
 
-    events = game.describeEvents(gameName, game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, [playerName + ' in event["sourceNames"] or ' + playerName + ' in event["targetNames"]'])))
+    events = game.describeEvents(gameName, game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
     print("----------------EVENTS---------------------")
     print(events)
 
