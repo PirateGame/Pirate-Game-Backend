@@ -16,7 +16,7 @@ class gameEventHandler():
             outNum += 1
             success = []
             for key,value in requirements.items():
-                if value == requirements:
+                if value == event[key]:
                     success.append(True)
                 else:
                     success.append(False)
