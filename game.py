@@ -706,7 +706,7 @@ def bootstrap(about):
                 nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
                 gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
                 makeGame(gameAbout)
-                turnHandle(gameName)
+                #turnHandle(gameName)
             except Exception as e:
                 print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
     except Exception as e:
