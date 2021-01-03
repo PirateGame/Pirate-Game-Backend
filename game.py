@@ -79,6 +79,9 @@ class gameHandler():
         
         self.pP = prettyPrinter()
     
+    def writeAboutToBoards(self):
+        updateBOARDS(self.about["name"], [self.about, None])
+    
     def genNewTile(self):
         options = []
         for x in range(self.about["gridDim"][0]):
@@ -87,7 +90,12 @@ class gameHandler():
                     options.append((x,y))
         return random.choice(options)
     
-    def whoIsOnThatLine(self, rOrC, coord):
+    def whoIsOnThatLine(self, choice):
+        coord = choice
+        if choice.isdigit():
+            rOrC = 1
+        else:
+            rOrC = 0
         victims = []
         for client in self.about["clients"]:
             if rOrC == "column":
@@ -101,6 +109,8 @@ class gameHandler():
     def groupDecisionAdd(self, clientName, event, choice):
         if event["event"] == "D":
                 self.tempGroupChoices[clientName] = choice
+        self.writeAboutToBoards()
+
     def groupDecisionConclude(self, event):
         if event["event"] == "D":
             whoMirrored = []
@@ -129,6 +139,7 @@ class gameHandler():
                 for clientName in self.tempGroupChoices:
                     self.about["clients"][clientName].forceActedOn("D")
             self.tempGroupChoices = []
+        self.writeAboutToBoards()
 
     def newTurn(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -163,6 +174,7 @@ class gameHandler():
             self.about["turnNum"] += 1
             for clientName in clientsShuffled:
                 self.about["clients"][clientName].logScore()
+        self.writeAboutToBoards()
             
     def info(self):
         return {"about":self.about, "gridTemplate":self.about["gridTemplate"].about}
@@ -189,7 +201,7 @@ class gameHandler():
                         try:
                             self.about["clients"][clientName] = clientHandler(self, clientName, about)
                             self.about["clients"][clientName].buildRandomBoard()
-                            updateBOARDS(self.about["name"], [self.about, None])
+                            self.writeAboutToBoards()
                             out.append(True)
                             print(self.about["name"], "@@@@", clientName, "has joined the lobby.")
                         except Exception as e:
@@ -209,6 +221,7 @@ class gameHandler():
             try:
                 del self.about["clients"][clientName]
                 del BOARDS[self.about["name"]][1][clientName]
+                self.writeAboutToBoards()
                 out.append(True)
                 print(self.about["name"], "@@@@", clientName, "has left the lobby.")
             except:
@@ -247,6 +260,7 @@ class gameHandler():
         random.shuffle(self.randomCoords)
         print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients, here's more info...", self.info())
         self.printBoards()
+        self.writeAboutToBoards()
         return True
 
     def turnHandle(self):
@@ -261,6 +275,7 @@ class gameHandler():
             print("Leaderboard:", leaderboard(gameName))
             self.delete()
             deleteGame([self.about["name"]])
+        self.writeAboutToBoards()
 
     
     def delete(self):
@@ -274,7 +289,7 @@ class clientHandler():
 
         ##TYPE = AI, spectator, player
         if about["type"] == "player" or about["type"] == "AI":
-            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "column":random.randint(0,2), "row":random.randint(0,2)}
+            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":random.randint(0,2)}
         elif about["type"] == "spectator":
             self.about = {"name":clientName, "type": about["type"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
         self.about["estimateHandler"] = analyse.clientEstimateHandler(self)
@@ -314,13 +329,13 @@ class clientHandler():
                 columns.remove(self.about["column"])
                 choice = random.choice(columns)
             else:
-                rows = [i for i in range(3)]
-                rows.remove(self.about["row"])
+                rows = ["A", "B", "C"]
+                del rows[self.about["row"] - 1]
                 choice = random.choice(rows)
-            return [rOrC, choice]
+            return choice
         elif self.about["type"] == "player":
             if len(self.about["FRONTresponses"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["row", "column"],[0,1,2]], "labels":["Do you want to attack a row or column?", "Which team would you like to attack?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["A","B","C",0,1,2]], "labels":["which team / ship do you want to attack?"]})
                 return None
             else:
                 return deQueueResponses()
@@ -378,8 +393,8 @@ class clientHandler():
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
             choice = self.rOrCandCoordChoice()
             if choice != None:
-                rOrC, choice = choice[0], choice[1]
-                victims = self.game.whoIsOnThatLine(rOrC, choice)
+                choice = choice
+                victims = self.game.whoIsOnThatLine(choice)
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[rOrC, choice]})) #EVENT HANDLER
                 for victim in victims:
                     self.game.about["clients"][victim].beActedOn("D", self) ###ACT
@@ -635,7 +650,7 @@ def randomiseBoard(gameName, clientName):
     return games[gameName].about["clients"][clientName].buildRandomBoard()
 
 def FRONTresponse(gameName, clientName, choice):
-    return games[gameName].about["clients"][clientName].FRONTresponse(choice)
+    games[gameName].about["clients"][clientName].FRONTresponse(choice)
     games[gameName].about["status"] = "active"
     games[gameName].turnHandle()
 
