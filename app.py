@@ -281,7 +281,7 @@ def setTeam():
     playerName = data["playerName"]
     authCode = data["authCode"]
     team = data["Team"]
-    ship = data["Ship"]
+    ship = ["A","B","C"][data["Ship"]]
 
     if auth(playerName, gameName, authCode):
         game.alterClients(gameName, [playerName], {"row": ship}) #Ship
