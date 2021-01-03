@@ -211,31 +211,23 @@ def getEvent():
     authCode = data["authCode"]
 
     events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
-    print("0")
-    print(game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
-    
-    print("1")
-    print(events)
     descriptions = game.describeEvents(gameName, events)
-    print("2")
-    print(descriptions)
     timestamps = [event["timestamp"] for event in events]
 
+    questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
 
     print("----------------EVENTS---------------------")
     for desc in descriptions:
         print(desc)
 
 
-    questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-
     print("----------------QUESTIONS------------------")
     for question in questions:
         print(question["labels"])
 
     try:
-        data = {"error": False, "question":False, "text": events[0]}
-        #game.shownToClient(gameName, timestamps[0])
+        data = {"error": False, "question":False, "text": descriptions[0]}
+        game.shownToClient(gameName, timestamps[0])
         return jsonify(data)
     except IndexError:
         try:
