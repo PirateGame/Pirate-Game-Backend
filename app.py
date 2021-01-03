@@ -11,7 +11,7 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-game.bootstrap({"purge":False})
+game.bootstrap({"purge":True})
 
 
 
@@ -211,7 +211,14 @@ def getEvent():
     authCode = data["authCode"]
 
     events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+    print("0")
+    print(game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+    
+    print("1")
+    print(events)
     descriptions = game.describeEvents(gameName, events)
+    print("2")
+    print(descriptions)
     timestamps = [event["timestamp"] for event in events]
 
 
@@ -219,9 +226,9 @@ def getEvent():
     for desc in descriptions:
         print(desc)
 
-    questions = game.clientInfo({"gameName":gameName, "clientName": playerName})
-    print(questions)
-    
+
+    questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+
     print("----------------QUESTIONS------------------")
     for question in questions:
         print(question["labels"])
@@ -244,6 +251,9 @@ def submitResponse():
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
+    choice = data["choice"]
+
+    game.FRONTresponse(gameName, playerName, choice)
 
 @app.route('/api/modifyGame', methods=['POST'])
 def modifyGame():

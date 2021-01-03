@@ -330,7 +330,7 @@ class clientHandler():
             return random.choice(options)
         elif self.about["type"] == "player":
             if len(self.about["FRONTresponses"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["How do you want to respond?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
                 return None
             else:
                 return deQueueResponses()
