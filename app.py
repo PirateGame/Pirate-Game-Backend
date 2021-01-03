@@ -202,7 +202,7 @@ def startBuilding():
         data = ({"error": "Authentication failed"})
         return jsonify(data)
 
-#This should return what has just happened in the game.
+#TODO check auth
 @app.route('/api/getEvent', methods=['POST'])
 def getEvent():
     data = request.get_json()
@@ -210,9 +210,15 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-
     events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+    print("0")
+    print(game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+    
+    print("1")
+    print(events)
     descriptions = game.describeEvents(gameName, events)
+    print("2")
+    print(descriptions)
     timestamps = [event["timestamp"] for event in events]
 
 
@@ -220,24 +226,34 @@ def getEvent():
     for desc in descriptions:
         print(desc)
 
+
     questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+
     print("----------------QUESTIONS------------------")
     for question in questions:
         print(question["labels"])
 
     try:
-        print(events[0])
-        return jsonify(events[0])
+        data = {"error": False, "question":False, "text": events[0]}
+        #game.shownToClient(gameName, timestamps[0])
+        return jsonify(data)
     except IndexError:
-        print("event queue is empty")
         try:
-            print(questions[0])
-            return jsonify(questions[0])
+            data = {"error": False, "question": True, "text": questions[0]}
+            return jsonify(data)
         except:
             data = {"error": "empty"}
             return jsonify(data)
 
+@app.route('/api/submitResponse', methods=['POST'])
+def submitResponse():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+    choice = data["choice"]
 
+    game.FRONTresponse(gameName, playerName, choice)
 
 @app.route('/api/modifyGame', methods=['POST'])
 def modifyGame():
