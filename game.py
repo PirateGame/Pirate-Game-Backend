@@ -50,34 +50,35 @@ class prettyPrinter():
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def updateBOARDS(gameName, whatToUpdate):
+    BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+    if whatToUpdate[0] == None:
+        BOARDS[gameName][1] = whatToUpdate[1]
+    elif whatToUpdate[1] == None:
+        BOARDS[gameName][0] = whatToUpdate[0]
+    else:
+        BOARDS[gameName] = whatToUpdate
+    np.save("boards.npy", BOARDS)
+
 class gameHandler():
-    def __init__(self, about):
-        def updateBOARDS(whatToUpdate):
-            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-            if whatToUpdate[0] == None:
-                BOARDS[self.about["name"]][1] = whatToUpdate[1]
-            elif whatToUpdate[1] == None:
-                BOARDS[self.about["name"]][0] = whatToUpdate[0]
-            else:
-                BOARDS[self.about["name"]] = whatToUpdate
-            np.save("boards.npy", BOARDS)
-        
+    def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
         self.about = {"name":about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "ownerName":about["ownerName"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "submitted":0, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
-        self.randomCoords = [] 
-        
+        self.randomCoords = []
 
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        if self.about["name"] not in BOARDS:
-            updateBOARDS([self.about, {}])
+        if overwriteAbout == None:
+            updateBOARDS(self.about["name"], [self.about, {}])
             print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with properties...", self.about)
         else:
-            print(self.about["name"], "@@@@ RECOVERED by client", str(self.about["ownerName"]), "with properties...", self.about)
+            self.about = overwriteAbout
+            updateBOARDS(self.about["name"], [self.about, {}])
+            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about)
         
         self.pP = prettyPrinter()
-
+    
     def genNewTile(self):
         options = []
         for x in range(self.about["gridDim"][0]):
@@ -188,6 +189,7 @@ class gameHandler():
                         try:
                             self.about["clients"][clientName] = clientHandler(self, clientName, about)
                             self.about["clients"][clientName].buildRandomBoard()
+                            updateBOARDS(self.about["name"], [self.about, None])
                             out.append(True)
                             print(self.about["name"], "@@@@", clientName, "has joined the lobby.")
                         except Exception as e:
@@ -248,6 +250,8 @@ class gameHandler():
         return True
 
     def turnHandle(self):
+        if self.about["turnNum"] < 0:
+            raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["turnNum"] < self.about["gridDim"][0] * self.about["gridDim"][1]:
             self.newTurn()
             #self.printBoards()
@@ -511,10 +515,10 @@ class clientHandler():
 def listGames():
     return games
 
-def makeGame(about):
+def makeGame(about, overwriteAbout = None):
     nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
     if nameCheck == None:
-        g = gameHandler(about)
+        g = gameHandler(about, overwriteAbout)
         games[about["gameName"]] = g
         return True
     else:
@@ -696,19 +700,20 @@ def bootstrap(about):
     try:
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         for gameName in BOARDS:
-            try:
-                gameName = gameName
-                ownerName = BOARDS[gameName][0]["ownerName"]
-                gridDim = BOARDS[gameName][0]["gridDim"]
-                turnTime = BOARDS[gameName][0]["turnTime"]
-                playerCap = BOARDS[gameName][0]["playerCap"]
-                nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
-                nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
-                gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
-                makeGame(gameAbout)
-                #turnHandle(gameName)
-            except Exception as e:
-                print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+            #try:
+            gameName = gameName
+            ownerName = BOARDS[gameName][0]["ownerName"]
+            gridDim = BOARDS[gameName][0]["gridDim"]
+            turnTime = BOARDS[gameName][0]["turnTime"]
+            playerCap = BOARDS[gameName][0]["playerCap"]
+            nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
+            nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
+            gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+            overwriteAbout = BOARDS[gameName][0]
+            makeGame(gameAbout, overwriteAbout)
+            #turnHandle(gameName)
+            #except Exception as e:
+                #print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
     except Exception as e:
         print("@@@@ FAILED GAME LOADING because:", e)
         BOARDS = {}
