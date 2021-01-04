@@ -669,12 +669,11 @@ def sortEvents(gameName, key, events=None):
         return games[gameName].about["eventHandler"].sortEvents(events, key)
 
 def shownToClient(gameName, timestamp):
-    print(gameName, timestamp)
-    print(games[gameName].about["eventHandler"].about["log"])
     eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
-    print(eventNums)
     for eventNum in eventNums:
         games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
+    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))])
+        games[gameName].turnHandle()
 
 
 
