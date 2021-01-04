@@ -672,7 +672,7 @@ def shownToClient(gameName, timestamp):
     eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
     for eventNum in eventNums:
         games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
-    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))])
+    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))]):
         games[gameName].turnHandle()
 
 
