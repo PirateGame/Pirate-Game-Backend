@@ -11,7 +11,7 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-game.bootstrap({"purge":False})
+game.bootstrap({"purge":True})
 
 
 
@@ -202,7 +202,7 @@ def startBuilding():
         data = ({"error": "Authentication failed"})
         return jsonify(data)
 
-#TODO check auth
+
 @app.route('/api/getEvent', methods=['POST'])
 def getEvent():
     data = request.get_json()
@@ -210,38 +210,46 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
-    descriptions = game.describeEvents(gameName, events)
-    timestamps = [event["timestamp"] for event in events]
+    if auth(playerName, gameName, authCode):
+        events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+        descriptions = game.describeEvents(gameName, events)
+        timestamps = [event["timestamp"] for event in events]
 
-    questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-    
-    tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
-    tile = sorted(tiles)[-1]
+        questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+        
+        tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
+        tile = sorted(tiles)[-1]
+        currentTile = tiles[tile]
 
-    money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
-    bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+        id = (currentTile[1] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[0]
 
-    print("----------------EVENTS---------------------")
-    for desc in descriptions:
-        print(desc)
+        money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
+        bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+
+        print("----------------EVENTS---------------------")
+        for desc in descriptions:
+            print(desc)
 
 
-    print("----------------QUESTIONS------------------")
-    for question in questions:
-        print(question["labels"])
+        print("----------------QUESTIONS------------------")
+        for question in questions:
+            print(question["labels"])
 
-    try:
-        data = {"error": False, "question":False, "text": descriptions[0], "tile":tile, "money": money, "bank": bank}
-        game.shownToClient(gameName, timestamps[0])
-        return jsonify(data)
-    except IndexError:
         try:
-            data = {"error": False, "question": True, "text": questions[0], "tile":tile, "money": money, "bank": bank}
+            data = {"error": False, "question":False, "text": descriptions[0], "id":id, "money": money, "bank": bank}
+            game.shownToClient(gameName, timestamps[0])
             return jsonify(data)
-        except:
-            data = {"error": "empty"}
-            return jsonify(data)
+        except IndexError:
+            try:
+                data = {"error": False, "question": True, "text": questions[0], "id":id, "money": money, "bank": bank}
+                return jsonify(data)
+            except:
+                data = {"error": "empty"}
+                return jsonify(data)
+
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
 
 @app.route('/api/submitResponse', methods=['POST'])
 def submitResponse():
@@ -252,6 +260,9 @@ def submitResponse():
     choice = data["choice"]
 
     game.FRONTresponse(gameName, playerName, choice)
+
+    data = {"error": False}
+    return jsonify(data)
 
 @app.route('/api/modifyGame', methods=['POST'])
 def modifyGame():
@@ -346,6 +357,7 @@ def getBoard():
 
     if auth(playerName, gameName, authCode):
         board = game.serialReadBoard(gameName, playerName)
+        print(board)
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
