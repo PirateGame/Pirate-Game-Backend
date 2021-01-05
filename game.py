@@ -74,8 +74,8 @@ class gameHandler():
             print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with properties...", self.about)
         else:
             self.about = overwriteAbout
-            updateBOARDS(self.about["name"], [self.about, {}])
-            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about)
+            updateBOARDS(self.about["name"], [self.about, None])
+            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about, "and boards", BOARDS[gameName][1])
         
         self.pP = prettyPrinter()
     
@@ -338,7 +338,7 @@ class clientHandler():
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["A","B","C",0,1,2]], "labels":["which team / ship do you want to attack?"]})
                 return None
             else:
-                return deQueueResponses()
+                return self.deQueueResponses()
 
     def responseChoice(self):
         options = []
@@ -352,7 +352,7 @@ class clientHandler():
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
                 return None
             else:
-                return deQueueResponses()
+                return self.deQueueResponses()
     
     def victimChoice(self):
         options = []
@@ -366,7 +366,7 @@ class clientHandler():
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Who do you want to be your victim?"]})
                 return None
             else:
-                return deQueueResponses()
+                return self.deQueueResponses()
 
     def act(self, whatHappened): 
         if whatHappened == "A": #A - Rob
