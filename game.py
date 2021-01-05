@@ -6,7 +6,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------------
 
-import random, string, time
+import random, string, time, os
 import numpy as np
 import grid
 import time
@@ -713,27 +713,32 @@ def alterGames(gameNames, alterations):
 
 def bootstrap(about):
     #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
-    try:
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        for gameName in BOARDS:
-            #try:
-            gameName = gameName
-            ownerName = BOARDS[gameName][0]["ownerName"]
-            gridDim = BOARDS[gameName][0]["gridDim"]
-            turnTime = BOARDS[gameName][0]["turnTime"]
-            playerCap = BOARDS[gameName][0]["playerCap"]
-            nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
-            nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
-            gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
-            overwriteAbout = BOARDS[gameName][0]
-            makeGame(gameAbout, overwriteAbout)
-            #turnHandle(gameName)
-            #except Exception as e:
-                #print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
-    except Exception as e:
-        print("@@@@ FAILED GAME LOADING because:", e)
+    def failLoad(exception):
+        print("@@@@ FAILED GAME LOADING because:", exception)
         BOARDS = {}
         np.save("boards.npy", BOARDS)
+    if os.path.getsize("boards.npy") > 0:
+        try:
+            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+            for gameName in BOARDS:
+                #try:
+                gameName = gameName
+                ownerName = BOARDS[gameName][0]["ownerName"]
+                gridDim = BOARDS[gameName][0]["gridDim"]
+                turnTime = BOARDS[gameName][0]["turnTime"]
+                playerCap = BOARDS[gameName][0]["playerCap"]
+                nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
+                nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
+                gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+                overwriteAbout = BOARDS[gameName][0]
+                makeGame(gameAbout, overwriteAbout)
+                #turnHandle(gameName)
+                #except Exception as e:
+                    #print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+        except Exception as e:
+            failLoad(e)
+    else:
+        failLoad("file is empty")
     
     #And then deleting all those recovered games, because they're not necessary to test one new game.
     if about["purge"]:
