@@ -141,27 +141,14 @@ class gameHandler():
             self.tempGroupChoices = []
         self.writeAboutToBoards()
 
-    def newTurn(self):
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        if self.about["turnNum"] not in self.about["chosenTiles"].keys():
-            if self.about["tileOverride"] == False:
-                notUnique = True
-                while notUnique:
-                    newTile = (self.randomCoords[self.about["turnNum"]-1][0], self.randomCoords[self.about["turnNum"]-1][1]) #x,y
-                    if newTile not in self.about["chosenTiles"]:
-                        notUnique = False
-            else:
-                newTile = self.about["tileOverride"]
-                self.about["tileOverride"] = False
-            self.about["chosenTiles"][self.about["turnNum"]] = newTile
-            print(self.about["name"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
-
+    def turnProcess(self):
         actions = []
         clientsShuffled = list(self.about["clients"].keys())
         random.shuffle(clientsShuffled)
         didTheirTurn = {}
         for clientName in clientsShuffled:
             didTheirTurn[clientName] = False
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         for clientName, value in didTheirTurn.items():
             if not value:
                 x = self.about["chosenTiles"][self.about["turnNum"]][0]
@@ -267,7 +254,19 @@ class gameHandler():
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["turnNum"] < self.about["gridDim"][0] * self.about["gridDim"][1]:
-            self.newTurn()
+            if self.about["turnNum"] not in self.about["chosenTiles"].keys():
+                if self.about["tileOverride"] == False:
+                    notUnique = True
+                    while notUnique:
+                        newTile = (self.randomCoords[self.about["turnNum"]-1][0], self.randomCoords[self.about["turnNum"]-1][1]) #x,y
+                        if newTile not in self.about["chosenTiles"]:
+                            notUnique = False
+                else:
+                    newTile = self.about["tileOverride"]
+                    self.about["tileOverride"] = False
+                self.about["chosenTiles"][self.about["turnNum"]] = newTile
+                print(self.about["name"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
+            self.turnProcess()
             #self.printBoards()
         else:
             self.about["status"] = "dormant" #this is for when the game doesn't end immediatedly after the turn count is up
