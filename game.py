@@ -334,10 +334,10 @@ class clientHandler():
                 choice = random.choice(rows)
             return choice
         elif self.about["type"] == "player":
-            if len(self.about["FRONTresponses"]) == 0:
+            if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["A","B","C",0,1,2]], "labels":["which team / ship do you want to attack?"]})
                 return None
-            else:
+            elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
 
     def responseChoice(self):
@@ -348,10 +348,10 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "player":
-            if len(self.about["FRONTresponses"]) == 0:
+            if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
                 return None
-            else:
+            elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
     
     def victimChoice(self):
@@ -362,10 +362,10 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "player":
-            if len(self.about["FRONTresponses"]) == 0:
+            if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Who do you want to be your victim?"]})
                 return None
-            else:
+            elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
 
     def act(self, whatHappened): 
