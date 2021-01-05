@@ -74,8 +74,8 @@ class gameHandler():
             print(self.about["name"], "@@@@ CREATED by client", str(self.about["ownerName"]), "with properties...", self.about)
         else:
             self.about = overwriteAbout
-            updateBOARDS(self.about["name"], [self.about, {}])
-            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about)
+            updateBOARDS(self.about["name"], [self.about, None])
+            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about, "and boards", BOARDS[gameName][1])
         
         self.pP = prettyPrinter()
     
@@ -672,6 +672,8 @@ def shownToClient(gameName, timestamp):
     eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
     for eventNum in eventNums:
         games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
+    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))]):
+        games[gameName].turnHandle()
 
 
 

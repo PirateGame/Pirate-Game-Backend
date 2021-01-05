@@ -11,7 +11,7 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-game.bootstrap({"purge":True})
+game.bootstrap({"purge":False})
 
 
 
@@ -215,6 +215,12 @@ def getEvent():
     timestamps = [event["timestamp"] for event in events]
 
     questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+    
+    tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
+    tile = sorted(tiles)[-1]
+
+    money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
+    bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
 
     print("----------------EVENTS---------------------")
     for desc in descriptions:
@@ -226,12 +232,12 @@ def getEvent():
         print(question["labels"])
 
     try:
-        data = {"error": False, "question":False, "text": descriptions[0]}
+        data = {"error": False, "question":False, "text": descriptions[0], "tile":tile, "money": money, "bank": bank}
         game.shownToClient(gameName, timestamps[0])
         return jsonify(data)
     except IndexError:
         try:
-            data = {"error": False, "question": True, "text": questions[0]}
+            data = {"error": False, "question": True, "text": questions[0], "tile":tile, "money": money, "bank": bank}
             return jsonify(data)
         except:
             data = {"error": "empty"}
