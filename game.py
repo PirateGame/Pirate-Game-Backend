@@ -325,7 +325,7 @@ class clientHandler():
         if self.about["type"] == "AI":
             rOrC = random.choice("row", "column")#randint(0,1)
             if rOrC == "column":
-                columns = [i for i in range(3)]
+                columns = [str(i) for i in range(3)]
                 columns.remove(self.about["column"])
                 choice = random.choice(columns)
             else:
@@ -393,7 +393,6 @@ class clientHandler():
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
             choice = self.rOrCandCoordChoice()
             if choice != None:
-                choice = choice
                 victims = self.game.whoIsOnThatLine(choice)
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[rOrC, choice]})) #EVENT HANDLER
                 for victim in victims:
