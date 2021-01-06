@@ -221,7 +221,7 @@ def getEvent():
         tile = sorted(tiles)[-1]
         currentTile = tiles[tile]
 
-        id = (currentTile[1] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[0]
+        id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
 
         money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
         bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
