@@ -357,7 +357,6 @@ def getBoard():
 
     if auth(playerName, gameName, authCode):
         board = game.serialReadBoard(gameName, playerName)
-        print(board)
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
