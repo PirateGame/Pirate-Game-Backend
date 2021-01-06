@@ -221,7 +221,7 @@ def getEvent():
         tile = sorted(tiles)[-1]
         currentTile = tiles[tile]
 
-        id = (currentTile[1] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[0]
+        id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
 
         money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
         bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
@@ -357,7 +357,6 @@ def getBoard():
 
     if auth(playerName, gameName, authCode):
         board = game.serialReadBoard(gameName, playerName)
-        print(board)
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
