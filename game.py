@@ -611,6 +611,9 @@ def leaderboard(gameName):
     return games[gameName].leaderboard()
 
 def turnHandle(gameName):
+    print("TURN HANDLE WAS CALLED.")
+    playerName = "Alex"
+    print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
     return games[gameName].turnHandle()
 
 def start(gameName):
