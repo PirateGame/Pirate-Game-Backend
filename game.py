@@ -288,7 +288,7 @@ class clientHandler():
 
         ##TYPE = AI, spectator, player
         if about["type"] == "player" or about["type"] == "AI":
-            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":int(random.randint(0,2))}
+            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
         elif about["type"] == "spectator":
             self.about = {"name":clientName, "type": about["type"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
         self.about["estimateHandler"] = analyse.clientEstimateHandler(self)
