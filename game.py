@@ -173,6 +173,8 @@ class gameHandler():
     def joinLobby(self, clients):
         out = []
         for clientName, about in clients.items():
+            if clientName = "":
+                clientName = ''.join(random.choice(string.ascii_letters) for x in range(6))
             nameCheck = nameFilter.checkString(self.about["clients"].keys(), clientName, nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
             if nameCheck == None: #(no problems with the name)
                 if len(self.about["clients"].items()) < self.about["playerCap"]:
@@ -540,6 +542,8 @@ def listGames():
     return games
 
 def makeGame(about, overwriteAbout = None):
+    if about["gameName"] = "":
+        about["gameName"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
     nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
     if nameCheck == None:
         g = gameHandler(about, overwriteAbout)

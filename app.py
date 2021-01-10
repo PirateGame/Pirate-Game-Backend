@@ -11,7 +11,7 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-game.bootstrap({"purge":True})
+game.bootstrap({"purge":False})
 
 
 
@@ -42,9 +42,9 @@ def createGame():
     playerCap = 10 #MODIFY THIS
 
     if gameName is None:
-        gameName = ''.join(random.choice(string.ascii_letters) for x in range(6))
+        gameName = ''
     if ownerName is None:
-        ownerName = ''.join(random.choice(string.ascii_letters) for x in range(6))
+        ownerName = ''
 
     for char in gameName:
         if char not in string.ascii_letters:
@@ -70,7 +70,7 @@ def createGame():
         return jsonify(data)
 
     if isPlaying:
-        game.joinLobby(gameName, {ownerName:{"type":"player"}})
+        game.joinLobby(gameName, {ownerName:{"type":"human"}})
     else:
         game.joinLobby(gameName, {ownerName:{"type":"spectator"}})
 
@@ -109,7 +109,7 @@ def joinGame():
             return jsonify(data)
 
 
-    client = {playerName:{"type":"player"}}
+    client = {playerName:{"type":"human"}}
     if game.joinLobby(gameName, client):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         print(playerName + " joined game " + gameName)
