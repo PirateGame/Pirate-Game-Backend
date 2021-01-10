@@ -401,6 +401,28 @@ def amIHost():
         return jsonify(data)
 
 
+@app.route('/api/kickPlayer', methods=['POST'])
+def kickPlayer():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+    playerToKick = data["playerToKick"]
+    
+    if auth(playerName, gameName, authCode):
+        if isHost(gameName, playerName):
+            print("kick player not implemented")
+            data = ({"error": False})
+            return jsonify(data)
+        else:
+            data = ({"error": "You do not have permission to do this"})
+            return jsonify(data)
+
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="localhost")
