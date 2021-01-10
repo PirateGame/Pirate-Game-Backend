@@ -320,7 +320,7 @@ class clientHandler():
         self.about["FRONTquestions"].append(question)
         self.game.about["status"] = "awaiting"
 
-    def rOrCandCoordChoice(self):
+    def rOrCChoice(self):
         if self.about["type"] == "AI":
             rOrC = random.choice("row", "column")#randint(0,1)
             if rOrC == "column":
@@ -390,10 +390,10 @@ class clientHandler():
                 #print(self.game.about["name"], "@", self.about["name"], "gifts", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
-            choice = self.rOrCandCoordChoice()
+            choice = self.rOrCChoice()
             if choice != None:
                 victims = self.game.whoIsOnThatLine(choice)
-                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[rOrC, choice]})) #EVENT HANDLER
+                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[choice]})) #EVENT HANDLER
                 for victim in victims:
                     self.game.about["clients"][victim].beActedOn("D", self) ###ACT
                 #if rOrC == "column":
