@@ -175,7 +175,7 @@ class gameHandler():
         for clientName, about in clients.items():
             nameCheck = nameFilter.checkString(self.about["clients"].keys(), clientName, nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
             if nameCheck == None: #(no problems with the name)
-                if len(self.about["clients"].items()) + 1 <= self.about["playerCap"]:
+                if len(self.about["clients"].items()) < self.about["playerCap"]:
                     if self.about["status"] == "lobby":
                         try:
                             self.about["clients"][clientName] = clientHandler(self, clientName, about)
@@ -735,7 +735,6 @@ def bootstrap(about):
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             for gameName in BOARDS:
                 #try:
-                gameName = gameName
                 ownerName = BOARDS[gameName][0]["ownerName"]
                 gridDim = BOARDS[gameName][0]["gridDim"]
                 turnTime = BOARDS[gameName][0]["turnTime"]
