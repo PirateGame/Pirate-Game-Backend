@@ -82,14 +82,6 @@ class gameHandler():
     def writeAboutToBoards(self):
         updateBOARDS(self.about["name"], [self.about, None])
     
-    def genNewTile(self):
-        options = []
-        for x in range(self.about["gridDim"][0]):
-            for y in range(self.about["gridDim"][1]):
-                if (x,y) not in self.about["chosenTiles"]:
-                    options.append((x,y))
-        return random.choice(options)
-    
     def whoIsOnThatLine(self, choice):
         coord = choice
         if type(choice) == int:
@@ -366,6 +358,23 @@ class clientHandler():
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
+    
+    def tileChoice(self):
+        options = []
+        for x in range(self.about["gridDim"][0]):
+            for y in range(self.about["gridDim"][1]):
+                if (x,y) not in self.about["chosenTiles"]:
+                    options.append((x,y))
+        return random.choice(options)
+        #if self.about["type"] == "AI":
+        if True:
+            return random.choice(options)
+        elif self.about["type"] == "player":
+            if len(self.about["FRONTquestions"]) == 0:
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Which tile would you like for the next turn?"]})
+                return None
+            elif len(self.about["FRONTresponses"]) > 0:
+                return self.deQueueResponses()
 
     def act(self, whatHappened): 
         if whatHappened == "A": #A - Rob
@@ -409,10 +418,12 @@ class clientHandler():
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "F": #F - Choose Next Square
-            self.game.about["tileOverride"] = self.game.genNewTile()
-            self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
-            #print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
-            return True
+            choice = self.tileChoice()
+            if choice != None:
+                self.game.about["tileOverride"] = choice
+                self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
+                #print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
+            return Choice
         if whatHappened == "G": #G - Shield
             self.game.about["eventHandler"].make({"public":False, "event":whatHappened, "sources":[self.game], "targets":[self], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["shield"] = True ###ACT
