@@ -193,7 +193,7 @@ class gameHandler():
                 out.append("The username " + clientName + " doesn't pass the name filters: " + str(nameCheck))
         return out
     
-    def exit(self, clients):
+    def leave(self, clients):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         out = []
         for clientName in clients:
@@ -615,8 +615,8 @@ def listClientNames(gameName):
 def joinLobby(gameName, clients):
     return games[gameName].joinLobby(clients)
 
-def exitLobby(gameName, clients):
-    return games[gameName].exit(clients)
+def leave(gameName, clients):
+    return games[gameName].leave(clients)
 
 def leaderboard(gameName):
     return games[gameName].leaderboard()
@@ -795,7 +795,7 @@ if __name__ == "__main__":
 
 
         #Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
-        #print("exiting client from the lobby", exitLobby(gameName, ["Jamie"]))
+        #print("exiting client from the lobby", leave(gameName, ["Jamie"]))
 
         #Simulating the interaction with the vue server, pinging the processing of each successive turn like the Vue server will every time it's happy with client responses turn-by-turn.
         print("Enter any key to iterate a turn...")

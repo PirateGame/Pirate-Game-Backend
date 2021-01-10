@@ -411,7 +411,8 @@ def kickPlayer():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            print("kick player not implemented")
+            game.leave(gameName, [playerName]):
+            print("hopefully that kicked a player?")
             data = ({"error": False})
             return jsonify(data)
         else:
