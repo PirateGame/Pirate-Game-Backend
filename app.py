@@ -411,10 +411,13 @@ def kickPlayer():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            game.leave(gameName, [playerName]):
-            print("hopefully that kicked a player?")
-            data = ({"error": False})
-            return jsonify(data)
+            if game.leave(gameName, [playerToKick]):
+                print("hopefully that kicked a player?")
+                data = ({"error": False})
+                return jsonify(data)
+            else:
+                data = ({"error": "Player kick failed"})
+                return jsonify(data)
         else:
             data = ({"error": "You do not have permission to do this"})
             return jsonify(data)
