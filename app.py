@@ -297,12 +297,12 @@ def setTeam():
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
-    team = data["Team"]
+    Captain = data["Captain"]
     ship = ["A","B","C"][data["Ship"]]
 
     if auth(playerName, gameName, authCode):
         game.alterClients(gameName, [playerName], {"row": ship}) #Ship
-        game.alterClients(gameName, [playerName], {"column": team}) #team
+        game.alterClients(gameName, [playerName], {"column": Captain}) #captain
         data = ({"error": False})
         return jsonify(data)
     else:
