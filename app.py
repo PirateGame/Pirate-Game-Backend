@@ -440,7 +440,7 @@ def addAI():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if all(joinLobby(gameName, {"temp":{"type":"AI", "randomName":True}})):
+            if game.joinLobby(gameName, {"temp":{"type":"AI", "randomName":True}}):
                 data = ({"error": False})
                 return jsonify(data)
             else:
