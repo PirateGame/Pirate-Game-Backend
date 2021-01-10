@@ -431,7 +431,29 @@ def kickPlayer():
         data = ({"error": "Authentication failed"})
         return jsonify(data)
 
+@app.route('/api/addAI', methods=['POST'])
+def addAI():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+    
+    if auth(playerName, gameName, authCode):
+        if isHost(gameName, playerName):
+            #add add ai here
+            if ###############:
+                data = ({"error": False})
+                return jsonify(data)
+            else:
+                data = ({"error": "adding AI failed"})
+                return jsonify(data)
+        else:
+            data = ({"error": "You do not have permission to do this"})
+            return jsonify(data)
 
+    else:
+        data = ({"error": "Authentication failed"})
+        return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug=True, host="localhost")
