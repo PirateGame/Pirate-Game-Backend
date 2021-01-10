@@ -129,7 +129,12 @@ def getPlayers():
         data = {"error": "game not found"}
         return jsonify(data)
     
-    data = {"names":game.listClientNames(gameName)}
+    clientList = listClients(gameName)
+    toSend = []
+    for client in clientList:
+        text = str(client.about["type"]) + ": " + str(client.about["name"])
+        toSend.append(text)
+    data = {"names":toSend}
 
     data.update({"error": False})
     return jsonify(data)

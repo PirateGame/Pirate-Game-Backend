@@ -278,8 +278,8 @@ class clientHandler():
     def __init__(self, game, clientName, about):
         self.game = game
 
-        ##TYPE = AI, spectator, player
-        if about["type"] == "player" or about["type"] == "AI":
+        ##TYPE = AI, spectator, human
+        if about["type"] == "human" or about["type"] == "AI":
             self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
         elif about["type"] == "spectator":
             self.about = {"name":clientName, "type": about["type"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
@@ -324,7 +324,7 @@ class clientHandler():
                 del rows[self.about["row"] - 1]
                 choice = random.choice(rows)
             return choice
-        elif self.about["type"] == "player":
+        elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["A","B","C",0,1,2]], "labels":["which team / ship do you want to attack?"]})
                 return None
@@ -338,7 +338,7 @@ class clientHandler():
                 options.append(key)
         if self.about["type"] == "AI":
             return random.choice(options)
-        elif self.about["type"] == "player":
+        elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
                 return None
@@ -352,7 +352,7 @@ class clientHandler():
                 options.append(client)
         if self.about["type"] == "AI":
             return random.choice(options)
-        elif self.about["type"] == "player":
+        elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Who do you want to be your victim?"]})
                 return None
@@ -369,7 +369,7 @@ class clientHandler():
         #if self.about["type"] == "AI":
         if True:
             return random.choice(options)
-        elif self.about["type"] == "player":
+        elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Which tile would you like for the next turn?"]})
                 return None
@@ -584,24 +584,26 @@ def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) r
         return e
 
 #get the clients of a game by name and return either public or private information
-def listClients(about):
-    if not about["public"]:
+def listClients(gameName, toReturn={"private":False, "human":True, "spectator":True, "AI":True}):
+    if toReturn["private"]:
         out = {}
-        for client in games[about["gameName"]].about["clients"]:
-            out[client] = games[about["gameName"]].about["clients"][client].about
-    elif about["public"]:
+        for client in games[gameName].about["clients"]:
+            if games[gameName].about["clients"][client].about["type"] in toReturn.keys():
+                out[client] = games[gameName].about["clients"][client].about
+    elif not toReturn["private"]:
         out = {}
-        for client in games[about["gameName"]].about["clients"]:
-            tempAbout = games[about["gameName"]].about["clients"][client].about
-            tempAbout["authCode"] = None
-            tempAbout["money"] = None
-            tempAbout["bank"] = None
-            tempAbout["scoreHistory"] = None
-            tempAbout["shield"] = None
-            tempAbout["mirror"] = None
-            tempAbout["column"] = None
-            tempAbout["row"] = None
-            out[client] = games[about["name"]].about["clients"][client].about
+        for client in games[gameName].about["clients"]:
+            if games[gameName].about["clients"][client].about["type"] in toReturn.keys():
+                tempAbout = games[gameName].about["clients"][client].about
+                tempAbout["authCode"] = None
+                tempAbout["money"] = None
+                tempAbout["bank"] = None
+                tempAbout["scoreHistory"] = None
+                tempAbout["shield"] = None
+                tempAbout["mirror"] = None
+                tempAbout["column"] = None
+                tempAbout["row"] = None
+                out[client] = tempAbout
     return out
 
 #list the names of all the clients by game name
@@ -785,11 +787,11 @@ if __name__ == "__main__":
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = {"Jamie":{"type":"player"}, "Tom":{"type":"player"}, "Alex":{"type":"player"}} #Player name, then info about them which currently consists of whether they're playing.
+        clients = {"Jamie":{"type":"human"}, "Tom":{"type":"human"}, "Alex":{"type":"human"}} #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
-        clients = {"Jamie":{"type":"player"}} #This is to verify that duplicate usernames aren't allowed.
+        clients = {"Jamie":{"type":"human"}} #This is to verify that duplicate usernames aren't allowed.
         print("joining a dupe client to the lobby", joinLobby(gameName, clients))
 
 
