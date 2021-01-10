@@ -75,7 +75,7 @@ class gameHandler():
         else:
             self.about = overwriteAbout
             updateBOARDS(self.about["name"], [self.about, None])
-            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about, "and boards", BOARDS[gameName][1])
+            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about, "and boards", BOARDS[about["gameName"]][1])
         
         self.pP = prettyPrinter()
     
