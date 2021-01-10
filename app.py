@@ -11,7 +11,7 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-game.bootstrap({"purge":False})
+game.bootstrap({"purge":True})
 
 
 
@@ -57,25 +57,21 @@ def createGame():
             return jsonify(data)
 
     gridDim = (Sizex, Sizey)
-    #This sets the standard decison time
+    #This sets the standard decision time
     turnTime = 30
 
     nameUniqueFilter = None
     nameNaughtyFilter = None
 
-    gameAbout = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
-    
+    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    if not isPlaying:
+        gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
+
     if not game.makeGame(gameAbout):
         data = {"error": "could not create game"}
         return jsonify(data)
 
-    if isPlaying:
-        game.joinLobby(gameName, {ownerName:{"type":"human"}})
-    else:
-        game.joinLobby(gameName, {ownerName:{"type":"spectator"}})
-
-    authcode = game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["authCode"]
-    
+    authcode = game.clientInfo({"gameName":gameName, "clientName":game.gameInfo(gameName)["about"]["admins"][0]["name"]})["about"]["authCode"]
     
     data = {"error": False, "authcode": authcode, "playerName":ownerName, "gameName":gameName}
     return jsonify(data)
@@ -455,4 +451,4 @@ def addAI():
         return jsonify(data)
 
 if __name__ == "__main__":
-    app.run(debug=True, host="localhost")
+    app.run(debug=False, host="localhost")
