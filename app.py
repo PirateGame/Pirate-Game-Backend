@@ -302,12 +302,12 @@ def setTeam():
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
-    team = data["Team"]
+    Captain = data["Captain"]
     ship = ["A","B","C"][data["Ship"]]
 
     if auth(playerName, gameName, authCode):
         game.alterClients(gameName, [playerName], {"row": ship}) #Ship
-        game.alterClients(gameName, [playerName], {"column": team}) #team
+        game.alterClients(gameName, [playerName], {"column": Captain}) #captain
         data = ({"error": False})
         return jsonify(data)
     else:
@@ -416,10 +416,13 @@ def kickPlayer():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            game.leave(gameName, [playerName]):
-            print("hopefully that kicked a player?")
-            data = ({"error": False})
-            return jsonify(data)
+            if game.leave(gameName, [playerToKick]):
+                print("hopefully that kicked a player?")
+                data = ({"error": False})
+                return jsonify(data)
+            else:
+                data = ({"error": "Player kick failed"})
+                return jsonify(data)
         else:
             data = ({"error": "You do not have permission to do this"})
             return jsonify(data)
