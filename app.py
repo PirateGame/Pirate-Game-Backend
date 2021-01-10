@@ -67,11 +67,15 @@ def createGame():
     if not isPlaying:
         gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
 
-    if not game.makeGame(gameAbout):
+    out = game.makeGame(gameAbout)
+    if not out:
         data = {"error": "could not create game"}
         return jsonify(data)
+    else:
+        gameName = out["gameName"]
+        admins = out["admins"]
 
-    authcode = game.clientInfo({"gameName":gameName, "clientName":game.gameInfo(gameName)["about"]["admins"][0]["name"]})["about"]["authCode"]
+    authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
     data = {"error": False, "authcode": authcode, "playerName":ownerName, "gameName":gameName}
     return jsonify(data)

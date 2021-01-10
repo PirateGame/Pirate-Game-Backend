@@ -555,7 +555,7 @@ def makeGame(about, overwriteAbout = None):
         games[about["gameName"]] = g
         out = joinLobby(about["gameName"], about["admins"])
         if all(out):
-            return True
+            return {"gameName":about["gameName"], "admins":about["admins"]}
         else:
             print("error joining clients to the lobby:", out)
             return False
