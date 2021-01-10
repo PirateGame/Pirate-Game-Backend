@@ -92,7 +92,7 @@ class gameHandler():
     
     def whoIsOnThatLine(self, choice):
         coord = choice
-        if choice.isdigit():
+        if type(choice) == int:
             rOrC = 1
         else:
             rOrC = 0
