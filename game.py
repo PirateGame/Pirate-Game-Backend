@@ -173,7 +173,7 @@ class gameHandler():
     def joinLobby(self, clients):
         out = []
         for clientName, about in clients.items():
-            if clientName = "":
+            if "randomName" in about and about["randomName"]:
                 clientName = ''.join(random.choice(string.ascii_letters) for x in range(6))
             nameCheck = nameFilter.checkString(self.about["clients"].keys(), clientName, nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
             if nameCheck == None: #(no problems with the name)
@@ -541,8 +541,8 @@ class clientHandler():
 def listGames():
     return games
 
-def makeGame(about, overwriteAbout = None):
-    if about["gameName"] = "":
+def makeGame(about, randomName=False, overwriteAbout = None):
+    if randomName:
         about["gameName"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
     nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
     if nameCheck == None:
@@ -788,7 +788,7 @@ if __name__ == "__main__":
 
         #Setting up a test game
         about = {"gameName":gameName, "ownerName":ownerName, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
-        makeGame(about)
+        makeGame(about, randomName=False)
 
         #Adding each of the imaginary players to the lobby sequentially.
         clients = {"Jamie":{"type":"human"}, "Tom":{"type":"human"}, "Alex":{"type":"human"}} #Player name, then info about them which currently consists of whether they're playing.
