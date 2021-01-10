@@ -599,16 +599,21 @@ def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) r
 
 #get the clients of a game by name and return either public or private information
 def listClients(gameName, toReturn={"private":False, "human":True, "spectator":True, "AI":True}):
+    typesToReturn = []
+    for key,value in toReturn.items():
+        if value and key != "private":
+            typesToReturn.append(key)
     if toReturn["private"]:
         out = {}
         for client in games[gameName].about["clients"]:
-            if games[gameName].about["clients"][client].about["type"] in toReturn.keys():
+            if games[gameName].about["clients"][client].about["type"] in typesToReturn:
                 out[client] = games[gameName].about["clients"][client].about
     elif not toReturn["private"]:
         out = {}
-        for client in games[gameName].about["clients"]:
-            if games[gameName].about["clients"][client].about["type"] in toReturn.keys():
-                tempAbout = games[gameName].about["clients"][client].about
+        for clientName, obj in games[gameName].about["clients"].items():
+            tempAbout = obj.about.copy()
+            if tempAbout["type"] in typesToReturn:
+                print(obj.about)
                 tempAbout["authCode"] = None
                 tempAbout["money"] = None
                 tempAbout["bank"] = None
@@ -617,7 +622,8 @@ def listClients(gameName, toReturn={"private":False, "human":True, "spectator":T
                 tempAbout["mirror"] = None
                 tempAbout["column"] = None
                 tempAbout["row"] = None
-                out[client] = tempAbout
+                out[clientName] = tempAbout
+                print(obj.about)
     return out
 
 #list the names of all the clients by game name
@@ -795,7 +801,7 @@ if __name__ == "__main__":
         gridDim = (15,15)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
-        admins = {"Jamie":{"type":"human"}} #this person is auto added.
+        admins = [{"name":"Jamie", "type":"human"}] #this person is auto added.
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
         playerCap = 5
@@ -807,11 +813,11 @@ if __name__ == "__main__":
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = {{"name":"Tom", "type":"human"}, {"name":"Alex", "type":"human"}} #Player name, then info about them which currently consists of whether they're playing.
+        clients = [{"name":"Tom", "type":"human"}, {"name":"Alex", "type":"human"}] #Player name, then info about them which currently consists of whether they're playing.
         print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
-        clients = {{"name":"Jamie", "type":"human"}} #This is to verify that duplicate usernames aren't allowed.
+        clients = [{"name":"Jamie", "type":"human"}] #This is to verify that duplicate usernames aren't allowed.
         print("joining a dupe client to the lobby", joinLobby(gameName, clients))
 
 

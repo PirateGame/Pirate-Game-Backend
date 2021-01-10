@@ -16,6 +16,7 @@ game.bootstrap({"purge":True})
 
 
 def auth(playerName, gameName, code):
+    print(game.clientInfo({"gameName":gameName, "clientName":playerName}))
     secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
     if code == secret:
         return True
@@ -23,7 +24,7 @@ def auth(playerName, gameName, code):
         return False
 
 def isHost(gameName, playerName):
-    secret = game.gameInfo(gameName)["about"]["ownerName"]
+    secret = game.gameInfo(gameName)["about"]["admins"][0]["name"]
     if playerName == secret:
         return True
     else:
@@ -77,7 +78,7 @@ def createGame():
 
     authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
-    data = {"error": False, "authcode": authcode, "playerName":ownerName, "gameName":gameName}
+    data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
     return jsonify(data)
 
 
@@ -440,7 +441,7 @@ def addAI():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if game.joinLobby(gameName, {"temp":{"type":"AI", "randomName":True}}):
+            if game.joinLobby(gameName, [{"name":"", "type":"AI"}]):
                 data = ({"error": False})
                 return jsonify(data)
             else:
