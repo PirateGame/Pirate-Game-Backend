@@ -110,8 +110,7 @@ def joinGame():
             return jsonify(data)
 
 
-    client = {playerName:{"type":"human"}}
-    if game.joinLobby(gameName, client):
+    if game.joinLobby(gameName, [{"name":playerName, "type":"human"}]):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         print(playerName + " joined game " + gameName)
         data = {"error": False, "authcode": authcode}
