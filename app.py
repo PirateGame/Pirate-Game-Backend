@@ -326,6 +326,7 @@ def saveBoard():
 
     if auth(playerName, gameName, authCode):
         if game.serialWriteBoard(gameName, playerName, board):
+            game.readyUp(gameName, playerName)
             data = {"error": False}
             return jsonify(data)
         else:
@@ -379,7 +380,7 @@ def getGameState():
 
     #if player number == number of boards submitted then we should send a state of ready to the host.
     #this will turn their start button from red to green, and allow them to press it.
-    if game.playerCount(gameName) == game.submittedCount(gameName) and game.status(gameName) != "active" and game.status(gameName) != "paused":
+    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
         data = {"error": False, "state":"ready"}
         return jsonify(data)
     else:

@@ -63,7 +63,7 @@ def updateBOARDS(gameName, whatToUpdate):
 class gameHandler():
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "submitted":0, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         self.randomCoords = []
@@ -244,6 +244,19 @@ class gameHandler():
         self.printBoards()
         self.writeAboutToBoards()
         return True
+    
+    def filterClients(gameName, requirements, clients=[]):
+        if clients == []:
+            clients = self.about["clients"]
+        out = []
+        for client,about in self.about["clients"].values():
+            wrongTally = 0
+            for key,value in requirements.items():
+                if about[key] != value:
+                    wrongTally += 1
+            if wrongTally == 0:
+                out[client] = about
+        return out
 
     def turnHandle(self):
         if self.about["turnNum"] < 0:
@@ -282,10 +295,12 @@ class clientHandler():
         self.game = game
 
         ##TYPE = AI, spectator, human
-        if about["type"] == "human" or about["type"] == "AI":
-            self.about = {"name":clientName, "type": about["type"], "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
+        if about["type"] == "human":
+            self.about = {"name":clientName, "type": about["type"], "ready":False, "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
+        elif about["type"] == "AI":
+            self.about = {"name":clientName, "type": about["type"], "ready":True, "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":False, "mirror":False, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
         elif about["type"] == "spectator":
-            self.about = {"name":clientName, "type": about["type"], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
+            self.about = {"name":clientName, "type": about["type"], "ready":True, "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
         self.about["estimateHandler"] = analyse.clientEstimateHandler(self)
         self.about["FRONTresponses"] = []
         self.about["FRONTquestions"] = []
@@ -645,8 +660,8 @@ def leaderboard(gameName):
 
 def turnHandle(gameName):
     print("TURN HANDLE WAS CALLED.")
-    playerName = "Alex"
-    print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
+    #playerName = "Alex"
+    #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
     return games[gameName].turnHandle()
 
 def start(gameName):
@@ -662,11 +677,14 @@ def setStatus(gameName, status):
 def playerCount(gameName):
     return len(games[gameName].about["clients"])
 
-def submittedCount(gameName):
-    return games[gameName].about["submitted"]
-
 def returnEvents(gameName, about):
     return games[gameName].about["eventHandler"].about["log"]
+
+def readyPerc(gameName):
+    return len(games[gameName].filterClients(gameName, {"ready":True}).keys()) / len(games[gameName].about["clients"].keys())
+
+def readyUp(gameName, playerName):
+    games[gameName].about["clients"][playerName]["ready"] = True
 
 def serialReadBoard(gameName, clientName, positions=True):
     return games[gameName].serialReadBoard(clientName, positions)
@@ -675,7 +693,6 @@ def serialWriteBoard(gameName, clientName, serial):
     try:
         games[gameName].serialWriteBoard(gameName, clientName, serial)
         #this should work as each player only submits their board once
-        games[gameName].about["submitted"] += 1
         return True
     except Exception as e:
         return e
@@ -687,6 +704,9 @@ def FRONTresponse(gameName, clientName, choice):
     games[gameName].about["clients"][clientName].FRONTresponse(choice)
     games[gameName].about["status"] = "active"
     games[gameName].turnHandle()
+
+def filterClients(gameName, requirements, clients=[]):
+    return games[gameName].filterClients(gameName, requirements, clients)
 
 def filterEvents(gameName, requirements, parses=[], returnNums=False, events=[]):
     if events == []:
