@@ -324,7 +324,7 @@ class clientHandler():
 
     def rOrCChoice(self):
         if self.about["type"] == "AI":
-            rOrC = random.choice("row", "column")#randint(0,1)
+            rOrC = random.choice(["row", "column"])#randint(0,1)
             if rOrC == "column":
                 columns = [str(i) for i in range(3)]
                 columns.remove(self.about["column"])
@@ -373,7 +373,7 @@ class clientHandler():
         options = []
         for x in range(self.about["gridDim"][0]):
             for y in range(self.about["gridDim"][1]):
-                if (x,y) not in self.about["chosenTiles"]:
+                if (x,y) not in self.about["chosenTiles"]: 
                     options.append((x,y))
         return random.choice(options)
         #if self.about["type"] == "AI":
