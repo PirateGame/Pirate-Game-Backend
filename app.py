@@ -217,6 +217,12 @@ def getEvent():
 
     if auth(playerName, gameName, authCode):
         events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+        if events == []:
+            print("starting next round as event queue is empty")
+            game.turnHandle(gameName)
+            data = ({"error": "empty"})
+            return jsonify(data)
+
         descriptions = game.describeEvents(gameName, events)
         timestamps = [event["timestamp"] for event in events]
 
