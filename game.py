@@ -372,9 +372,9 @@ class clientHandler():
     
     def tileChoice(self):
         options = []
-        for x in range(self.about["gridDim"][0]):
-            for y in range(self.about["gridDim"][1]):
-                if (x,y) not in self.about["chosenTiles"]: 
+        for x in range(self.game.about["gridDim"][0]):
+            for y in range(self.game.about["gridDim"][1]):
+                if (x,y) not in self.game.about["chosenTiles"]: 
                     options.append((x,y))
         return random.choice(options)
         #if self.about["type"] == "AI":
