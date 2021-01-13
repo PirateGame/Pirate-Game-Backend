@@ -621,7 +621,6 @@ def listClients(gameName, toReturn={"private":False, "human":True, "spectator":T
         for clientName, obj in games[gameName].about["clients"].items():
             tempAbout = obj.about.copy()
             if tempAbout["type"] in typesToReturn:
-                print(obj.about)
                 tempAbout["authCode"] = None
                 tempAbout["money"] = None
                 tempAbout["bank"] = None
@@ -631,7 +630,6 @@ def listClients(gameName, toReturn={"private":False, "human":True, "spectator":T
                 tempAbout["column"] = None
                 tempAbout["row"] = None
                 out[clientName] = tempAbout
-                print(obj.about)
     return out
 
 #list the names of all the clients by game name
