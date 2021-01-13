@@ -331,7 +331,7 @@ class clientHandler():
                 choice = random.choice(columns)
             else:
                 rows = ["A", "B", "C"]
-                del rows[self.about["row"] - 1]
+                del rows[int(self.about["row"]) - 1]
                 choice = random.choice(rows)
             return choice
         elif self.about["type"] == "human":
