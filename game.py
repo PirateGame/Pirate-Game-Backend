@@ -241,13 +241,13 @@ class gameHandler():
         if clients == []:
             clients = self.about["clients"]
         out = []
-        for client,about in self.about["clients"].items():
+        for clientName,about in clients.items():
             wrongTally = 0
             for key,value in requirements.items():
-                if self.about[key] != value:
+                if clients[clientName].about[key] != value:
                     wrongTally += 1
             if wrongTally == 0:
-                out[client] = about
+                out[clientName] = about
         return out
 
     def turnHandle(self):
