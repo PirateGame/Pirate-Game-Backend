@@ -241,10 +241,10 @@ class gameHandler():
         if clients == []:
             clients = self.about["clients"]
         out = []
-        for client,about in self.about["clients"].values():
+        for client,about in self.about["clients"].items():
             wrongTally = 0
             for key,value in requirements.items():
-                if about[key] != value:
+                if self.about[key] != value:
                     wrongTally += 1
             if wrongTally == 0:
                 out[client] = about
@@ -676,7 +676,7 @@ def readyPerc(gameName):
     return len(games[gameName].filterClients(gameName, {"ready":True}).keys()) / len(games[gameName].about["clients"].keys())
 
 def readyUp(gameName, playerName):
-    games[gameName].about["clients"][playerName]["ready"] = True
+    games[gameName].about["clients"][playerName].about["ready"] = True
 
 def serialReadBoard(gameName, clientName, positions=True):
     return games[gameName].serialReadBoard(clientName, positions)
