@@ -344,12 +344,14 @@ class clientHandler():
 
     def responseChoice(self):
         options = []
-        for key,value in {"none":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
+        for key,value in {"Do nothing":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
             if value:
                 options.append(key)
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "human":
+            if len(options) == 1:
+                return options[0]
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
                 return None
@@ -497,7 +499,6 @@ class clientHandler():
                 self.about["mirror"] = False
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]})) #EVENT HANDLER
                 self.game.about["clients"][sender.about["name"]].beActedOn("A", self)
-
         if whatHappened == "B":
             choice = self.responseChoice()
             if choice == "none":
