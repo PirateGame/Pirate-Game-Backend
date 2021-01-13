@@ -240,7 +240,7 @@ class gameHandler():
     def filterClients(self, gameName, requirements, clients=[]):
         if clients == []:
             clients = self.about["clients"]
-        out = []
+        out = {}
         for clientName,about in clients.items():
             wrongTally = 0
             for key,value in requirements.items():
