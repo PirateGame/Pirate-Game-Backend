@@ -237,7 +237,7 @@ class gameHandler():
         self.writeAboutToBoards()
         return True
     
-    def filterClients(gameName, requirements, clients=[]):
+    def filterClients(self, gameName, requirements, clients=[]):
         if clients == []:
             clients = self.about["clients"]
         out = []
