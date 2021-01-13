@@ -55,7 +55,7 @@ def updateBOARDS(gameName, whatToUpdate):
 class gameHandler():
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "didTheirTurn":{}, "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         self.randomCoords = []
@@ -129,20 +129,21 @@ class gameHandler():
         actions = []
         clientsShuffled = list(self.about["clients"].keys())
         random.shuffle(clientsShuffled)
-        didTheirTurn = {}
+        
         for clientName in clientsShuffled:
-            didTheirTurn[clientName] = False
+            self.about["didTheirTurn"][clientName] = False
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        for clientName, value in didTheirTurn.items():
+        for clientName, value in self.about["didTheirTurn"].items():
             if not value:
                 x = self.about["chosenTiles"][self.about["turnNum"]][0]
                 y = self.about["chosenTiles"][self.about["turnNum"]][1]
                 self.about["clients"][clientName].about["tileHistory"].append(BOARDS[self.about["name"]][1][clientName][x][y])
                 if self.about["clients"][clientName].act(BOARDS[self.about["name"]][1][clientName][x][y]) != None:
-                    didTheirTurn[clientName] = True
+                    self.about["didTheirTurn"][clientName] = True
 
-        if False not in didTheirTurn.values():
+        if False not in self.about["didTheirTurn"].values():
             self.about["turnNum"] += 1
+            self.about["didTheirTurn"] = {}
             for clientName in clientsShuffled:
                 self.about["clients"][clientName].logScore()
         self.writeAboutToBoards()
