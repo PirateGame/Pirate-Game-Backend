@@ -10,6 +10,9 @@ environment
 #Ignore the database
 uri.py
 
+*.npy
+boards.npy
+
 # User-specific files
 *.rsuser
 *.suo
