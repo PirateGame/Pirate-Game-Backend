@@ -337,7 +337,7 @@ class clientHandler():
             return choice
         elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[["A","B","C",0,1,2]], "labels":["which team / ship do you want to attack?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":["A","B","C",0,1,2], "labels":["which team / ship do you want to attack?"]})
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
