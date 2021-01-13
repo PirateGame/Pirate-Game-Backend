@@ -591,7 +591,7 @@ def deleteGame(gameNames):
         print("@@@@ NOTHING DELETED")
 
 #get the info of a game by name
-def gameInfo(gameName): #gameInfo("testGame")["about"]["admin"]
+def gameInfo(gameName): #gameInfo("testGame")["about"]["admins"]
     try:
         return games[gameName].info()
     except Exception as e:

@@ -207,6 +207,17 @@ def startBuilding():
         data = ({"error": "Authentication failed"})
         return jsonify(data)
 
+def tryNewTurn(gameName):
+    unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}))
+    allQuestions = np.array([game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"] for playerName in game.listClientNames(gameName)])
+    allQuestions = list(allQuestions.flatten())
+    print(game.gameInfo(gameName)["about"]["turnNum"], unshownEvents, allQuestions)
+    if game.gameInfo(gameName)["about"]["turnNum"] != -1 and len(allQuestions) == 0: #and len(unshownEvents) == 0
+        print("starting next round as event queue is empty and there are no questions left for any client.")
+        game.turnHandle(gameName)
+        return True
+    else:
+        return False
 
 @app.route('/api/getEvent', methods=['POST'])
 def getEvent():
@@ -215,50 +226,49 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
+    unshownEvents = events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['event["public"] == True or ' + '"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
     if auth(playerName, gameName, authCode):
-        events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
-        if events == []:
+        if len(unshownEvents) == 0 and tryNewTurn(gameName):
             print("starting next round as event queue is empty")
-            game.turnHandle(gameName)
             data = ({"error": "empty"})
             return jsonify(data)
+        else:
+            events = unshownEvents
+            descriptions = game.describeEvents(gameName, events)
+            timestamps = [event["timestamp"] for event in events]
 
-        descriptions = game.describeEvents(gameName, events)
-        timestamps = [event["timestamp"] for event in events]
-
-        questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-        
-        tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
-        try:
-            tile = sorted(tiles)[-1]
-            currentTile = tiles[tile]
-            id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
-        except IndexError:
-            currentTile = None
-
-        money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
-        bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
-
-        print("----------------EVENTS---------------------")
-        for desc in descriptions:
-            print(desc)
-
-
-        print("----------------QUESTIONS------------------")
-        for question in questions:
-            print(question["labels"])
-
-        try:
-            data = {"error": False, "question":False, "text": descriptions[0], "id":id, "money": money, "bank": bank}
-            game.shownToClient(gameName, timestamps[0])
-            return jsonify(data)
-        except IndexError:
+            questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+            
+            tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
             try:
-                data = {"error": False, "question": True, "text": questions[0], "id":id, "money": money, "bank": bank}
+                tile = sorted(tiles)[-1]
+                currentTile = tiles[tile]
+                id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
+            except IndexError:
+                currentTile = None
+
+            money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
+            bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+
+            print("----------------EVENTS---------------------")
+            for desc in descriptions:
+                print(desc)
+            print("----------------QUESTIONS------------------")
+            for question in questions:
+                print(question["labels"])
+            print("-------------------------------------------")
+
+            try:
+                data = {"error": False, "question":False, "text": descriptions[0], "id":id, "money": money, "bank": bank}
+                game.shownToClient(gameName, timestamps[0])
                 return jsonify(data)
-            except:
-                data = {"error": "empty"}
-                return jsonify(data)
+            except IndexError:
+                try:
+                    data = {"error": False, "question": True, "text": questions[0], "id":id, "money": money, "bank": bank}
+                    return jsonify(data)
+                except:
+                    data = {"error": "empty"}
+                    return jsonify(data)
 
     else:
         data = ({"error": "Authentication failed"})
