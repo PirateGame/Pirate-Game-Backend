@@ -283,7 +283,7 @@ class gameHandler():
     def getAllMyClientsQuestions(self):
         out = []
         for clientName,obj in self.about["clients"].items():
-            out.append(obj.about["FRONTquestions"])
+            out.extend(obj.about["FRONTquestions"])
         return out
 
     def delete(self):

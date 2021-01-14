@@ -207,12 +207,16 @@ def startBuilding():
         return jsonify(data)
 
 def tryNewTurn(gameName):
-    if len(game.getRemainingQuestions(gameName)) == 0 and len(game.filterEvents(gameName, {"whoToShow":[]})) == 0 and game.gameInfo(gameName)["about"]["turnNum"] != -1:
+    rQ = game.getRemainingQuestions(gameName)
+    fE = game.filterEvents(gameName, {}, ['len(event["whoToShow"]) > 0'])
+    tN = game.gameInfo(gameName)["about"]["turnNum"]
+    if len(rQ) == 0 and len(fE) == 0 and tN != -1:
         print("Starting next round as all events have been shown and there are no remaining questions.")
         game.turnHandle(gameName)
         return True
     else:
-        print("There are still questions to be answered or events to be shown.")
+        print("A new turn can't be triggered as there are still questions to be answered or events to be shown.")
+        print(rQ, fE, tN)
         return False
 
 @app.route('/api/getEvent', methods=['POST'])
@@ -222,17 +226,26 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    #print("all the events", game.filterEvents(gameName))
-    unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
     if auth(playerName, gameName, authCode):
-        if len(unshownEvents) == 0 and tryNewTurn(gameName):
+        #print("all the events", game.filterEvents(gameName))
+        unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
+        print("unshownEvents", unshownEvents)
+        questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+        print("unshownQuestions", questions)
+        if len(unshownEvents) == 0 and len(questions) == 0:
+            data = ({"error": "empty"})
+            return jsonify(data)
+        elif tryNewTurn(gameName):
+            print("A")
             data = ({"error": "empty"})
             return jsonify(data)
         else:
+            print("B")
             descriptions = game.describeEvents(gameName, unshownEvents)
             timestamps = [event["timestamp"] for event in unshownEvents]
 
             questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
+            print("questions", questions)
             
             tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
             try:

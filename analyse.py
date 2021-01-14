@@ -84,7 +84,7 @@ class gameEventHandler():
         else:
             out = []
             for clientName,obj in [event["sources"] + event["targets"]]:
-                if obj.__class__.__name__== "clientHandler":
+                if obj.about["type"] == "human" and obj.__class__.__name__== "clientHandler":
                     out.append(clientName)
             return out
 
