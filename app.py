@@ -14,7 +14,6 @@ app = Flask(__name__)
 game.bootstrap({"purge":True})
 
 
-
 def auth(playerName, gameName, code):
     print(game.clientInfo({"gameName":gameName, "clientName":playerName}))
     secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
@@ -211,7 +210,7 @@ def tryNewTurn(gameName):
     unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}))
     allQuestions = np.array([game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"] for playerName in game.listClientNames(gameName)])
     allQuestions = list(allQuestions.flatten())
-    print(game.gameInfo(gameName)["about"]["turnNum"], unshownEvents, allQuestions)
+    #print(game.gameInfo(gameName)["about"]["turnNum"], unshownEvents, allQuestions)
     if game.gameInfo(gameName)["about"]["turnNum"] != -1 and len(allQuestions) == 0: #and len(unshownEvents) == 0
         print("starting next round as event queue is empty and there are no questions left for any client.")
         game.turnHandle(gameName)
@@ -229,7 +228,6 @@ def getEvent():
     unshownEvents = events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['event["public"] == True or ' + '"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
     if auth(playerName, gameName, authCode):
         if len(unshownEvents) == 0 and tryNewTurn(gameName):
-            print("starting next round as event queue is empty")
             data = ({"error": "empty"})
             return jsonify(data)
         else:
@@ -245,7 +243,9 @@ def getEvent():
                 currentTile = tiles[tile]
                 id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
             except IndexError:
-                currentTile = None
+                #this will happen if there are no tiles in the chosenTiles list.
+                data = ({"error": "Game Not Started Yet"})
+                return jsonify(data)
 
             money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
             bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
@@ -258,18 +258,9 @@ def getEvent():
                 print(question["labels"])
             print("-------------------------------------------")
 
-            try:
-                data = {"error": False, "question":False, "text": descriptions[0], "id":id, "money": money, "bank": bank}
-                game.shownToClient(gameName, timestamps[0])
-                return jsonify(data)
-            except IndexError:
-                try:
-                    data = {"error": False, "question": True, "text": questions[0], "id":id, "money": money, "bank": bank}
-                    return jsonify(data)
-                except:
-                    data = {"error": "empty"}
-                    return jsonify(data)
-
+            data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank}
+            game.shownToClient(gameName, timestamps)
+            return jsonify(data)
     else:
         data = ({"error": "Authentication failed"})
         return jsonify(data)
