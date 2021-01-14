@@ -1,1 +1,0 @@
-URI = "mongodb+srv://user123:bjADXameSKXGGD76@cluster0.pcoof.mongodb.net/pirategameonline?retryWrites=true&w=majority"
