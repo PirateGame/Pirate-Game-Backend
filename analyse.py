@@ -65,7 +65,7 @@ class gameEventHandler():
                         out.append(str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]))
         return out
     
-    def updateEvents(eventNums, updates):
+    def updateEvents(self, eventNums, updates):
         for eventNum in eventNums:
             for key,value in updates.items():
                 self.about["log"][eventNum][key] = value
