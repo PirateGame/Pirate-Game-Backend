@@ -232,8 +232,6 @@ def getEvent():
             return jsonify(data)
         else:
             events = unshownEvents
-            print("##############")
-            print(events)
             descriptions = game.describeEvents(gameName, events)
             timestamps = [event["timestamp"] for event in events]
 
