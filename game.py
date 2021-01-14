@@ -242,7 +242,7 @@ class gameHandler():
         self.writeAboutToBoards()
         return True
     
-    def filterClients(self, gameName, requirements, clients=[]):
+    def filterClients(self, requirements, clients=[]):
         if clients == []:
             clients = self.about["clients"]
         out = {}
@@ -557,7 +557,6 @@ def listGames():
 def makeGame(about, overwriteAbout = None):
     if about["gameName"] == "":
         about["gameName"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
-    print(about["admins"])
     for i in range(len(about["admins"])):
         if about["admins"][i]["name"] == "":
             about["admins"][i]["name"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
@@ -675,7 +674,7 @@ def returnEvents(gameName, about):
     return games[gameName].about["eventHandler"].about["log"]
 
 def readyPerc(gameName):
-    return len(games[gameName].filterClients(gameName, {"ready":True}).keys()) / len(games[gameName].about["clients"].keys())
+    return len(games[gameName].filterClients({"ready":True}).keys()) / len(games[gameName].about["clients"].keys())
 
 def readyUp(gameName, playerName):
     games[gameName].about["clients"][playerName].about["ready"] = True
@@ -700,7 +699,7 @@ def FRONTresponse(gameName, clientName, choice):
     games[gameName].turnHandle()
 
 def filterClients(gameName, requirements, clients=[]):
-    return games[gameName].filterClients(gameName, requirements, clients)
+    return games[gameName].filterClients(requirements, clients)
 
 def filterEvents(gameName, requirements, parses=[], returnNums=False, events=[]):
     if events == []:
@@ -716,12 +715,19 @@ def sortEvents(gameName, key, events=None):
     else:
         return games[gameName].about["eventHandler"].sortEvents(events, key)
 
-def shownToClient(gameName, timestamp):
-    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
-    for eventNum in eventNums:
-        games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
-    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))]):
-        games[gameName].turnHandle()
+#def shownEvent(gameName, clientName)
+#    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
+
+def shownToClient(gameName, playerName, timestamps):
+    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {}, ['event["timestamp"] in ' + str(timestamps)], True)
+    for eN in eventNums:
+        games[gameName].about["eventHandler"].about["log"][eventNum]["whoToShow"].remove(playerName)
+#def shownToClient(gameName, timestamp):
+#    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
+#    for eventNum in eventNums:
+#        games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
+#    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))]):
+#        games[gameName].turnHandle()
 
 
 

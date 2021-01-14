@@ -78,9 +78,16 @@ class gameEventHandler():
         else:
             print("EVENT:", event)
     
+    def whoToShow(self, event):
+        if event["public"] == True:
+            return [client["name"] for client in self.game.filterClients({}, [])]
+        else:
+            return [client for client in [event["sources"] + event["targets"]]]
+
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
         time.sleep(0.00001)
-        self.about["log"].append({"shownToClient":False, "timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
+        self.about["log"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
+        self.about["log"][-1]["whoToShow"] = self.whoToShow(self.about["log"][-1])
         #self.printNicely(self.about["log"][-1])
         #self.game.processEvent
         return self.about["log"][-1]

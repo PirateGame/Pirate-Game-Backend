@@ -208,11 +208,7 @@ def startBuilding():
         return jsonify(data)
 
 def tryNewTurn(gameName):
-    unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}))
-    allQuestions = np.array([game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"] for playerName in game.listClientNames(gameName)])
-    allQuestions = list(allQuestions.flatten())
-    #print(game.gameInfo(gameName)["about"]["turnNum"], unshownEvents, allQuestions)
-    if game.gameInfo(gameName)["about"]["turnNum"] != -1 and len(allQuestions) == 0: #and len(unshownEvents) == 0
+    if len(game.filterEvents(gameName, {"whoToShow":[]})) == 0 and game.gameInfo(gameName)["about"]["turnNum"] != -1:
         print("starting next round as event queue is empty and there are no questions left for any client.")
         game.turnHandle(gameName)
         return True
@@ -226,15 +222,14 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    unshownEvents = events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {"shownToClient":False}, ['event["public"] == True or ' + '"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]']))
+    unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
     if auth(playerName, gameName, authCode):
         if len(unshownEvents) == 0 and tryNewTurn(gameName):
             data = ({"error": "empty"})
             return jsonify(data)
         else:
-            events = unshownEvents
-            descriptions = game.describeEvents(gameName, events)
-            timestamps = [event["timestamp"] for event in events]
+            descriptions = game.describeEvents(gameName, unshownEvents)
+            timestamps = [event["timestamp"] for event in unshownEvents]
 
             questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
             
@@ -260,7 +255,7 @@ def getEvent():
             print("-------------------------------------------")
 
             data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank}
-            game.shownToClient(gameName, timestamps)
+            game.shownToClient(gameName, playerName, timestamps)
             return jsonify(data)
     else:
         data = ({"error": "Authentication failed"})
