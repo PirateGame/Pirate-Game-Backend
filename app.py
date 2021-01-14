@@ -260,7 +260,8 @@ def getEvent():
             print("-------------------------------------------")
 
             data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank}
-            game.shownToClient(gameName, timestamps)
+            for timestamp in timestamps:
+                game.shownToClient(gameName, timestamp)
             return jsonify(data)
     else:
         data = ({"error": "Authentication failed"})
