@@ -55,7 +55,7 @@ def updateBOARDS(gameName, whatToUpdate):
 class gameHandler():
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "didTheirTurn":{}, "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "debug":about["debug"], "didTheirTurn":{}, "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.tempGroupChoices = {}
         self.randomCoords = []
@@ -177,7 +177,7 @@ class gameHandler():
                             self.about["clients"][clients[i]["name"]].buildRandomBoard()
                             self.writeAboutToBoards()
                             out.append(True)
-                            print(self.about["name"], "@@@@", clients[i]["name"], "has joined the lobby.")
+                            self.debugPrint(str(self.about["name"]) + " @@@@ " + str(clients[i]["name"]) + " has joined the lobby.")
                         except Exception as e:
                             out.append(e)
                     else:
@@ -185,7 +185,6 @@ class gameHandler():
                 else:
                     out.append("The player cap of " + str(self.about["playerCap"]) + " has been reached.")
             else:
-                print(clients[i]["name"])
                 out.append("The username " + clients[i]["name"] + " doesn't pass the name filters: " + str(nameCheck))
         return out
     
@@ -198,22 +197,27 @@ class gameHandler():
                 del BOARDS[self.about["name"]][1][clientName]
                 self.writeAboutToBoards()
                 out.append(True)
-                print(self.about["name"], "@@@@", clientName, "has left the lobby.")
+                self.debugPrint(str(self.about["name"]) + " @@@@ " + str(clientName) + "has left the lobby.")
             except:
                 out.append(False)
         BOARDS = np.save("boards.npy", BOARDS)
         return out
 
-    def printBoards(self):
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        for client in self.about["clients"]:
-            print(self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
-            row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
-            col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
-            tempBOARD = BOARDS[self.about["name"]][1][client]
-            for tile in self.about["chosenTiles"]:
-                tempBOARD[tile[1]][tile[0]] = "-"
-            self.pP.printmat(tempBOARD, row_labels, col_labels)
+    def debugPrint(self, message):
+        if self.about["debug"]:
+            print("BACKEND: GAME_OBJ(debug):", message)
+    
+    def debugPrintBoards(self):
+        if self.about["debug"]:
+            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+            for client in self.about["clients"]:
+                print("BACKEND: GAME_OBJ(debug):", self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
+                row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
+                col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
+                tempBOARD = BOARDS[self.about["name"]][1][client]
+                for tile in self.about["chosenTiles"]:
+                    tempBOARD[tile[1]][tile[0]] = "-"
+                self.pP.printmat(tempBOARD, row_labels, col_labels)
     
     def serialReadBoard(self, clientName, positions):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -233,8 +237,8 @@ class gameHandler():
             for y in range(self.about["gridDim"][1]):
                 self.randomCoords.append((x,y))
         random.shuffle(self.randomCoords)
-        print(self.about["name"], "@@@ STARTED with", len(self.about["clients"]), "clients, here's more info...", self.info())
-        self.printBoards()
+        self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
+        self.debugPrintBoards()
         self.writeAboutToBoards()
         return True
     
@@ -266,13 +270,12 @@ class gameHandler():
                     newTile = self.about["tileOverride"]
                     self.about["tileOverride"] = False
                 self.about["chosenTiles"][self.about["turnNum"]] = newTile
-                print(self.about["name"], "@@ ------------------------ Turn", self.about["turnNum"] + 1, "--- Tile", (newTile[0] + 1, newTile[1] + 1), "------------------------")
+                self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[0] + 1) + "," + str(newTile[1] + 1) + " ------------------------")
             self.turnProcess()
-            #self.printBoards()
         else:
             self.about["status"] = "dormant" #this is for when the game doesn't end immediatedly after the turn count is up
-            print(gameName, "@@@ Game over.")
-            print("Leaderboard:", leaderboard(gameName))
+            self.debugPrint(str(gameName) + " @@@ Game over.")
+            self.debugPrint("Leaderboard: " + str(leaderboard(gameName)))
             self.delete()
             deleteGame([self.about["name"]])
         self.writeAboutToBoards()
@@ -319,7 +322,7 @@ class clientHandler():
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
-        print("A question has been raised.", question)
+        self.game.debugPrint("A question has been raised. " + str(question))
         self.about["FRONTquestions"].append(question)
         self.game.about["status"] = "awaiting"
 
@@ -651,7 +654,6 @@ def leaderboard(gameName):
     return games[gameName].leaderboard()
 
 def turnHandle(gameName):
-    print("TURN HANDLE WAS CALLED.")
     #playerName = "Alex"
     #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
     return games[gameName].turnHandle()
@@ -779,7 +781,8 @@ def bootstrap(about):
                     playerCap = BOARDS[gameName][0]["playerCap"]
                     nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
                     nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
-                    gameAbout = {"gameName":gameName, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+                    debug = BOARDS[gameName][0]["debug"]
+                    gameAbout = {"gameName":gameName, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
                     overwriteAbout = BOARDS[gameName][0]
                     makeGame(gameAbout, overwriteAbout)
                     #turnHandle(gameName)
@@ -819,9 +822,10 @@ if __name__ == "__main__":
         playerCap = 5
         nameNaughtyFilter = 0
         nameUniqueFilter = 0
+        debug = True
 
         #Setting up a test game
-        about = {"gameName":gameName, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+        about = {"gameName":gameName, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
