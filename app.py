@@ -15,7 +15,6 @@ game.bootstrap({"purge":True})
 
 
 def auth(playerName, gameName, code):
-    print(game.clientInfo({"gameName":gameName, "clientName":playerName}))
     secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
     if code == secret:
         return True
@@ -208,11 +207,12 @@ def startBuilding():
         return jsonify(data)
 
 def tryNewTurn(gameName):
-    if len(game.filterEvents(gameName, {"whoToShow":[]})) == 0 and game.gameInfo(gameName)["about"]["turnNum"] != -1:
-        print("starting next round as event queue is empty and there are no questions left for any client.")
+    if len(game.getRemainingQuestions(gameName)) == 0 and len(game.filterEvents(gameName, {"whoToShow":[]})) == 0 and game.gameInfo(gameName)["about"]["turnNum"] != -1:
+        print("Starting next round as all events have been shown and there are no remaining questions.")
         game.turnHandle(gameName)
         return True
     else:
+        print("There are still questions to be answered or events to be shown.")
         return False
 
 @app.route('/api/getEvent', methods=['POST'])
@@ -222,6 +222,7 @@ def getEvent():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
+    #print("all the events", game.filterEvents(gameName))
     unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
     if auth(playerName, gameName, authCode):
         if len(unshownEvents) == 0 and tryNewTurn(gameName):

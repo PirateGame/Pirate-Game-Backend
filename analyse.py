@@ -80,9 +80,13 @@ class gameEventHandler():
     
     def whoToShow(self, event):
         if event["public"] == True:
-            return [client["name"] for client in self.game.filterClients({}, [])]
+            return [clientName for clientName in self.game.filterClients({}, [])]
         else:
-            return [client for client in [event["sources"] + event["targets"]]]
+            out = []
+            for clientName,obj in [event["sources"] + event["targets"]]:
+                if obj.__class__.__name__== "clientHandler":
+                    out.append(clientName)
+            return out
 
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
         time.sleep(0.00001)

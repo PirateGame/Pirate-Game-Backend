@@ -280,7 +280,12 @@ class gameHandler():
             deleteGame([self.about["name"]])
         self.writeAboutToBoards()
 
-    
+    def getAllMyClientsQuestions(self):
+        out = []
+        for clientName,obj in self.about["clients"].items():
+            out.append(obj.about["FRONTquestions"])
+        return out
+
     def delete(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         del BOARDS[self.about["name"]]
@@ -690,6 +695,9 @@ def serialWriteBoard(gameName, clientName, serial):
     except Exception as e:
         return e
 
+def getRemainingQuestions(gameName):
+    return games[gameName].getAllMyClientsQuestions()
+
 def randomiseBoard(gameName, clientName):
     return games[gameName].about["clients"][clientName].buildRandomBoard()
 
@@ -701,7 +709,7 @@ def FRONTresponse(gameName, clientName, choice):
 def filterClients(gameName, requirements, clients=[]):
     return games[gameName].filterClients(requirements, clients)
 
-def filterEvents(gameName, requirements, parses=[], returnNums=False, events=[]):
+def filterEvents(gameName, requirements={}, parses=[], returnNums=False, events=[]):
     if events == []:
         events = games[gameName].about["eventHandler"].about["log"]
     return games[gameName].about["eventHandler"].filterEvents(events, requirements, parses, returnNums)
@@ -715,21 +723,12 @@ def sortEvents(gameName, key, events=None):
     else:
         return games[gameName].about["eventHandler"].sortEvents(events, key)
 
-#def shownEvent(gameName, clientName)
-#    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
-
 def shownToClient(gameName, playerName, timestamps):
     eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {}, ['event["timestamp"] in ' + str(timestamps)], True)
     for eN in eventNums:
-        games[gameName].about["eventHandler"].about["log"][eventNum]["whoToShow"].remove(playerName)
-#def shownToClient(gameName, timestamp):
-#    eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {"timestamp":timestamp}, [], True)
-#    for eventNum in eventNums:
-#        games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] = True
-#    if all([games[gameName].about["eventHandler"].about["log"][eventNum]["shownToClient"] for eventNum in range(len(games[gameName].about["eventHandler"].about["log"]))]):
-#        games[gameName].turnHandle()
-
-
+        print(games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"])
+        games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"].remove(playerName)
+        print(games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"])
 
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
