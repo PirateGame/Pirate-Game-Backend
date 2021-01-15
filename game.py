@@ -33,6 +33,10 @@ class prettyPrinter():
         else:
             raise Exception("This case is not implemented...either both row_labels and col_labels must be given, or neither.")
 
+def debugPrint(message):
+    if debug:
+        print("~"*220)
+        print("BACK:wrappers(debug):", message)
 
 #   ___       .    __   __ .____           .    __    _ .___          ___  .     _ .____  __    _  _______        ___   ____    _______ .____    ___   _______   _____
 # .'   \     /|    |    |  /              /|    |\   |  /   `       .'   \ /     | /      |\   |  '   /         .'   `. /   \  '   /    /      .'   \ '   /     (     
@@ -45,13 +49,15 @@ class prettyPrinter():
 class gameHandler():
     def debugPrint(self, message):
         if self.about["debug"]:
-            print("BACKEND: GAME_OBJ(debug):", message)
+            print("~"*220)
+            print("BACK:gameHandler(debug):", message)
     
     def debugPrintBoards(self):
         if self.about["debug"]:
             BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
             for client in self.about["clients"]:
-                print("BACKEND: GAME_OBJ(debug):", self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
+                print("~"*220)
+                print("BACK:gameHandler(debug):", self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
                 row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
                 col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
                 tempBOARD = BOARDS[self.about["name"]][1][client]
@@ -246,7 +252,7 @@ class gameHandler():
             overwriteAbout["isSim"] = True
             overwriteAbout["debug"] = False
             for clientName in overwriteAbout["clients"]:
-                overwriteAbout["clients"][clientName]["type"] = "AI"
+                overwriteAbout["clients"][clientName].about["type"] = "AI"
             self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
             while self.about["sims"][-1].about["status"] != "dormant":
                 print(self.about["sims"][-1].about["turnNum"])
@@ -620,11 +626,11 @@ def deleteGame(gameNames):
         except:
             fail.append(gameName)
     if len(fail) > 0:
-        print(fail, "@@@@ NOT DELETED", success, "DELETED")
+        debugPrint(str(fail) + " @@@@ NOT DELETED " + str(success) + "DELETED")
     elif len(success) > 0:
-        print(success, "@@@@ DELETED")
+        debugPrint(str(success) + " @@@@ DELETED")
     else:
-        print("@@@@ NOTHING DELETED")
+        debugPrint(str("@@@@ NOTHING DELETED"))
 
 #get the info of a game by name
 def gameInfo(gameName): #gameInfo("testGame")["about"]["admins"]
@@ -819,7 +825,7 @@ def loadGame(boardStorage):
 def bootstrap(about):
     #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
     def failLoad(exception):
-        print("@@@@ No games were loaded because:", exception)
+        debugPrint("@@@@ No games were loaded because: " + str(exception))
         BOARDS = {}
         np.save("boards.npy", BOARDS)
     try:
@@ -853,8 +859,14 @@ def bootstrap(about):
 
 # MAIN THREAD
 if __name__ == "__main__":
+    debug = True
     bootstrap({"purge":True})
-    while True:
+    print("Demo? (hit enter)")
+    shallIDemo = input()
+    demo = True
+    while demo:
+        print("DEMO.")
+
         #Let's set up a few variables about our new test game...
         gridDim = (15,15)
         gridSize = gridDim[0] * gridDim[1]
@@ -865,7 +877,6 @@ if __name__ == "__main__":
         playerCap = 5
         nameNaughtyFilter = 0
         nameUniqueFilter = 0
-        debug = True
 
         #Setting up a test game
         about = {"gameName":gameName, "isSim":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
