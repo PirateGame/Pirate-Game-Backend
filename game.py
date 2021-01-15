@@ -233,7 +233,7 @@ class gameHandler():
                 out[clientName] = about
         return out
     
-    def forecast(self, iterations=10):
+    def forecast(self, iterations=0):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         boardStorage = BOARDS[self.about["name"]]
         startTime = time.time()
