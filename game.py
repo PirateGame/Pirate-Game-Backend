@@ -284,6 +284,7 @@ class gameHandler():
         self.writeAboutToBoards()
     
     def turnHandle(self):
+        print("TURNNUM", self.about["turnNum"])
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["status"][-1] == "paused":
