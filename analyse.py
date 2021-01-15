@@ -63,7 +63,7 @@ class gameEventHandler():
                         sourceType = "Game"
                     else:
                         sourceClass = "client"
-                        sourceType = event["sourceNames"][sourceNum].about["type"]
+                        sourceType = event["sources"][sourceNum].about["type"]
                     if event["isMirrored"]:
                         out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
