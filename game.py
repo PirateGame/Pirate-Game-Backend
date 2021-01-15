@@ -33,7 +33,6 @@ class prettyPrinter():
         else:
             raise Exception("This case is not implemented...either both row_labels and col_labels must be given, or neither.")
 
-debug = False
 def debugPrint(message):
     if debug:
         print("~"*220)
@@ -867,8 +866,8 @@ def bootstrap(about):
 # -----------------------------
 
 # MAIN THREAD
+debug = True
 if __name__ == "__main__":
-    debug = True
     bootstrap({"purge":True})
     print("Demo? (hit enter)")
     shallIDemo = input()
