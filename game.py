@@ -78,7 +78,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "sims":[], "isSim":about["isSim"], "startTime":None, "debug":about["debug"], "didTheirTurn":{}, "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "sims":[], "isSim":about["isSim"], "startTime":None, "debug":about["debug"], "didTheirTurn":{}, "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
         self.about["randomCoords"] = []
@@ -152,8 +152,8 @@ class gameHandler():
     def info(self):
         return {"about":self.about, "gridTemplate":self.about["gridTemplate"].about}
     
-    def status(self): #= lobby, active, awaiting, dormant
-        return self.about["status"]
+    def status(self): #= lobby, active, awaiting, paused, dormant
+        return self.about["status"][-1]
 
     def leaderboard(self):
         clientByScore = {}
@@ -214,7 +214,7 @@ class gameHandler():
         BOARDS = np.save("boards.npy", BOARDS)
 
     def start(self):
-        self.about["status"] = "active"
+        self.about["status"].append("active")
         self.about["startTime"] = time.time()
         self.about["turnNum"] += 1
 
@@ -241,7 +241,7 @@ class gameHandler():
                 out[clientName] = about
         return out
     
-    def forecast(self, iterations=5):
+    def forecast(self, iterations=0):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         boardStorage = BOARDS[self.about["name"]]
         startTime = time.time()
@@ -254,7 +254,7 @@ class gameHandler():
             for clientName in overwriteAbout["clients"]:
                 overwriteAbout["clients"][clientName].about["type"] = "AI"
             self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
-            while self.about["sims"][-1].about["status"] != "dormant":
+            while self.about["sims"][-1].about["status"][-1] != "dormant":
                 print(self.about["sims"][-1].about["turnNum"])
                 self.about["sims"][-1].turnHandle() 
             del self.about["sims"][-1]
@@ -286,6 +286,8 @@ class gameHandler():
     def turnHandle(self):
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
+        if self.about["status"][-1] == "paused":
+            raise Exception("The game is paused, which can't be handled.")
         if self.about["turnNum"] < self.about["gridDim"][0] * self.about["gridDim"][1]:
             if self.about["turnNum"] not in self.about["chosenTiles"].keys():
                 if self.about["tileOverride"] == False:
@@ -301,7 +303,7 @@ class gameHandler():
                 self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[0] + 1) + "," + str(newTile[1] + 1) + " ------------------------")
             self.turnProcess()
         else:
-            self.about["status"] = "dormant" #this is for when the game doesn't end immediatedly after the turn count is up
+            self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
             self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
             if not self.about["isSim"]:
@@ -360,7 +362,7 @@ class clientHandler():
     def makeQuestionToFRONT(self, question):
         self.game.debugPrint("A question has been raised. " + str(question))
         self.about["FRONTquestions"].append(question)
-        self.game.about["status"] = "awaiting"
+        self.game.about["status"][-1] = "awaiting"
 
     def rOrCChoice(self):
         if self.about["type"] == "AI":
@@ -639,6 +641,11 @@ def gameInfo(gameName): #gameInfo("testGame")["about"]["admins"]
     except Exception as e:
         return e
 
+def pause(gameName):
+    games[gameName].about["status"].append("paused")
+def resume(gameName):
+    games[gameName].about["status"].append(games[gameName].about["status"][-2])
+
 #get the info of a client by name and game name
 def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) returns {"about":about}
     try:
@@ -684,7 +691,7 @@ def listClientNames(gameName):
 
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
-    if games[gameName].about["status"] == "lobby":
+    if games[gameName].about["status"][-1] == "lobby":
         return games[gameName].join(clients)
 
 def leave(gameName, clients):
@@ -705,7 +712,7 @@ def status(gameName):
     return games[gameName].status()
 
 def setStatus(gameName, status):
-    games[gameName].about["status"] = status
+    games[gameName].about["status"].append(status)
     return True
 
 def playerCount(gameName):
@@ -739,8 +746,9 @@ def randomiseBoard(gameName, clientName):
 
 def FRONTresponse(gameName, clientName, choice):
     games[gameName].about["clients"][clientName].FRONTresponse(choice)
-    games[gameName].about["status"] = "active"
-    games[gameName].turnHandle()
+    if games[gameName].about["status"][-1] != "paused":
+        games[gameName].about["status"].append("active")
+        games[gameName].turnHandle()
 
 def filterClients(gameName, requirements, clients=[]):
     return games[gameName].filterClients(requirements, clients)
