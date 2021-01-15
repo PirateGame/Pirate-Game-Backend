@@ -233,19 +233,22 @@ class gameHandler():
                 out[clientName] = about
         return out
     
-    def forecast(self, iterations=0):
+    def forecast(self, iterations=10):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        boardStorage = BOARDS[self.about["name"]]
         startTime = time.time()
         for i in range(iterations):
-            boardStorage = BOARDS[self.about["name"]]
             gameAbout = getDataFromStoredGame(boardStorage)
             overwriteAbout = boardStorage[0]
             overwriteAbout["debug"] = False
             overwriteAbout["isSim"] = True
             overwriteAbout["debug"] = False
-            for clientName in overwriteAbout["clients"]:
-                overwriteAbout["clients"][clientName].about["type"] = "AI"
             self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
+            for clientName in overwriteAbout["clients"]:
+                clientsToJoin = [{"name":clientName, "type":"AI"}]
+                self.about["sims"][-1].joinLobby(clientsToJoin)
+                self.about["sims"][-1].about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
+            overwriteAbout["clients"] = {}
             while self.about["sims"][-1].about["status"] != "dormant":
                 print(self.about["sims"][-1].about["turnNum"])
                 self.about["sims"][-1].turnHandle() 
