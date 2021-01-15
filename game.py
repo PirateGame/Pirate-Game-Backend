@@ -284,7 +284,6 @@ class gameHandler():
         self.writeAboutToBoards()
     
     def turnHandle(self):
-        print("TURNNUM", self.about["turnNum"])
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["status"][-1] == "paused":
@@ -358,6 +357,7 @@ class clientHandler():
     def deQueueResponses(self):
         whatIsDeleted = self.about["FRONTresponses"][-1]
         del self.about["FRONTresponses"][-1]
+        print("I DELETED A QUESTION WHICH WAS", whatIsDeleted)
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
