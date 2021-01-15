@@ -79,11 +79,13 @@ class gameHandler():
 
         if overwriteAbout == None:
             self.updateBOARDS(self.about["name"], [self.about, {}])
-            self.debugPrint(str(self.about["name"]) + " @@@@ CREATED by clients " + str(self.about["admins"]) + " with properties... " + str(self.about))
         else:
             self.about = overwriteAbout
+            self.about["clients"] = {}
+            for clientName in overwriteAbout["clients"]:
+                clientsToJoin = [{"name":clientName, "type":"AI"}]
+                self.about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
             self.updateBOARDS(self.about["name"], [self.about, None])
-            self.debugPrint(str(self.about["name"]) + " @@@@ RECOVERED with properties... " + str(self.about))
         
         self.pP = prettyPrinter()
     
@@ -156,7 +158,7 @@ class gameHandler():
             out[client] = {"score":clientByScore[client], "money":self.about["clients"][client].about["money"], "bank":self.about["clients"][client].about["bank"]}
         return out
     
-    def joinLobby(self, clients):
+    def join(self, clients):
         out = []
         for i in range(len(clients)):
             if clients[i]["name"] == "":
@@ -164,17 +166,17 @@ class gameHandler():
             nameCheck = nameFilter.checkString(self.about["clients"].keys(), clients[i]["name"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
             if nameCheck == None: #(no problems with the name)
                 if len(self.about["clients"].items()) < self.about["playerCap"]:
-                    if self.about["status"] == "lobby":
-                        try:
-                            self.about["clients"][clients[i]["name"]] = clientHandler(self, clients[i]["name"], clients[i])
-                            self.about["clients"][clients[i]["name"]].buildRandomBoard()
-                            self.writeAboutToBoards()
-                            out.append(True)
-                            self.debugPrint(str(self.about["name"]) + " @@@@ " + str(clients[i]["name"]) + " has joined the lobby.")
-                        except Exception as e:
-                            out.append(e)
-                    else:
-                        out.append("The game is not in the lobby stage, it is in: " + self.about["status"])
+                    #if self.about["status"] == "lobby":
+                    try:
+                        self.about["clients"][clients[i]["name"]] = clientHandler(self, clients[i]["name"], clients[i])
+                        self.about["clients"][clients[i]["name"]].buildRandomBoard()
+                        self.writeAboutToBoards()
+                        out.append(True)
+                        self.debugPrint(str(self.about["name"]) + " @@@@ " + str(clients[i]["name"]) + " has joined on turn " + str(self.about["turnNum"] + 1))
+                    except Exception as e:
+                        out.append(e)
+                    #else:
+                        #out.append("The game is not in the lobby stage, it is in: " + self.about["status"])
                 else:
                     out.append("The player cap of " + str(self.about["playerCap"]) + " has been reached.")
             else:
@@ -243,12 +245,9 @@ class gameHandler():
             overwriteAbout["debug"] = False
             overwriteAbout["isSim"] = True
             overwriteAbout["debug"] = False
-            overwriteAbout["clients"] = {}
-            self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
             for clientName in overwriteAbout["clients"]:
-                clientsToJoin = [{"name":clientName, "type":"AI"}]
-                self.about["sims"][-1].joinLobby(clientsToJoin)
-                self.about["sims"][-1].about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
+                overwriteAbout["clients"][clientName]["type"] = "AI"
+            self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
             while self.about["sims"][-1].about["status"] != "dormant":
                 print(self.about["sims"][-1].about["turnNum"])
                 self.about["sims"][-1].turnHandle() 
@@ -596,6 +595,10 @@ def makeGame(about, overwriteAbout = None):
         g = gameHandler(about, overwriteAbout)
         games[about["gameName"]] = g
         out = joinLobby(about["gameName"], about["admins"])
+        if overwriteAbout != None:
+            games[about["gameName"]].debugPrint(str(about["gameName"]) + " @@@@ RECOVERED with properties... " + str(games[about["gameName"]].about))
+        else:
+            games[about["gameName"]].debugPrint(str(about["gameName"]) + " @@@@ CREATED by clients " + str(about["admins"]) + " with properties... " + str(games[about["gameName"]].about))
         if all(out):
             return {"gameName":about["gameName"], "admins":about["admins"]}
         else:
@@ -675,7 +678,8 @@ def listClientNames(gameName):
 
 #join one or several clients to a lobby
 def joinLobby(gameName, clients):
-    return games[gameName].joinLobby(clients)
+    if games[gameName].about["status"] == "lobby":
+        return games[gameName].join(clients)
 
 def leave(gameName, clients):
     return games[gameName].leave(clients)
@@ -807,13 +811,8 @@ def loadGame(boardStorage):
     try:
         gameAbout = getDataFromStoredGame(boardStorage)
         overwriteAbout = boardStorage[0]
-        overwriteAbout["clients"] = {}
-        gameName = makeGame(gameAbout, overwriteAbout)["gameName"]
-        overwriteAbout["clients"] = {}
-        for clientName in boardStorage[0]["clients"]:
-            clientsToJoin = [{"name":clientName, "type":"AI"}]
-            games[gameName].joinLobby(clientsToJoin)
-            games[gameName].about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
+        #overwriteAbout["clients"] = {}
+        makeGame(gameAbout, overwriteAbout)["gameName"]
     except Exception as e:
         print(boardStorage[0]["name"], "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
 

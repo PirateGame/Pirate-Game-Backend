@@ -43,12 +43,12 @@ class gameEventHandler():
                                 "C":"gave a present to",
                                 "D":"skulled and crossboned",
                                 "E":"swapped with",
-                                "F":"chose the next square",
-                                "G":"gained a shield",
-                                "H":"gained a mirror",
-                                "I":"got bombed",
-                                "J":"doubled their cash",
-                                "K":"banked their cash",
+                                "F":"delegated the square choice to",
+                                "G":"gave a shield to",
+                                "H":"gave a mirror to",
+                                "I":"bombed",
+                                "J":"doubled the cash of",
+                                "K":"banked the cash of",
                                 "5000":"gave £5000 to",
                                 "3000":"gave £3000 to",
                                 "1000":"gave £1000 to",
@@ -58,18 +58,18 @@ class gameEventHandler():
             for targetNum in range(len(event["targetNames"])):
                 for sourceNum in range(len(event["sourceNames"])):
                     sourceClass = event["sources"][sourceNum].__class__.__name__
-                    if sourceClass = "gameHandler"
+                    if sourceClass == "gameHandler":
                         sourceClass = "game"
                         sourceType = "Game"
                     else:
                         sourceClass = "client"
                         sourceType = obj.about["type"]
                     if event["isMirrored"]:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]) + " (mirror)")
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]) + " (shield)")
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
                     else:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " -> " + self.eventDescriptions[str(event["event"])] + " -> " + str(event["targetNames"][targetNum]))
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]))
         return out
     
     def updateEvents(self, eventNums, updates):
