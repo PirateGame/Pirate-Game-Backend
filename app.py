@@ -278,6 +278,7 @@ def submitResponse():
     authCode = data["authCode"]
     choice = data["choice"]
 
+    print(choice)
     game.FRONTresponse(gameName, playerName, choice)
 
     data = {"error": False}
