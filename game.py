@@ -118,7 +118,7 @@ class gameHandler():
         if event["event"] == "D":
                 self.about["tempGroupChoices"][clientName] = choice
         if len(self.about["tempGroupChoices"]) == len(event["targets"]):
-            self.groupDecisionConclude(event["event"])
+            self.groupDecisionConclude(event)
         self.writeAboutToBoards()
 
     def groupDecisionConclude(self, event):
@@ -275,7 +275,9 @@ class gameHandler():
                 x = self.about["chosenTiles"][self.about["turnNum"]][0]
                 y = self.about["chosenTiles"][self.about["turnNum"]][1]
                 self.about["clients"][clientName].about["tileHistory"].append(BOARDS[self.about["name"]][1][clientName][x][y])
-                if self.about["clients"][clientName].act(BOARDS[self.about["name"]][1][clientName][x][y]) != None:
+                out = self.about["clients"][clientName].act(BOARDS[self.about["name"]][1][clientName][x][y])
+                print(clientName, "have they done their turn?", out)
+                if out != None:
                     self.about["didTheirTurn"][clientName] = True
                 else:
                     break
@@ -405,7 +407,7 @@ class clientHandler():
         elif self.about["type"] == "human":
             #if len(options) == 1:
                 #return options[0]
-            print(self.about["FRONTresponses"])
+            print("FRONTRESPONSES", self.about["FRONTresponses"])
             if len(self.about["FRONTquestions"]) == 0:
                 print("herererererererererererereer")
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened], "How do you want to respond?"]})

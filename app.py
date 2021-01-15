@@ -278,7 +278,6 @@ def submitResponse():
     authCode = data["authCode"]
     choice = data["choice"]
 
-    print(choice)
     game.FRONTresponse(gameName, playerName, choice)
 
     data = {"error": False}
@@ -321,8 +320,8 @@ def setTeam():
     ship = ["A","B","C"][data["Ship"]]
 
     if auth(playerName, gameName, authCode):
-        game.alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
-        game.alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
+        game.alterClients(gameName, [playerName], {"row": ship}) #Ship
+        game.alterClients(gameName, [playerName], {"column": Captain}) #captain
         data = ({"error": False})
         return jsonify(data)
     else:
