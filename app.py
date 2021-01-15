@@ -233,19 +233,14 @@ def getEvent():
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
         print("unshownQuestions", questions)
         if len(unshownEvents) == 0 and len(questions) == 0:
-            data = ({"error": "empty"})
-            return jsonify(data)
-        elif tryNewTurn(gameName):
-            print("A")
+            tryNewTurn(gameName)
             data = ({"error": "empty"})
             return jsonify(data)
         else:
-            print("B")
             descriptions = game.describeEvents(gameName, unshownEvents)
             timestamps = [event["timestamp"] for event in unshownEvents]
 
             questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-            print("questions", questions)
             
             tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
             try:
@@ -253,7 +248,7 @@ def getEvent():
                 currentTile = tiles[tile]
                 id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
             except IndexError:
-                #this will happen if there are no tiles in the chosenTiles list.
+                #this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
                 data = ({"error": "Game Not Started Yet"})
                 return jsonify(data)
 
