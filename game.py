@@ -386,6 +386,8 @@ class clientHandler():
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
+            else:
+                return None
 
     def responseChoice(self, whatHappened):
         options = []
@@ -402,6 +404,8 @@ class clientHandler():
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
+            else:
+                return None
     
     def victimChoice(self, whatHappened):
         options = []
@@ -416,6 +420,8 @@ class clientHandler():
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
+            else:
+                return None
     
     def tileChoice(self, whatHappened):
         options = []
@@ -433,6 +439,8 @@ class clientHandler():
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
+            else:
+                return None
 
     def act(self, whatHappened): 
         if whatHappened == "A": #A - Rob
