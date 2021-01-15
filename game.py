@@ -530,7 +530,7 @@ class clientHandler():
             ###check with the vue server here about whether the user wants to use a shield or mirror?
         if whatHappened == "A":
             choice = self.responseChoice()
-            if choice == "none":
+            if choice == "Do nothing":
                 self.game.about["clients"][sender.about["name"]].about["money"] += self.about["money"]
                 self.about["money"] = 0
             elif choice == "shield":
@@ -542,7 +542,7 @@ class clientHandler():
                 self.game.about["clients"][sender.about["name"]].beActedOn("A", self)
         if whatHappened == "B":
             choice = self.responseChoice()
-            if choice == "none":
+            if choice == "Do nothing":
                 self.about["money"], self.about["bank"] = 0, 0
             if choice == "shield":
                 self.about["shield"] = False
@@ -553,7 +553,7 @@ class clientHandler():
                 self.game.about["clients"][sender.about["name"]].beActedOn("B", self)
         if whatHappened == "C":
             choice = self.responseChoice()
-            if choice == "none":
+            if choice == "Do nothing":
                 if self.game.about["clients"][sender.about["name"]].about["money"] >= 1000:
                     self.about["money"] += 1000
                     self.game.about["clients"][sender.about["name"]].about["money"] -= 1000

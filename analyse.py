@@ -90,7 +90,7 @@ class gameEventHandler():
     def whoToShow(self, event):
         if event["public"] == True:
             out = []
-            for clientName in self.game.filterClients({}, []):
+            for clientName,obj in self.game.filterClients({}, []).items():
                 if obj.__class__.__name__== "clientHandler" and obj.about["type"] == "human":
                     out.append(clientName)
             return out
