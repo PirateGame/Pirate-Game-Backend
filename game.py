@@ -364,7 +364,7 @@ class clientHandler():
         self.about["FRONTquestions"].append(question)
         self.game.about["status"][-1] = "awaiting"
 
-    def rOrCChoice(self):
+    def rOrCChoice(self, whatHappened):
         if self.about["type"] == "AI":
             rOrC = random.choice(["row", "column"])#randint(0,1)
             if rOrC == "column":
@@ -378,12 +378,12 @@ class clientHandler():
             return choice
         elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":["A","B","C",0,1,2], "labels":["which team / ship do you want to attack?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":["A","B","C",0,1,2], "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"which team / ship do you want to attack?"]})
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
 
-    def responseChoice(self):
+    def responseChoice(self, whatHappened):
         options = []
         for key,value in {"Do nothing":True, "mirror":self.about["mirror"], "shield":self.about["shield"]}.items():
             if value:
@@ -394,12 +394,12 @@ class clientHandler():
             if len(options) == 1:
                 return options[0]
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["How do you want to respond?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened], "How do you want to respond?"]})
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
     
-    def victimChoice(self):
+    def victimChoice(self, whatHappened):
         options = []
         for client in self.game.about["clients"]:
             if client != self.about["name"]:
@@ -408,12 +408,12 @@ class clientHandler():
             return random.choice(options)
         elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":["Who do you want to be your victim?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Who do you want to be your victim?"]})
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
     
-    def tileChoice(self):
+    def tileChoice(self, whatHappened):
         options = []
         for x in range(self.game.about["gridDim"][0]):
             for y in range(self.game.about["gridDim"][1]):
@@ -425,35 +425,35 @@ class clientHandler():
             return random.choice(options)
         elif self.about["type"] == "human":
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":["Which tile would you like for the next turn?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile would you like for the next turn?"]})
                 return None
             elif len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
 
     def act(self, whatHappened): 
         if whatHappened == "A": #A - Rob
-            choice = self.victimChoice()
+            choice = self.victimChoice(whatHappened)
             if choice != None:
                 self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("A", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "robs", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "B": #B - Kill
-            choice = self.victimChoice()
+            choice = self.victimChoice(whatHappened)
             if choice != None:
                 self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("B", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "kills", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "C": #C - Present (Give someone 1000 of YOUR OWN cash)
-            choice = self.victimChoice()
+            choice = self.victimChoice(whatHappened)
             if choice != None:
                 self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("C", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "gifts", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
-            choice = self.rOrCChoice()
+            choice = self.rOrCChoice(whatHappened)
             if choice != None:
                 victims = self.game.whoIsOnThatLine(choice)
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[choice]})) #EVENT HANDLER
@@ -465,14 +465,14 @@ class clientHandler():
                     #print(self.game.about["name"], "@", self.about["name"], "wiped out row", choice, "which held", [self.game.about["clients"][victim].about["name"] for victim in victims])
             return choice
         if whatHappened == "E": #E - Swap
-            choice = self.victimChoice()
+            choice = self.victimChoice(whatHappened)
             if choice != None:
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice]["money"]]})) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("E", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
             return choice
         if whatHappened == "F": #F - Choose Next Square
-            choice = self.tileChoice()
+            choice = self.tileChoice(whatHappened)
             if choice != None:
                 self.game.about["tileOverride"] = choice
                 self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
@@ -529,7 +529,7 @@ class clientHandler():
         #if self.about[shield] or self.about[mirror]:
             ###check with the vue server here about whether the user wants to use a shield or mirror?
         if whatHappened == "A":
-            choice = self.responseChoice()
+            choice = self.responseChoice(whatHappened)
             if choice == "Do nothing":
                 self.game.about["clients"][sender.about["name"]].about["money"] += self.about["money"]
                 self.about["money"] = 0
@@ -541,7 +541,7 @@ class clientHandler():
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]})) #EVENT HANDLER
                 self.game.about["clients"][sender.about["name"]].beActedOn("A", self)
         if whatHappened == "B":
-            choice = self.responseChoice()
+            choice = self.responseChoice(whatHappened)
             if choice == "Do nothing":
                 self.about["money"], self.about["bank"] = 0, 0
             if choice == "shield":
@@ -552,7 +552,7 @@ class clientHandler():
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]})) #EVENT HANDLER
                 self.game.about["clients"][sender.about["name"]].beActedOn("B", self)
         if whatHappened == "C":
-            choice = self.responseChoice()
+            choice = self.responseChoice(whatHappened)
             if choice == "Do nothing":
                 if self.game.about["clients"][sender.about["name"]].about["money"] >= 1000:
                     self.about["money"] += 1000
@@ -568,7 +568,7 @@ class clientHandler():
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]})) #EVENT HANDLER
                 self.game.about["clients"][sender.about["name"]].beActedOn("C", self)
         if whatHappened == "D":
-            choice = self.responseChoice()
+            choice = self.responseChoice(whatHappened)
             self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]})) #EVENT HANDLER
             self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
         if whatHappened == "E":

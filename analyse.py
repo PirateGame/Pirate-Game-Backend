@@ -4,6 +4,36 @@ class gameEventHandler():
     def __init__(self, game):
         self.game = game
         self.about = {"log":[]}
+        self.eventDescriptions = {"A":"Rob (Steal someone's balance)",
+                                "B":"Kill (Make someone's balance AND bank go to 0)",
+                                "C":"Present (Give someone 1000 of YOUR OWN cash)",
+                                "D":"Skull and Crossbones (Very complicated, explained below (for now just say make 3 people's balance 0))",
+                                "E":"Swap (Swap balances with one other player)",
+                                "F":"Choose Next Square (Have a guess!)",
+                                "G":"Shield (Gain a shield - stops an action happening to you)",
+                                "H":"Mirror (Gain a mirror - reflects the action as if you are doing it to the person who did it to you)",
+                                "I":"Bomb (Your balance goes to 0)",
+                                "J":"Double Cash (Your balance is doubled)",
+                                "K":"Bank (Your balance is added to your bank, and then goes to 0)",
+                                "5000":"gave £5000 to",
+                                "3000":"gave £3000 to",
+                                "1000":"gave £1000 to",
+                                "200":"gave £200 to"}
+        self.eventSentenceFillers = {"A":"robbed",
+                                "B":"killed",
+                                "C":"gave a present to",
+                                "D":"skulled and crossboned",
+                                "E":"swapped with",
+                                "F":"delegated the square choice to",
+                                "G":"gave a shield to",
+                                "H":"gave a mirror to",
+                                "I":"bombed",
+                                "J":"doubled the cash of",
+                                "K":"banked the cash of",
+                                "5000":"gave £5000 to",
+                                "3000":"gave £3000 to",
+                                "1000":"gave £1000 to",
+                                "200":"gave £200 to"}
     
     def sortEvents(self, events, key): # sortEvents(games[gameName].about["eventHandler"].about["log"], "timestamp")
         return sorted(events, key=lambda k: k[key])
@@ -38,21 +68,6 @@ class gameEventHandler():
             return out
     
     def describe(self, events):
-        self.eventDescriptions = {"A":"robbed",
-                                "B":"killed",
-                                "C":"gave a present to",
-                                "D":"skulled and crossboned",
-                                "E":"swapped with",
-                                "F":"delegated the square choice to",
-                                "G":"gave a shield to",
-                                "H":"gave a mirror to",
-                                "I":"bombed",
-                                "J":"doubled the cash of",
-                                "K":"banked the cash of",
-                                "5000":"gave £5000 to",
-                                "3000":"gave £3000 to",
-                                "1000":"gave £1000 to",
-                                "200":"gave £200 to"}
         out = []
         for event in events:
             for targetNum in range(len(event["targetNames"])):
@@ -65,13 +80,13 @@ class gameEventHandler():
                         sourceClass = "client"
                         sourceType = event["sources"][sourceNum].about["type"]
                     if event["isMirrored"]:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
                     elif event["event"] == "E":
                         out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + "swapped" + str(event["other"][0]) + str("with") + str(event["other"][1]) +str("from") + str(event["targetNames"][targetNum]))
                     else:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]))
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]))
         return out
     
     def updateEvents(self, eventNums, updates):
