@@ -357,6 +357,7 @@ class clientHandler():
     def deQueueResponses(self):
         whatIsDeleted = self.about["FRONTresponses"][-1]
         del self.about["FRONTresponses"][-1]
+        del self.about["FRONTquestions"][-1]
         print("I DELETED A QUESTION WHICH WAS", whatIsDeleted)
         return whatIsDeleted
     
