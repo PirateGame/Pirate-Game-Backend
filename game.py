@@ -297,8 +297,8 @@ class gameHandler():
             self.turnProcess()
         else:
             self.about["status"] = "dormant" #this is for when the game doesn't end immediatedly after the turn count is up
-            self.debugPrint(str(gameName) + " @@@ Game over.")
-            self.debugPrint("Leaderboard: " + str(leaderboard(gameName)))
+            self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
+            self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
             if not self.about["isSim"]:
                 self.delete()
                 deleteGame([self.about["name"]])
@@ -798,6 +798,7 @@ def getDataFromStoredGame(boardStorage):
     nameUniqueFilter = boardStorage[0]["nameUniqueFilter"]
     nameNaughtyFilter = boardStorage[0]["nameNaughtyFilter"]
     debug = boardStorage[0]["debug"]
+    gameName = boardStorage[0]["name"]
     isSim = False
     gameAbout = {"gameName":gameName, "isSim":isSim, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
     return gameAbout
