@@ -7,7 +7,7 @@ class gameEventHandler():
         self.eventDescriptions = {"A":"Rob (Steal someone's balance)",
                                 "B":"Kill (Make someone's balance AND bank go to 0)",
                                 "C":"Present (Give someone 1000 of YOUR OWN cash)",
-                                "D":"Skull and Crossbones (Very complicated, explained below (for now just say make 3 people's balance 0))",
+                                "D":"Skull and Crossbones (make 3 people's stashes go to 0)",
                                 "E":"Swap (Swap balances with one other player)",
                                 "F":"Choose Next Square (Have a guess!)",
                                 "G":"Shield (Gain a shield - stops an action happening to you)",
