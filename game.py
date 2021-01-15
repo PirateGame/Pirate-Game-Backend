@@ -486,7 +486,7 @@ class clientHandler():
         if whatHappened == "E": #E - Swap
             choice = self.victimChoice(whatHappened)
             if choice != None:
-                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice]["money"]]})) #EVENT HANDLER
+                self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice].about["money"]]})) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("E", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
             return choice
