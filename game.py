@@ -233,7 +233,7 @@ class gameHandler():
                 out[clientName] = about
         return out
     
-    def forecast(self, iterations=0):
+    def forecast(self, iterations=5):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         boardStorage = BOARDS[self.about["name"]]
         startTime = time.time()
@@ -243,12 +243,12 @@ class gameHandler():
             overwriteAbout["debug"] = False
             overwriteAbout["isSim"] = True
             overwriteAbout["debug"] = False
+            overwriteAbout["clients"] = {}
             self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
             for clientName in overwriteAbout["clients"]:
                 clientsToJoin = [{"name":clientName, "type":"AI"}]
                 self.about["sims"][-1].joinLobby(clientsToJoin)
                 self.about["sims"][-1].about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
-            overwriteAbout["clients"] = {}
             while self.about["sims"][-1].about["status"] != "dormant":
                 print(self.about["sims"][-1].about["turnNum"])
                 self.about["sims"][-1].turnHandle() 
@@ -807,9 +807,15 @@ def loadGame(boardStorage):
     try:
         gameAbout = getDataFromStoredGame(boardStorage)
         overwriteAbout = boardStorage[0]
-        makeGame(gameAbout, overwriteAbout)
+        overwriteAbout["clients"] = {}
+        gameName = makeGame(gameAbout, overwriteAbout)["gameName"]
+        overwriteAbout["clients"] = {}
+        for clientName in boardStorage[0]["clients"]:
+            clientsToJoin = [{"name":clientName, "type":"AI"}]
+            games[gameName].joinLobby(clientsToJoin)
+            games[gameName].about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
     except Exception as e:
-        print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+        print(boardStorage[0]["name"], "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
 
 def bootstrap(about):
     #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
