@@ -275,6 +275,8 @@ class gameHandler():
                 self.about["clients"][clientName].about["tileHistory"].append(BOARDS[self.about["name"]][1][clientName][x][y])
                 if self.about["clients"][clientName].act(BOARDS[self.about["name"]][1][clientName][x][y]) != None:
                     self.about["didTheirTurn"][clientName] = True
+                else:
+                    break
 
         if False not in self.about["didTheirTurn"].values():
             self.about["turnNum"] += 1

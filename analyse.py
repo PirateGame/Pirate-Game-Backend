@@ -82,7 +82,6 @@ class gameEventHandler():
                     if event["isMirrored"]:
                         out.append("(" + str(sourceType) + ")" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
-                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
                         out.append("(" + str(sourceType) + ")" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
                     elif event["event"] == "E":
                         out.append("(" + str(sourceType) + ")" + str(event["sourceNames"][sourceNum]) + "swapped" + str(event["other"][0]) + str("with") + str(event["other"][1]) +str("from") + str(event["targetNames"][targetNum]))
