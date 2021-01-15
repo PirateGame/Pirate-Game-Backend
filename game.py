@@ -117,6 +117,8 @@ class gameHandler():
     def groupDecisionAdd(self, clientName, event, choice):
         if event["event"] == "D":
                 self.about["tempGroupChoices"][clientName] = choice
+        if len(self.about["tempGroupChoices"]) == len(event["targets"]):
+            groupDecisionCondlude(event["event"])
         self.writeAboutToBoards()
 
     def groupDecisionConclude(self, event):
@@ -279,6 +281,7 @@ class gameHandler():
                     break
 
         if False not in self.about["didTheirTurn"].values():
+            
             self.about["turnNum"] += 1
             self.about["didTheirTurn"] = {}
             for clientName in clientsShuffled:
