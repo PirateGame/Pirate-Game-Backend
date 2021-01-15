@@ -68,6 +68,8 @@ class gameEventHandler():
                         out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
                     elif event["isShielded"]:
                         out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
+                    elif event["event"] == "E":
+                        out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + "swapped" + str(event["other"][0]) + str("with") + str(event["other"][1]) +str("from") + str(event["targetNames"][targetNum]))
                     else:
                         out.append(str(sourceType) + ": " + str(event["sourceNames"][sourceNum]) + " " + self.eventDescriptions[str(event["event"])] + " " + str(event["targetNames"][targetNum]))
         return out
@@ -87,7 +89,11 @@ class gameEventHandler():
     
     def whoToShow(self, event):
         if event["public"] == True:
-            return [clientName for clientName in self.game.filterClients({}, [])]
+            out = []
+            for clientName in self.game.filterClients({}, []):
+                if obj.__class__.__name__== "clientHandler" and obj.about["type"] == "human":
+                    out.append(clientName)
+            return out
         else:
             out = []
             people = event["sources"] + event["targets"]
