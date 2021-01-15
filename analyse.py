@@ -39,7 +39,7 @@ class gameEventHandler():
                                 "C":"gave a present to",
                                 "D":"skulled and crossboned",
                                 "E":"swapped with",
-                                "F":"delegated the square choice to",
+                                "F":"chose the square for",
                                 "G":"gave a shield to",
                                 "H":"gave a mirror to",
                                 "I":"bombed",

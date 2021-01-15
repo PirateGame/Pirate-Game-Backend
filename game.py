@@ -118,7 +118,7 @@ class gameHandler():
         if event["event"] == "D":
                 self.about["tempGroupChoices"][clientName] = choice
         if len(self.about["tempGroupChoices"]) == len(event["targets"]):
-            groupDecisionCondlude(event["event"])
+            groupDecisionConclude(event["event"])
         self.writeAboutToBoards()
 
     def groupDecisionConclude(self, event):
