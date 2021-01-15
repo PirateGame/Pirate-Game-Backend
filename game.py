@@ -42,37 +42,53 @@ class prettyPrinter():
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def updateBOARDS(gameName, whatToUpdate):
-    BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-    if whatToUpdate[0] == None:
-        BOARDS[gameName][1] = whatToUpdate[1]
-    elif whatToUpdate[1] == None:
-        BOARDS[gameName][0] = whatToUpdate[0]
-    else:
-        BOARDS[gameName] = whatToUpdate
-    np.save("boards.npy", BOARDS)
-
 class gameHandler():
+    def debugPrint(self, message):
+        if self.about["debug"]:
+            print("BACKEND: GAME_OBJ(debug):", message)
+    
+    def debugPrintBoards(self):
+        if self.about["debug"]:
+            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+            for client in self.about["clients"]:
+                print("BACKEND: GAME_OBJ(debug):", self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
+                row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
+                col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
+                tempBOARD = BOARDS[self.about["name"]][1][client]
+                for tile in self.about["chosenTiles"]:
+                    tempBOARD[tile[1]][tile[0]] = "-"
+                self.pP.printmat(tempBOARD, row_labels, col_labels)
+
+    def updateBOARDS(self, gameName, whatToUpdate):
+        if not self.about["isSim"]:
+            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+            if whatToUpdate[0] == None:
+                BOARDS[gameName][1] = whatToUpdate[1]
+            elif whatToUpdate[1] == None:
+                BOARDS[gameName][0] = whatToUpdate[0]
+            else:
+                BOARDS[gameName] = whatToUpdate
+            np.save("boards.npy", BOARDS)
+
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "debug":about["debug"], "didTheirTurn":{}, "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "sims":[], "isSim":about["isSim"], "startTime":None, "debug":about["debug"], "didTheirTurn":{}, "status":"lobby", "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
-        self.tempGroupChoices = {}
-        self.randomCoords = []
+        self.about["tempGroupChoices"] = {}
+        self.about["randomCoords"] = []
 
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         if overwriteAbout == None:
-            updateBOARDS(self.about["name"], [self.about, {}])
-            print(self.about["name"], "@@@@ CREATED by clients", str(self.about["admins"]), "with properties...", self.about)
+            self.updateBOARDS(self.about["name"], [self.about, {}])
+            self.debugPrint(str(self.about["name"]) + " @@@@ CREATED by clients " + str(self.about["admins"]) + " with properties... " + str(self.about))
         else:
             self.about = overwriteAbout
-            updateBOARDS(self.about["name"], [self.about, None])
-            print(self.about["name"], "@@@@ RECOVERED with properties...", self.about, "and boards", BOARDS[about["gameName"]][1])
+            self.updateBOARDS(self.about["name"], [self.about, None])
+            self.debugPrint(str(self.about["name"]) + " @@@@ RECOVERED with properties... " + str(self.about))
         
         self.pP = prettyPrinter()
     
     def writeAboutToBoards(self):
-        updateBOARDS(self.about["name"], [self.about, None])
+        self.updateBOARDS(self.about["name"], [self.about, None])
     
     def whoIsOnThatLine(self, choice):
         coord = choice
@@ -92,14 +108,14 @@ class gameHandler():
     
     def groupDecisionAdd(self, clientName, event, choice):
         if event["event"] == "D":
-                self.tempGroupChoices[clientName] = choice
+                self.about["tempGroupChoices"][clientName] = choice
         self.writeAboutToBoards()
 
     def groupDecisionConclude(self, event):
         if event["event"] == "D":
             whoMirrored = []
             whoShielded = []
-            for key, value in self.tempGroupChoices.items():
+            for key, value in self.about["tempGroupChoices"].items():
                 if value == "mirror":
                     whoMirrored.append(key)
                 elif value == "shield":
@@ -120,32 +136,9 @@ class gameHandler():
                 self.about["events"].append(self.game.about["eventHandler"].make({"public":True, "event":event["event"], "sources":whoShielded, "targets":[], "isMirrored":False, "isShielded":True, "other":[]})) #EVENT HANDLER
             
             else:
-                for clientName in self.tempGroupChoices:
+                for clientName in self.about["tempGroupChoices"]:
                     self.about["clients"][clientName].forceActedOn("D")
-            self.tempGroupChoices = []
-        self.writeAboutToBoards()
-
-    def turnProcess(self):
-        actions = []
-        clientsShuffled = list(self.about["clients"].keys())
-        random.shuffle(clientsShuffled)
-        
-        for clientName in clientsShuffled:
-            self.about["didTheirTurn"][clientName] = False
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        for clientName, value in self.about["didTheirTurn"].items():
-            if not value:
-                x = self.about["chosenTiles"][self.about["turnNum"]][0]
-                y = self.about["chosenTiles"][self.about["turnNum"]][1]
-                self.about["clients"][clientName].about["tileHistory"].append(BOARDS[self.about["name"]][1][clientName][x][y])
-                if self.about["clients"][clientName].act(BOARDS[self.about["name"]][1][clientName][x][y]) != None:
-                    self.about["didTheirTurn"][clientName] = True
-
-        if False not in self.about["didTheirTurn"].values():
-            self.about["turnNum"] += 1
-            self.about["didTheirTurn"] = {}
-            for clientName in clientsShuffled:
-                self.about["clients"][clientName].logScore()
+            self.about["tempGroupChoices"] = []
         self.writeAboutToBoards()
             
     def info(self):
@@ -202,22 +195,6 @@ class gameHandler():
                 out.append(False)
         BOARDS = np.save("boards.npy", BOARDS)
         return out
-
-    def debugPrint(self, message):
-        if self.about["debug"]:
-            print("BACKEND: GAME_OBJ(debug):", message)
-    
-    def debugPrintBoards(self):
-        if self.about["debug"]:
-            BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-            for client in self.about["clients"]:
-                print("BACKEND: GAME_OBJ(debug):", self.about["name"], "@ Client", self.about["clients"][client].about["name"], "has info", self.about["clients"][client].about, "and board...")
-                row_labels = [str(y+1) for y in range(self.about["gridDim"][1])]
-                col_labels = [str(x+1) for x in range(self.about["gridDim"][0])]
-                tempBOARD = BOARDS[self.about["name"]][1][client]
-                for tile in self.about["chosenTiles"]:
-                    tempBOARD[tile[1]][tile[0]] = "-"
-                self.pP.printmat(tempBOARD, row_labels, col_labels)
     
     def serialReadBoard(self, clientName, positions):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
@@ -229,14 +206,15 @@ class gameHandler():
         BOARDS = np.save("boards.npy", BOARDS)
 
     def start(self):
-        self.about["status"] = "paused"
+        self.about["status"] = "active"
+        self.about["startTime"] = time.time()
         self.about["turnNum"] += 1
 
-        self.randomCoords = []
+        self.about["randomCoords"] = []
         for x in range(self.about["gridDim"][0]):
             for y in range(self.about["gridDim"][1]):
-                self.randomCoords.append((x,y))
-        random.shuffle(self.randomCoords)
+                self.about["randomCoords"].append((x,y))
+        random.shuffle(self.about["randomCoords"])
         self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
         self.debugPrintBoards()
         self.writeAboutToBoards()
@@ -254,7 +232,49 @@ class gameHandler():
             if wrongTally == 0:
                 out[clientName] = about
         return out
+    
+    def forecast(self, iterations=0):
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        startTime = time.time()
+        for i in range(iterations):
+            boardStorage = BOARDS[self.about["name"]]
+            gameAbout = getDataFromStoredGame(boardStorage)
+            overwriteAbout = boardStorage[0]
+            overwriteAbout["debug"] = False
+            overwriteAbout["isSim"] = True
+            overwriteAbout["debug"] = False
+            for clientName in overwriteAbout["clients"]:
+                overwriteAbout["clients"][clientName].about["type"] = "AI"
+            self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
+            while self.about["sims"][-1].about["status"] != "dormant":
+                print(self.about["sims"][-1].about["turnNum"])
+                self.about["sims"][-1].turnHandle() 
+            del self.about["sims"][-1]
+        print("FORECAST TIMED TO:", time.time() - startTime)
 
+    def turnProcess(self):
+        actions = []
+        clientsShuffled = list(self.about["clients"].keys())
+        random.shuffle(clientsShuffled)
+        
+        for clientName in clientsShuffled:
+            self.about["didTheirTurn"][clientName] = False
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        for clientName, value in self.about["didTheirTurn"].items():
+            if not value:
+                x = self.about["chosenTiles"][self.about["turnNum"]][0]
+                y = self.about["chosenTiles"][self.about["turnNum"]][1]
+                self.about["clients"][clientName].about["tileHistory"].append(BOARDS[self.about["name"]][1][clientName][x][y])
+                if self.about["clients"][clientName].act(BOARDS[self.about["name"]][1][clientName][x][y]) != None:
+                    self.about["didTheirTurn"][clientName] = True
+
+        if False not in self.about["didTheirTurn"].values():
+            self.about["turnNum"] += 1
+            self.about["didTheirTurn"] = {}
+            for clientName in clientsShuffled:
+                self.about["clients"][clientName].logScore()
+        self.writeAboutToBoards()
+    
     def turnHandle(self):
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
@@ -263,7 +283,7 @@ class gameHandler():
                 if self.about["tileOverride"] == False:
                     notUnique = True
                     while notUnique:
-                        newTile = (self.randomCoords[self.about["turnNum"]-1][0], self.randomCoords[self.about["turnNum"]-1][1]) #x,y
+                        newTile = (self.about["randomCoords"][self.about["turnNum"]-1][0], self.about["randomCoords"][self.about["turnNum"]-1][1]) #x,y
                         if newTile not in self.about["chosenTiles"]:
                             notUnique = False
                 else:
@@ -276,9 +296,12 @@ class gameHandler():
             self.about["status"] = "dormant" #this is for when the game doesn't end immediatedly after the turn count is up
             self.debugPrint(str(gameName) + " @@@ Game over.")
             self.debugPrint("Leaderboard: " + str(leaderboard(gameName)))
-            self.delete()
-            deleteGame([self.about["name"]])
+            if not self.about["isSim"]:
+                self.delete()
+                deleteGame([self.about["name"]])
         self.writeAboutToBoards()
+        if not self.about["isSim"]:
+            self.forecast()
 
     def getAllMyClientsQuestions(self):
         out = []
@@ -726,9 +749,8 @@ def sortEvents(gameName, key, events=None):
 def shownToClient(gameName, playerName, timestamps):
     eventNums = games[gameName].about["eventHandler"].filterEvents(games[gameName].about["eventHandler"].about["log"], {}, ['event["timestamp"] in ' + str(timestamps)], True)
     for eN in eventNums:
-        print(games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"])
         games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"].remove(playerName)
-        print(games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"])
+        #print(games[gameName].about["eventHandler"].about["log"][eN]["whoToShow"])
 
 #Change the attributes of a client or several by game name
 # eg: alterClients("game1", ["Jamie"], {"name":"Gemima"})
@@ -765,6 +787,26 @@ def alterGames(gameNames, alterations):
                 success.append("Game", gameName, "doesn't exist.")
     return success
 
+def getDataFromStoredGame(boardStorage):
+    admins = boardStorage[0]["admins"]
+    gridDim = boardStorage[0]["gridDim"]
+    turnTime = boardStorage[0]["turnTime"]
+    playerCap = boardStorage[0]["playerCap"]
+    nameUniqueFilter = boardStorage[0]["nameUniqueFilter"]
+    nameNaughtyFilter = boardStorage[0]["nameNaughtyFilter"]
+    debug = boardStorage[0]["debug"]
+    isSim = False
+    gameAbout = {"gameName":gameName, "isSim":isSim, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    return gameAbout
+
+def loadGame(boardStorage):
+    try:
+        gameAbout = getDataFromStoredGame(boardStorage)
+        overwriteAbout = boardStorage[0]
+        makeGame(gameAbout, overwriteAbout)
+    except Exception as e:
+        print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+
 def bootstrap(about):
     #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
     def failLoad(exception):
@@ -779,20 +821,7 @@ def bootstrap(about):
                 if len(BOARDS.keys()) == 0:
                     failLoad("there are no games in boards.npy")
                 for gameName in BOARDS:
-                    #try:
-                    admins = BOARDS[gameName][0]["admins"]
-                    gridDim = BOARDS[gameName][0]["gridDim"]
-                    turnTime = BOARDS[gameName][0]["turnTime"]
-                    playerCap = BOARDS[gameName][0]["playerCap"]
-                    nameUniqueFilter = BOARDS[gameName][0]["nameUniqueFilter"]
-                    nameNaughtyFilter = BOARDS[gameName][0]["nameNaughtyFilter"]
-                    debug = BOARDS[gameName][0]["debug"]
-                    gameAbout = {"gameName":gameName, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
-                    overwriteAbout = BOARDS[gameName][0]
-                    makeGame(gameAbout, overwriteAbout)
-                    #turnHandle(gameName)
-                    #except Exception as e:
-                        #print(gameName, "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+                    loadGame(BOARDS[gameName])
             except Exception as e:
                 failLoad(e)
         else:
@@ -830,7 +859,7 @@ if __name__ == "__main__":
         debug = True
 
         #Setting up a test game
-        about = {"gameName":gameName, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
+        about = {"gameName":gameName, "isSim":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.

@@ -83,8 +83,12 @@ class gameEventHandler():
             return [clientName for clientName in self.game.filterClients({}, [])]
         else:
             out = []
-            for clientName,obj in [event["sources"] + event["targets"]]:
-                if obj.about["type"] == "human" and obj.__class__.__name__== "clientHandler":
+            people = event["sources"] + event["targets"]
+            pDict = {}
+            for person in people:
+                pDict[person.about["name"]] = person
+            for clientName,obj in pDict.items():
+                if obj.__class__.__name__== "clientHandler" and obj.about["type"] == "human":
                     out.append(clientName)
             return out
 
