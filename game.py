@@ -403,8 +403,8 @@ class clientHandler():
         if self.about["type"] == "AI":
             return random.choice(options)
         elif self.about["type"] == "human":
-            if len(options) == 1:
-                return options[0]
+            #if len(options) == 1:
+                #return options[0]
             if len(self.about["FRONTquestions"]) == 0:
                 print("herererererererererererereer")
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened], "How do you want to respond?"]})
