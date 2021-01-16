@@ -85,7 +85,24 @@ class gameEventHandler():
     def describe(self, events):
         out = []
         for event in events:
-            for targetNum in range(len(event["targetNames"])):
+            ownerClass = event["owner"].__class__.__name__
+            if ownerClass == "gameHandler":
+                if event["event"] == "newTurn":
+                    out.append("NEW TURN: " + turnStr)
+                if event["event"] == "start":
+                    out.append("GAME START")
+            elif ownerClass == "clientHandler":
+                targetStr = ""
+                for targetNum in range(len(event["targetNames"])):
+                    targetClass = event["targetNames"][targetNum].__class__.__name__
+                    if targetClass == "gameHandler":
+                        targetClass = "game"
+                        targetType = "game"
+                    else:
+                        targetClass = "client"
+                        targetType = event["targets"][targetNum].about["type"]
+                    targetStr += targetType + ":" + event["targetNames"][targetNum]
+                sourceStr = ""
                 for sourceNum in range(len(event["sourceNames"])):
                     sourceClass = event["sources"][sourceNum].__class__.__name__
                     if sourceClass == "gameHandler":
@@ -94,20 +111,34 @@ class gameEventHandler():
                     else:
                         sourceClass = "client"
                         sourceType = event["sources"][sourceNum].about["type"]
-                    if event["isMirrored"]:
-                        out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (mirror)")
-                    elif event["isShielded"]:
-                        out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
-                    elif event["event"] == "E":
-                        out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + str(event["targetNames"][targetNum]))
-                    elif event["event"] == "A":
-                        if len(event["other"]) > 0:
-                            out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " robbed " + str(event["other"][0]) + str(" from ") + str(event["targetNames"][targetNum]))
-                        else:
-                            out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " tried to rob " + str(event["targetNames"][targetNum]))
+                    sourceStr += sourceType + ":" + event["sourceNames"][sourceNum]
+                turnStr = str(event["turnNum"] + 1)
+                mirrorStr = ""
+                shieldStr = ""
+                if event["isMirrored"]:
+                    mirrorStr = "(MIRRORED)"
+                elif event["isShielded"]:
+                    shieldStr = "(SHIELDED)"
+                elif event["event"] == "A":
+                    if len(event["other"]) > 0:
+                        out.append("turn:" + turnStr + "   " + sourceStr + " robbed " + str(event["other"][0]) + str(" from ") + targetStr + mirrorStr + shieldStr)
                     else:
-                        out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]))
-        return out
+                        out.append("turn:" + turnStr + "   " + sourceStr + " tried to rob " + targetStr + mirrorStr + shieldStr)
+                elif event["event"] == "B":
+                    if len(event["other"]) > 0:
+                        out.append("turn:" + turnStr + "   " + sourceStr + " killed " + targetStr + mirrorStr + shieldStr)
+                    else:
+                        out.append("turn:" + turnStr + "   " + sourceStr + " tried to kill " + targetStr + mirrorStr + shieldStr)
+                elif event["event"] == "C":
+                    if len(event["other"]) > 0:
+                        out.append("turn:" + turnStr + "   " + sourceStr + " gave a present of " + str(event["other"][0]) + str(" to ") + targetStr + mirrorStr + shieldStr)
+                    else:
+                        out.append("turn:" + turnStr + "   " + sourceStr + " tried to give a present to " + targetStr + mirrorStr + shieldStr)
+                elif event["event"] == "E":
+                    out.append("turn:" + turnStr + "   " + sourceStr + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + targetStr + mirrorStr + shieldStr)
+                else:
+                    out.append("turn:" + turnStr + "   " + sourceStr + " " + self.eventSentenceFillers[str(event["event"])] + " " + targetStr + mirrorStr + shieldStr)
+            return out
     
     def updateEvents(self, eventNums, updates):
         for eventNum in eventNums:
@@ -142,8 +173,9 @@ class gameEventHandler():
 
     def make(self, about): #{"event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "other":[]}
         time.sleep(0.00001)
-        self.about["log"].append({"timestamp":time.time(), "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
+        self.about["log"].append({"timestamp":time.time(), "owner":about["owner"], "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
         self.about["log"][-1]["whoToShow"] = self.whoToShow(self.about["log"][-1])
+        print("EVENT MADE.", self.about["log"][-1])
         #self.printNicely(self.about["log"][-1])
         #self.game.processEvent
         return self.about["log"][-1]

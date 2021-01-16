@@ -188,12 +188,12 @@ def tryNewTurn(gameName):
     fE = game.filterEvents(gameName, {}, ['len(event["whoToShow"]) > 0'])
     tN = game.gameInfo(gameName)["about"]["turnNum"]
     if len(rQ) == 0 and len(fE) == 0 and tN != -1:
-        print("Starting next round as all events have been shown and there are no remaining questions.")
+        #print("Starting next round as all events have been shown and there are no remaining questions.")
         game.turnHandle(gameName)
         return True
     else:
-        print("A new turn can't be triggered as there are still questions to be answered or events to be shown.")
-        print(rQ, fE, tN)
+        #print("A new turn can't be triggered as there are still questions to be answered or events to be shown.")
+        #print(rQ, fE, tN)
         return False
 
 @app.route('/api/getEvent', methods=['POST'])
@@ -204,13 +204,14 @@ def getEvent():
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
-        #print("all the events", game.filterEvents(gameName))
+        print("all the events", game.filterEvents(gameName))
         unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-        #print("unshownEvents", unshownEvents)
+        print("unshownEvents", unshownEvents)
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-        #print("unshownQuestions", questions)
+        print("unshownQuestions", questions)
+
         if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
-            tryNewTurn(gameName)
+            #tryNewTurn(gameName)
             data = ({"error": "empty"})
             return jsonify(data)
         else:
@@ -222,7 +223,7 @@ def getEvent():
             tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
             width = game.gameInfo(gameName)["about"]["gridDim"][1]
             ids = []
-            print(tiles)
+            #print(tiles)
             for i in range(len(tiles)):
                 ids.append((tiles[i][0] * width) + tiles[i][1])
             #except IndexError:
