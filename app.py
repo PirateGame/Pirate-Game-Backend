@@ -221,15 +221,14 @@ def getEvent():
             questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
             
             tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
-            print(len(tiles), "AMOUNT OF TILES")
-            try:
-                tile = sorted(tiles)[-1]
-                currentTile = tiles[tile]
-                id = (currentTile[0] * game.gameInfo(gameName)["about"]["gridDim"][1]) + currentTile[1]
-            except IndexError:
-                #this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
-                data = ({"error": "Game Not Started Yet"})
-                return jsonify(data)
+            width = game.gameInfo(gameName)["about"]["gridDim"][1]
+            ids = []
+            for i in range(len(tiles)):
+                ids.append((tiles[i][0] * width) + tiles[i][1])
+            #except IndexError:
+                ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
+                #data = ({"error": "Game Not Started Yet"})
+                #return jsonify(data)
 
             money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
             bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
@@ -244,7 +243,7 @@ def getEvent():
                 #print(question["labels"])
             #print("-------------------------------------------")
 
-            data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
+            data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
             game.shownToClient(gameName, playerName, timestamps)
             return jsonify(data)
     else:
