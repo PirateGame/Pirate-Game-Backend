@@ -168,7 +168,6 @@ def startGame():
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            print(game.start(gameName))
             if game.start(gameName):
                 game.turnHandle(gameName)
                 data = ({"error":False})
