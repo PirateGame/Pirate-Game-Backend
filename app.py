@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 import random, string
 import numpy as np
 import game
@@ -468,6 +468,20 @@ def addAI():
     else:
         data = ({"error": "Authentication failed"})
         return jsonify(data)
+
+@app.route('/api/lobbyCheck', methods=['POST'])
+def lobbyCheck():
+    data = request.get_json()
+    gameName = data["gameName"]
+    playerName = data["playerName"]
+    authCode = data["authCode"]
+
+    if game.gameInfo["about"]["turnNum"] != -1:
+        return redirect('/game')
+    else:
+        data = ({"error": False})
+        return jsonify(data)
+
 
 if __name__ == "__main__":
     app.run(debug=False, host="localhost")
