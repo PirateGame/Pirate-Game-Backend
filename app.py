@@ -159,8 +159,6 @@ def getGridDim():
 
     return jsonify(out)
 
-
-
 @app.route('/api/startGame', methods=['POST'])
 def startGame():
     data = request.get_json()
@@ -229,9 +227,9 @@ def getEvent():
     if auth(playerName, gameName, authCode):
         #print("all the events", game.filterEvents(gameName))
         unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-        print("unshownEvents", unshownEvents)
+        #print("unshownEvents", unshownEvents)
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-        print("unshownQuestions", questions)
+        #print("unshownQuestions", questions)
         if len(unshownEvents) == 0 and len(questions) == 0:
             tryNewTurn(gameName)
             data = ({"error": "empty"})
@@ -255,13 +253,13 @@ def getEvent():
             money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
             bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
 
-            print("----------------EVENTS---------------------")
-            for desc in descriptions:
-                print(desc)
-            print("----------------QUESTIONS------------------")
-            for question in questions:
-                print(question["labels"])
-            print("-------------------------------------------")
+            #print("----------------EVENTS---------------------")
+            #for desc in descriptions:
+                #print(desc)
+            #print("----------------QUESTIONS------------------")
+            #for question in questions:
+                #print(question["labels"])
+            #print("-------------------------------------------")
 
             data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank}
             game.shownToClient(gameName, playerName, timestamps)
@@ -320,8 +318,8 @@ def setTeam():
     ship = ["A","B","C"][data["Ship"]]
 
     if auth(playerName, gameName, authCode):
-        game.alterClients(gameName, [playerName], {"row": ship}) #Ship
-        game.alterClients(gameName, [playerName], {"column": Captain}) #captain
+        game.alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
+        game.alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
         data = ({"error": False})
         return jsonify(data)
     else:
