@@ -362,12 +362,12 @@ class clientHandler():
     def FRONTresponse(self, choice):
         print("FRONTresponse")
         self.about["FRONTresponses"].append(choice)
+        del self.about["FRONTquestions"][-1]
     
     def deQueueResponses(self):
         print("deQueueResponses")
         whatIsDeleted = self.about["FRONTresponses"][-1]
         del self.about["FRONTresponses"][-1]
-        del self.about["FRONTquestions"][-1]
         print("I DELETED A RESPONSE WHICH WAS", whatIsDeleted)
         return whatIsDeleted
     
