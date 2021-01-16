@@ -100,6 +100,11 @@ class gameEventHandler():
                         out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]) + " (shield)")
                     elif event["event"] == "E":
                         out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + str(event["targetNames"][targetNum]))
+                    elif event["event"] == "A":
+                        if len(event["other"]) > 0:
+                            out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " robbed " + str(event["other"][0]) + str(" from ") + str(event["targetNames"][targetNum]))
+                        else:
+                            out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " tried to rob " + str(event["targetNames"][targetNum]))
                     else:
                         out.append("turn:" + str(event["turnNum"]) + " " + str(sourceType) + ":" + str(event["sourceNames"][sourceNum]) + " " + self.eventSentenceFillers[str(event["event"])] + " " + str(event["targetNames"][targetNum]))
         return out

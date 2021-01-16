@@ -292,7 +292,7 @@ class gameHandler():
             raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["status"][-1] == "paused":
             raise Exception("The game is paused, which can't be handled.")
-        if self.about["turnNum"] <= (self.about["gridDim"][0] * self.about["gridDim"][1]) - 1:
+        if self.about["status"][-1] != "dormant" and self.about["turnNum"] <= (self.about["gridDim"][0] * self.about["gridDim"][1]) - 1:
             if self.about["turnNum"] not in self.about["chosenTiles"].keys():
                 if self.about["tileOverride"] == False:
                     notUnique = True
@@ -310,15 +310,15 @@ class gameHandler():
                 self.about["handleNum"] = 0
             else:
                 self.about["handleNum"] += 1
+            self.writeAboutToBoards()
+            if not self.about["isSim"]:
+                self.forecast()
         else:
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
             self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
-            if not self.about["isSim"]:
-                deleteGame([self.about["name"]])
-        self.writeAboutToBoards()
-        if not self.about["isSim"]:
-            self.forecast()
+            #if not self.about["isSim"]:
+                #deleteGame([self.about["name"]])
 
     def getAllMyClientsQuestions(self):
         out = []
