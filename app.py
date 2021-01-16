@@ -184,26 +184,6 @@ def startGame():
         return jsonify(data)
 
 
-@app.route('/api/startBuilding', methods=['POST'])
-def startBuilding():
-    data = request.get_json()
-    gameName = data["gameName"]
-    playerName = data["playerName"]
-    authCode = data["authCode"]
-
-    if auth(playerName, gameName, authCode):
-        if isHost(gameName, playerName):
-            game.setStatus(gameName, "building")
-            data = ({"error":False})
-            return jsonify(data)
-
-        else:
-            data = ({"error":"You can't do this"})
-            return jsonify(data)
-    else:
-        data = ({"error": "Authentication failed"})
-        return jsonify(data)
-
 def tryNewTurn(gameName):
     rQ = game.getRemainingQuestions(gameName)
     fE = game.filterEvents(gameName, {}, ['len(event["whoToShow"]) > 0'])
@@ -281,7 +261,12 @@ def submitResponse():
 
     game.FRONTresponse(gameName, playerName, choice)
 
-    data = {"error": False}
+    money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
+    bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+    shield = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
+    mirror = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
+
+    data = {"error": False,"money": money, "bank": bank, "shield": shield, "mirror": mirror}
     return jsonify(data)
 
 @app.route('/api/modifyGame', methods=['POST'])
@@ -477,12 +462,16 @@ def lobbyCheck():
     playerName = data["playerName"]
     authCode = data["authCode"]
 
-    if game.gameInfo["about"]["turnNum"] != -1:
-        return redirect('/game')
-    else:
-        data = ({"error": False})
+    if game.gameInfo(gameName)["about"]["turnNum"] != -1:
+        data = {"error": False, "state":"started"}
         return jsonify(data)
 
+    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
+        data = {"error": False, "state":"ready"}
+        return jsonify(data)
+    else:
+        data = {"error": False, "state":"Waiting For Other Players"}
+        return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug=False, host="localhost")
