@@ -223,7 +223,7 @@ def getEvent():
             tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
             width = game.gameInfo(gameName)["about"]["gridDim"][1]
             ids = []
-            for i in range(len(tiles)):
+            for str(i) in range(len(tiles)):
                 ids.append((tiles[i][0] * width) + tiles[i][1])
             #except IndexError:
                 ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
