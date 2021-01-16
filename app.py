@@ -210,7 +210,7 @@ def getEvent():
         #print("unshownEvents", unshownEvents)
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
         #print("unshownQuestions", questions)
-        if len(unshownEvents) == 0 and len(questions) == 0:
+        if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
             tryNewTurn(gameName)
             data = ({"error": "empty"})
             return jsonify(data)
