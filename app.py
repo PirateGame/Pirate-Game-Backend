@@ -261,12 +261,7 @@ def submitResponse():
 
     game.FRONTresponse(gameName, playerName, choice)
 
-    money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
-    bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
-    shield = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
-    mirror = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
-
-    data = {"error": False,"money": money, "bank": bank, "shield": shield, "mirror": mirror}
+    data = {"error": False}
     return jsonify(data)
 
 @app.route('/api/modifyGame', methods=['POST'])
