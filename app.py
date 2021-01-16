@@ -252,6 +252,8 @@ def getEvent():
 
             money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
             bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+            shield = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
+            mirror = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
 
             #print("----------------EVENTS---------------------")
             #for desc in descriptions:
@@ -261,7 +263,7 @@ def getEvent():
                 #print(question["labels"])
             #print("-------------------------------------------")
 
-            data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank}
+            data = {"error": False, "events": descriptions, "questions": questions, "id":id, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
             game.shownToClient(gameName, playerName, timestamps)
             return jsonify(data)
     else:
