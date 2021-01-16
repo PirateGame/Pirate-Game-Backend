@@ -38,7 +38,7 @@ def createGame():
     Sizex = int(data["Sizex"])
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
-    playerCap = 10 #MODIFY THIS
+    playerCap = 12 #MODIFY THIS
     debug=True
 
     if gameName is None:
@@ -241,6 +241,7 @@ def getEvent():
             questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
             
             tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
+            print(len(tiles), "AMOUNT OF TILES")
             try:
                 tile = sorted(tiles)[-1]
                 currentTile = tiles[tile]
