@@ -84,17 +84,15 @@ class gameHandler():
         self.about["randomCoords"] = []
 
         if overwriteAbout == None:
+            self.join(about["admins"])
             self.updateBOARDS(self.about["name"], [self.about, {}])
         else:
-            print("overwriteAbout", overwriteAbout)
             self.about = overwriteAbout.copy()
             self.about["clients"] = {}
-            print(overwriteAbout["clients"])
             for clientName, obj in overwriteAbout["clients"].items():
                 clientsToJoin = [{"name":clientName, "type":obj.about["type"]}]
-                print("join", self.join(clientsToJoin))
+                self.join(clientsToJoin)
                 self.about["clients"][clientName].about = obj.about
-                print("OVERWRITE FOR CLIENT", overwriteAbout["clients"][clientName].about)
             self.updateBOARDS(self.about["name"], [self.about, None])
         
         self.pP = prettyPrinter()
@@ -534,7 +532,7 @@ class clientHandler():
             choice = self.tileChoice(whatHappened)
             if choice != None:
                 self.game.about["tileOverride"] = choice
-                self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
+                self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
                 #print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
             else:
                 self.about["actQueue"].append(whatHappened)
@@ -666,17 +664,11 @@ def makeGame(about, overwriteAbout = None):
     if nameCheck == None:
         g = gameHandler(about, overwriteAbout)
         games[about["gameName"]] = g
-        out = games[about["gameName"]].join(about["admins"])
         if overwriteAbout != None:
             games[about["gameName"]].debugPrint(str(about["gameName"]) + " @@@@ RECOVERED with properties... " + str(games[about["gameName"]].about))
         else:
             games[about["gameName"]].debugPrint(str(about["gameName"]) + " @@@@ CREATED by clients " + str(about["admins"]) + " with properties... " + str(games[about["gameName"]].about))
-        print(out)
-        if all(out):
-            return {"gameName":about["gameName"], "admins":about["admins"]}
-        else:
-            print("error joining admins to the lobby:", out)
-            return False
+        return {"gameName":about["gameName"], "admins":about["admins"]}
     else:
         print(about["gameName"], "@@@@ FAILED GAME CREATION:", ("The game name " + about["gameName"] + " doesn't pass the name filters: " + str(nameCheck)))
         return False
@@ -686,12 +678,12 @@ def deleteGame(gameNames):
     success = []
     fail = []
     for gameName in gameNames:
-        try:
-            games[gameName].delete()
-            del games[gameName]
-            success.append(gameName)
-        except:
-            fail.append(gameName)
+        #try:
+        games[gameName].delete()
+        del games[gameName]
+        success.append(gameName)
+        #except:
+        #fail.append(gameName)
     if len(fail) > 0:
         debugPrint(str(fail) + " @@@@ NOT DELETED " + str(success) + "DELETED")
     elif len(success) > 0:
@@ -887,13 +879,13 @@ def getDataFromStoredGame(boardStorage):
     return gameAbout
 
 def loadGame(boardStorage):
-    try:
-        gameAbout = getDataFromStoredGame(boardStorage)
-        overwriteAbout = boardStorage[0]
-        overwriteAbout["sims"] = []
-        makeGame(gameAbout, overwriteAbout)["gameName"]
-    except Exception as e:
-        print(boardStorage[0]["name"], "@@@@ FAILED GAME RECOVERY (it might be using a different .about format):", e)
+    #try:
+    gameAbout = getDataFromStoredGame(boardStorage)
+    overwriteAbout = boardStorage[0]
+    overwriteAbout["sims"] = []
+    makeGame(gameAbout, overwriteAbout)["gameName"]
+    #except Exception as e:
+        #print(boardStorage[0]["name"], "@@@@ FAILED GAME RECOVERY (it might be using a different .about format):", e)
 
 def bootstrap(about):
     #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
@@ -919,7 +911,12 @@ def bootstrap(about):
     
     #And then deleting all those recovered games, because they're not necessary to test one new game.
     if about["purge"]:
-        deleteGame([key for key in games])
+        if len(games.keys()) > 0:
+            deleteGame([key for key in games])
+        else:
+            debugPrint("@@@@ Failed to load games, so boards.npy was nuked.")
+            BOARDS = {}
+            np.save("boards.npy", BOARDS)
 
 
 # .___   .____  __   __   ___  

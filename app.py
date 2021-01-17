@@ -43,7 +43,7 @@ def createGame():
     Sizex = int(data["Sizex"])
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
-    playerCap = 12 #MODIFY THIS
+    playerCap = 12 #DEFAULT (must be the same as what's on the website)
     debug=True
 
     if gameName is None:
@@ -211,9 +211,9 @@ def getEvent():
     if auth(playerName, gameName, authCode):
         #print("all the events", game.filterEvents(gameName))
         unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-        print("unshownEvents", unshownEvents)
+        #print("unshownEvents", unshownEvents)
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-        print("unshownQuestions", questions)
+        #print("unshownQuestions", questions)
 
         if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
             tryNewTurn(gameName)
