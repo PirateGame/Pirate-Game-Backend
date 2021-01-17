@@ -309,9 +309,10 @@ class gameHandler():
                 self.about["chosenTiles"][self.about["turnNum"]] = newTile
                 self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[0] + 1) + "," + str(newTile[1] + 1) + " ------------------------")
             if self.turnProcess():
-                self.about["turnNum"] += 1
-                self.about["eventHandler"].make({"owner":self, "public":True, "event":"newTurn", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.about["turnNum"]]}) #EVENT HANDLER
-                self.about["handleNum"] = 0
+                if self.about["turnNum"] <= (self.about["gridDim"][0] * self.about["gridDim"][1])
+                    self.about["turnNum"] += 1
+                    self.about["eventHandler"].make({"owner":self, "public":True, "event":"newTurn", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.about["turnNum"]]}) #EVENT HANDLER
+                    self.about["handleNum"] = 0
             else:
                 self.about["handleNum"] += 1
             self.writeAboutToBoards()
@@ -401,7 +402,7 @@ class clientHandler():
                 options = ["A","B","C","0","1","2"]
                 options.remove(self.about["column"])
                 options.remove(self.about["row"])
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"which team / ship do you want to attack?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"which team / ship do you want to attack?","your captain is "+self.about["column"]+" and your team is "+self.about["row"]]})
                 return None
             else:
                 return None
