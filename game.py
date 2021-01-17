@@ -84,8 +84,8 @@ class gameHandler():
         self.about["randomCoords"] = []
 
         if overwriteAbout == None:
-            self.join(about["admins"])
             self.updateBOARDS(self.about["name"], [self.about, {}])
+            self.join(about["admins"])
         else:
             self.about = overwriteAbout.copy()
             self.about["clients"] = {}
@@ -752,6 +752,8 @@ def joinLobby(gameName, clients):
         return games[gameName].join(clients)
 
 def leave(gameName, clients):
+    if len(games[gameName].about["clienst"]) == 1:
+        deleteGame(gameName)
     return games[gameName].leave(clients)
 
 def leaderboard(gameName):
