@@ -11,9 +11,9 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-print("Shall I purge bootstrapped games? (y/)")
+print("Input enter to purge, other input will mean bootstrapped games won't be purged.")
 shallI = str(input())
-if shallI == "y":
+if shallI == "":
     game.bootstrap({"purge":True})
 else:
     game.bootstrap({"purge":False})

@@ -272,18 +272,23 @@ class gameHandler():
         
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         out = []
+
+        changes = [True for i in range(len(clientsShuffled))]
+        a = {}
+        b = {}
+        j = True
+        while j or a != b:
+            j = False
+            for clientName in clientsShuffled:
+                a[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
+                out.append(self.about["clients"][clientName].actHandle())
+                b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
+    
         for clientName in clientsShuffled:
-            x = self.about["chosenTiles"][self.about["turnNum"]][0]
-            y = self.about["chosenTiles"][self.about["turnNum"]][1]
-            if self.about["handleNum"] == 0:
-                self.about["clients"][clientName].about["actQueue"].append(BOARDS[self.about["name"]][1][clientName][x][y])
-            out.append(self.about["clients"][clientName].actHandle(BOARDS[self.about["name"]][1][clientName][x][y]))
-            if out[-1] != True:
-                break
-                #print(clientName, "have they done their turn?", out)
+            if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0:
+                return False
         if False not in out:
             for clientName in clientsShuffled:
-                self.about["clients"][clientName].about["tileHistory"].append(BOARDS[self.about["name"]][1][clientName][x][y])
                 self.about["clients"][clientName].logScore()
             return True
         else:
@@ -300,18 +305,25 @@ class gameHandler():
                 if self.about["tileOverride"] == False:
                     notUnique = True
                     while notUnique:
-                        newTile = (self.about["randomCoords"][self.about["turnNum"]-1][0], self.about["randomCoords"][self.about["turnNum"]-1][1]) #x,y
+                        newTile = (self.about["randomCoords"][self.about["turnNum"]][0], self.about["randomCoords"][self.about["turnNum"]][1]) #x,y
                         if newTile not in self.about["chosenTiles"]:
                             notUnique = False
                 else:
                     newTile = self.about["tileOverride"]
                     self.about["tileOverride"] = False
                 self.about["chosenTiles"][self.about["turnNum"]] = newTile
+                x = newTile[0]
+                y = newTile[1]
+                BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+                for clientName in list(self.about["clients"].keys()):
+                    tileForClient = BOARDS[self.about["name"]][1][clientName][x][y]
+                    self.about["clients"][clientName].about["tileHistory"].append(tileForClient)
+                    self.about["clients"][clientName].about["actQueue"].append(tileForClient)
+                self.about["eventHandler"].make({"owner":self, "public":True, "event":"newTurn", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.about["turnNum"]]}) #EVENT HANDLER
                 self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[0] + 1) + "," + str(newTile[1] + 1) + " ------------------------")
             if self.turnProcess():
-                if self.about["turnNum"] <= (self.about["gridDim"][0] * self.about["gridDim"][1])
+                if self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
                     self.about["turnNum"] += 1
-                    self.about["eventHandler"].make({"owner":self, "public":True, "event":"newTurn", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.about["turnNum"]]}) #EVENT HANDLER
                     self.about["handleNum"] = 0
             else:
                 self.about["handleNum"] += 1
@@ -366,15 +378,14 @@ class clientHandler():
         self.about["scoreHistory"].append(self.about["money"] + self.about["bank"])
     
     def FRONTresponse(self, choice):
-        print("FRONTresponse")
         self.about["FRONTresponses"].append(choice)
+        print("Response received:", choice, "to question:", self.about["FRONTquestions"][-1])
         del self.about["FRONTquestions"][-1]
     
     def deQueueResponses(self):
         print("deQueueResponses")
         whatIsDeleted = self.about["FRONTresponses"][-1]
         del self.about["FRONTresponses"][-1]
-        print("I DELETED A RESPONSE WHICH WAS", whatIsDeleted)
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
@@ -417,11 +428,10 @@ class clientHandler():
         elif self.about["type"] == "human":
             #if len(options) == 1:
                 #return options[0]
-            print("FRONTRESPONSES", self.about["FRONTresponses"])
+            #print("FRONTRESPONSES", self.about["FRONTresponses"])
             if len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
             elif len(self.about["FRONTquestions"]) == 0:
-                print("herererererererererererereer")
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened], "How do you want to respond?"]})
                 return None
             else:
@@ -438,7 +448,10 @@ class clientHandler():
             if len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
             elif len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Who do you want to be your victim?"]})
+                if whatHappened == "C":
+                    self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Who do you want to give a present to?"]})
+                else:
+                    self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Who do you want to be your victim?"]})
                 return None
             else:
                 return None
@@ -462,7 +475,7 @@ class clientHandler():
             else:
                 return None
     
-    def actHandle(self, whatHappened):
+    def actHandle(self):
         #print("ACT HANDLE CALLED FOR", self.about["name"], "WITH QUEUES", self.about["actQueue"], self.about["beActedOnQueue"])
         if len(self.about["actQueue"]) > 0:
             self.act(self.about["actQueue"][-1])
