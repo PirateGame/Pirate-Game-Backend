@@ -401,7 +401,7 @@ class clientHandler():
                 options = ["A","B","C","0","1","2"]
                 options.remove(self.about["column"])
                 options.remove(self.about["row"])
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"which team / ship do you want to attack?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"which team / ship do you want to attack?","your captain is "+self.about["column"]+" and your team is "+self.about["row"]]})
                 return None
             else:
                 return None
