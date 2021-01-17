@@ -84,8 +84,8 @@ class gameHandler():
         self.about["randomCoords"] = []
 
         if overwriteAbout == None:
-            self.join(about["admins"])
             self.updateBOARDS(self.about["name"], [self.about, {}])
+            self.join(about["admins"])
         else:
             self.about = overwriteAbout.copy()
             self.about["clients"] = {}
