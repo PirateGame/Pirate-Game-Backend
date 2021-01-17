@@ -215,6 +215,10 @@ def getEvent():
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
         #print("unshownQuestions", questions)
 
+
+        if game.status(gameName) == "dormant":
+            data = ({"error": "game finished"})
+            return jsonify(data)
         if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
             tryNewTurn(gameName)
             data = ({"error": "empty"})
