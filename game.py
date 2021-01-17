@@ -752,6 +752,8 @@ def joinLobby(gameName, clients):
         return games[gameName].join(clients)
 
 def leave(gameName, clients):
+    if len(games[gameName].about["clienst"]) == 1:
+        deletGame(gameName)
     return games[gameName].leave(clients)
 
 def leaderboard(gameName):
