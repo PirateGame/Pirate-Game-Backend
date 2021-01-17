@@ -86,11 +86,16 @@ class gameEventHandler():
         out = []
         for event in events:
             ownerClass = event["owner"].__class__.__name__
+            turnStr = str(event["turnNum"] + 1)
             if ownerClass == "gameHandler":
                 if event["event"] == "newTurn":
-                    out.append("NEW TURN: " + turnStr)
+                    out.append("~NEW TURN: " + turnStr + "~")
                 if event["event"] == "start":
-                    out.append("GAME START")
+                    out.append("~THE GAME HAS STARTED~")
+                if event["event"] == "end":
+                    out.append("~THE GAME HAS ENDED~")
+                if event["event"] == "end":
+                    out.append("~THE GAME HAS BEEN DELETED")
             elif ownerClass == "clientHandler":
                 targetStr = ""
                 for targetNum in range(len(event["targetNames"])):
@@ -102,6 +107,8 @@ class gameEventHandler():
                         targetClass = "client"
                         targetType = event["targets"][targetNum].about["type"]
                     targetStr += targetType + ":" + event["targetNames"][targetNum]
+                if targetStr == "":
+                    targetStr = "no one"
                 sourceStr = ""
                 for sourceNum in range(len(event["sourceNames"])):
                     sourceClass = event["sources"][sourceNum].__class__.__name__
@@ -112,7 +119,8 @@ class gameEventHandler():
                         sourceClass = "client"
                         sourceType = event["sources"][sourceNum].about["type"]
                     sourceStr += sourceType + ":" + event["sourceNames"][sourceNum]
-                turnStr = str(event["turnNum"] + 1)
+                if sourceStr == "":
+                    sourceStr = "no one"
                 mirrorStr = ""
                 shieldStr = ""
                 if event["isMirrored"]:
@@ -121,24 +129,24 @@ class gameEventHandler():
                     shieldStr = "(SHIELDED)"
                 elif event["event"] == "A":
                     if len(event["other"]) > 0:
-                        out.append("turn:" + turnStr + "   " + sourceStr + " robbed " + str(event["other"][0]) + str(" from ") + targetStr + mirrorStr + shieldStr)
+                        out.append(sourceStr + " robbed " + str(event["other"][0]) + str(" from ") + targetStr + mirrorStr + shieldStr)
                     else:
-                        out.append("turn:" + turnStr + "   " + sourceStr + " tried to rob " + targetStr + mirrorStr + shieldStr)
+                        out.append(sourceStr + " tried to rob " + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "B":
                     if len(event["other"]) > 0:
-                        out.append("turn:" + turnStr + "   " + sourceStr + " killed " + targetStr + mirrorStr + shieldStr)
+                        out.append(sourceStr + " killed " + targetStr + mirrorStr + shieldStr)
                     else:
-                        out.append("turn:" + turnStr + "   " + sourceStr + " tried to kill " + targetStr + mirrorStr + shieldStr)
+                        out.append(sourceStr + " tried to kill " + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "C":
                     if len(event["other"]) > 0:
-                        out.append("turn:" + turnStr + "   " + sourceStr + " gave a present of " + str(event["other"][0]) + str(" to ") + targetStr + mirrorStr + shieldStr)
+                        out.append(sourceStr + " gave a present of " + str(event["other"][0]) + str(" to ") + targetStr + mirrorStr + shieldStr)
                     else:
-                        out.append("turn:" + turnStr + "   " + sourceStr + " tried to give a present to " + targetStr + mirrorStr + shieldStr)
+                        out.append(sourceStr + " tried to give a present to " + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "E":
-                    out.append("turn:" + turnStr + "   " + sourceStr + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + targetStr + mirrorStr + shieldStr)
+                    out.append(sourceStr + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + targetStr + mirrorStr + shieldStr)
                 else:
-                    out.append("turn:" + turnStr + "   " + sourceStr + " " + self.eventSentenceFillers[str(event["event"])] + " " + targetStr + mirrorStr + shieldStr)
-            return out
+                    out.append(sourceStr + " " + self.eventSentenceFillers[str(event["event"])] + " " + targetStr + mirrorStr + shieldStr)
+        return out
     
     def updateEvents(self, eventNums, updates):
         for eventNum in eventNums:
@@ -175,7 +183,7 @@ class gameEventHandler():
         time.sleep(0.00001)
         self.about["log"].append({"timestamp":time.time(), "owner":about["owner"], "turnNum":self.game.about["turnNum"], "public":about["public"], "event":about["event"], "sources":about["sources"], "sourceNames":[source.about["name"] for source in about["sources"]], "targets":about["targets"], "targetNames":[target.about["name"] for target in about["targets"]], "isMirrored":about["isMirrored"], "isShielded":about["isShielded"], "other":about["other"]})
         self.about["log"][-1]["whoToShow"] = self.whoToShow(self.about["log"][-1])
-        print("EVENT MADE.", self.about["log"][-1])
+        #print("EVENT MADE.", self.about["log"][-1])
         #self.printNicely(self.about["log"][-1])
         #self.game.processEvent
         return self.about["log"][-1]

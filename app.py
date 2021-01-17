@@ -11,14 +11,19 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-game.bootstrap({"purge":True})
-
+print("Shall I purge bootstrapped games? (y/)")
+shallI = str(input())
+if shallI == "y":
+    game.bootstrap({"purge":True})
+else:
+    game.bootstrap({"purge":False})
 
 def auth(playerName, gameName, code):
     secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
     if code == secret:
         return True
     else:
+        print("FAIL AUTH.", playerName, secret, code)
         return False
 
 def isHost(gameName, playerName):
@@ -204,14 +209,14 @@ def getEvent():
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
-        print("all the events", game.filterEvents(gameName))
+        #print("all the events", game.filterEvents(gameName))
         unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
         print("unshownEvents", unshownEvents)
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
         print("unshownQuestions", questions)
 
         if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
-            #tryNewTurn(gameName)
+            tryNewTurn(gameName)
             data = ({"error": "empty"})
             return jsonify(data)
         else:

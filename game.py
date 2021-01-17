@@ -86,11 +86,15 @@ class gameHandler():
         if overwriteAbout == None:
             self.updateBOARDS(self.about["name"], [self.about, {}])
         else:
-            self.about = overwriteAbout
+            print("overwriteAbout", overwriteAbout)
+            self.about = overwriteAbout.copy()
             self.about["clients"] = {}
-            for clientName in overwriteAbout["clients"]:
-                clientsToJoin = [{"name":clientName, "type":"AI"}]
-                self.about["clients"][clientName].about = overwriteAbout["clients"][clientName].about
+            print(overwriteAbout["clients"])
+            for clientName, obj in overwriteAbout["clients"].items():
+                clientsToJoin = [{"name":clientName, "type":obj.about["type"]}]
+                print("join", self.join(clientsToJoin))
+                self.about["clients"][clientName].about = obj.about
+                print("OVERWRITE FOR CLIENT", overwriteAbout["clients"][clientName].about)
             self.updateBOARDS(self.about["name"], [self.about, None])
         
         self.pP = prettyPrinter()
@@ -319,6 +323,7 @@ class gameHandler():
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
             self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
+            self.about["eventHandler"].make({"owner":self, "public":True, "event":"end", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             #if not self.about["isSim"]:
                 #deleteGame([self.about["name"]])
 
@@ -329,6 +334,7 @@ class gameHandler():
         return out
 
     def delete(self):
+        self.about["eventHandler"].make({"owner":self, "public":True, "event":"delete", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         del BOARDS[self.about["name"]]
         np.save("boards.npy", BOARDS)
@@ -458,7 +464,7 @@ class clientHandler():
                 return None
     
     def actHandle(self, whatHappened):
-        print("ACT HANDLE CALLED FOR", self.about["name"], "WITH QUEUES", self.about["actQueue"], self.about["beActedOnQueue"])
+        #print("ACT HANDLE CALLED FOR", self.about["name"], "WITH QUEUES", self.about["actQueue"], self.about["beActedOnQueue"])
         if len(self.about["actQueue"]) > 0:
             self.act(self.about["actQueue"][-1])
             del self.about["actQueue"][0]
@@ -660,15 +666,16 @@ def makeGame(about, overwriteAbout = None):
     if nameCheck == None:
         g = gameHandler(about, overwriteAbout)
         games[about["gameName"]] = g
-        out = joinLobby(about["gameName"], about["admins"])
+        out = games[about["gameName"]].join(about["admins"])
         if overwriteAbout != None:
             games[about["gameName"]].debugPrint(str(about["gameName"]) + " @@@@ RECOVERED with properties... " + str(games[about["gameName"]].about))
         else:
             games[about["gameName"]].debugPrint(str(about["gameName"]) + " @@@@ CREATED by clients " + str(about["admins"]) + " with properties... " + str(games[about["gameName"]].about))
+        print(out)
         if all(out):
             return {"gameName":about["gameName"], "admins":about["admins"]}
         else:
-            print("error joining clients to the lobby:", out)
+            print("error joining admins to the lobby:", out)
             return False
     else:
         print(about["gameName"], "@@@@ FAILED GAME CREATION:", ("The game name " + about["gameName"] + " doesn't pass the name filters: " + str(nameCheck)))
@@ -883,10 +890,10 @@ def loadGame(boardStorage):
     try:
         gameAbout = getDataFromStoredGame(boardStorage)
         overwriteAbout = boardStorage[0]
-        #overwriteAbout["clients"] = {}
+        overwriteAbout["sims"] = []
         makeGame(gameAbout, overwriteAbout)["gameName"]
     except Exception as e:
-        print(boardStorage[0]["name"], "@@@@ FAILED GAME RECOVERY, it's using a different format:", e)
+        print(boardStorage[0]["name"], "@@@@ FAILED GAME RECOVERY (it might be using a different .about format):", e)
 
 def bootstrap(about):
     #Loading games that are "running", stored in boards.npy in case the backend crashes or something.
@@ -894,21 +901,21 @@ def bootstrap(about):
         debugPrint("@@@@ No games were loaded because: " + str(exception))
         BOARDS = {}
         np.save("boards.npy", BOARDS)
-    try:
-        f = open("boards.npy")
-        if os.path.getsize("boards.npy") > 0:
-            try:
-                BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-                if len(BOARDS.keys()) == 0:
-                    failLoad("there are no games in boards.npy")
-                for gameName in BOARDS:
-                    loadGame(BOARDS[gameName])
-            except Exception as e:
-                failLoad(e)
-        else:
-            failLoad("file is empty")
-    except Exception as e:
-        failLoad(e)
+    #try:
+    f = open("boards.npy")
+    if os.path.getsize("boards.npy") > 0:
+        #try:
+        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+        if len(BOARDS.keys()) == 0:
+            failLoad("there are no games in boards.npy")
+        for gameName in BOARDS:
+            loadGame(BOARDS[gameName])
+        #except Exception as e:
+            #failLoad(e)
+    else:
+        failLoad("file is empty")
+    #except Exception as e:
+        #failLoad(e)
     
     #And then deleting all those recovered games, because they're not necessary to test one new game.
     if about["purge"]:
