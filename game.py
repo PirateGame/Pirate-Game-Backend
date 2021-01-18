@@ -2,7 +2,7 @@ import random, string, time, os
 import numpy as np
 import grid
 import time
-import analyse
+import events
 import nameFilter
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
@@ -79,7 +79,7 @@ class gameHandler():
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
         self.about = {"name":about["gameName"], "events":[], "sims":[], "isSim":about["isSim"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
-        self.about["eventHandler"] = analyse.gameEventHandler(self)
+        self.about["eventHandler"] = events.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
         self.about["randomCoords"] = []
 
@@ -250,19 +250,20 @@ class gameHandler():
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         boardStorage = BOARDS[self.about["name"]]
         startTime = time.time()
+        gameAbout = getDataFromStoredGame(boardStorage)
+        overwriteAbout = boardStorage[0]
+        overwriteAbout["debug"] = False
+        overwriteAbout["isSim"] = True
+        overwriteAbout["debug"] = False
+        for clientName in overwriteAbout["clients"]:
+            overwriteAbout["clients"][clientName].about["type"] = "AI"
+            overwriteAbout["clients"][clientName].about["FRONTquestions"] = []
         for i in range(iterations):
-            gameAbout = getDataFromStoredGame(boardStorage)
-            overwriteAbout = boardStorage[0]
-            overwriteAbout["debug"] = False
-            overwriteAbout["isSim"] = True
-            overwriteAbout["debug"] = False
-            for clientName in overwriteAbout["clients"]:
-                overwriteAbout["clients"][clientName].about["type"] = "AI"
             self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
+            print("New sim made.")
             while self.about["sims"][-1].about["status"][-1] != "dormant":
-                print(self.about["sims"][-1].about["turnNum"])
+                print("ITERATION", i, "TURN", self.about["sims"][-1].about["turnNum"], "HANDLE", self.about["sims"][-1].about["handleNum"])
                 self.about["sims"][-1].turnHandle() 
-            del self.about["sims"][-1]
         #print("FORECAST TIMED TO:", time.time() - startTime)
 
     def turnProcess(self):
@@ -270,7 +271,6 @@ class gameHandler():
         clientsShuffled = list(self.about["clients"].keys())
         random.shuffle(clientsShuffled)
         
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         out = []
 
         changes = [True for i in range(len(clientsShuffled))]
@@ -283,7 +283,6 @@ class gameHandler():
                 a[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
                 out.append(self.about["clients"][clientName].actHandle())
                 b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
-    
         for clientName in clientsShuffled:
             if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0:
                 return False
@@ -300,7 +299,7 @@ class gameHandler():
             raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["status"][-1] == "paused":
             raise Exception("The game is paused, which can't be handled.")
-        if self.about["status"][-1] != "dormant" and self.about["turnNum"] <= (self.about["gridDim"][0] * self.about["gridDim"][1]):
+        if self.about["status"][-1] != "dormant" and self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
             if self.about["turnNum"] not in self.about["chosenTiles"].keys():
                 if self.about["tileOverride"] == False:
                     notUnique = True
@@ -361,7 +360,7 @@ class clientHandler():
             self.about = {"name":clientName, "beActedOnQueue":[], "actQueue":[], "type": about["type"], "ready":True, "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":0, "mirror":0, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
         elif about["type"] == "spectator":
             self.about = {"name":clientName, "type": about["type"], "ready":True, "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
-        self.about["estimateHandler"] = analyse.clientEstimateHandler(self)
+        self.about["estimateHandler"] = events.clientEstimateHandler(self)
         self.about["FRONTresponses"] = []
         self.about["FRONTquestions"] = []
 
@@ -761,7 +760,7 @@ def listClientNames(gameName):
     return out
 
 #join one or several clients to a lobby
-def joinLobby(gameName="", clients):
+def joinLobby(clients, gameName=""):
     if gameName == "":
         joinableKeys = []
         for key in games.keys():
@@ -916,21 +915,21 @@ def bootstrap(about):
         debugPrint("@@@@ No games were loaded because: " + str(exception))
         BOARDS = {}
         np.save("boards.npy", BOARDS)
-    #try:
-    f = open("boards.npy")
-    if os.path.getsize("boards.npy") > 0:
-        #try:
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        if len(BOARDS.keys()) == 0:
-            failLoad("there are no games in boards.npy")
-        for gameName in BOARDS:
-            loadGame(BOARDS[gameName])
-        #except Exception as e:
-            #failLoad(e)
-    else:
-        failLoad("file is empty")
-    #except Exception as e:
-        #failLoad(e)
+    try:
+        #f = open("boards.npy")
+        if os.path.getsize("boards.npy") > 0:
+            try:
+                BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
+                if len(BOARDS.keys()) == 0:
+                    failLoad("there are no games in boards.npy")
+                for gameName in BOARDS:
+                    loadGame(BOARDS[gameName])
+            except Exception as e:
+                failLoad(e)
+        else:
+            failLoad("file is empty")
+    except Exception as e:
+        failLoad(e)
     
     #And then deleting all those recovered games, because they're not necessary to test one new game.
     if about["purge"]:
@@ -961,7 +960,7 @@ if __name__ == "__main__":
         print("DEMO.")
 
         #Let's set up a few variables about our new test game...
-        gridDim = (15,15)
+        gridDim = (7,7)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
         admins = [{"name":"Jamie", "type":"human"}] #this person is auto added.
@@ -977,11 +976,11 @@ if __name__ == "__main__":
 
         #Adding each of the imaginary players to the lobby sequentially.
         clients = [{"name":"Tom", "type":"human"}, {"name":"Alex", "type":"human"}] #Player name, then info about them which currently consists of whether they're playing.
-        print("joining clients to the lobby", joinLobby(gameName, clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+        print("joining clients to the lobby", joinLobby(gameName=gameName, clients=clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
         clients = [{"name":"Jamie", "type":"human"}] #This is to verify that duplicate usernames aren't allowed.
-        print("joining a dupe client to the lobby", joinLobby(gameName, clients))
+        print("joining a dupe client to the lobby", joinLobby(gameName=gameName, clients=clients))
 
 
         #Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
