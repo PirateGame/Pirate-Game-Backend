@@ -78,7 +78,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "events":[], "sims":[], "isSim":about["isSim"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "events":[], "sims":[], "isSim":about["isSim"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = analyse.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
         self.about["randomCoords"] = []
@@ -761,7 +761,13 @@ def listClientNames(gameName):
     return out
 
 #join one or several clients to a lobby
-def joinLobby(gameName, clients):
+def joinLobby(gameName="", clients):
+    if gameName == "":
+        joinableKeys = []
+        for key in games.keys():
+            if games[key].about["quickplay"]:
+                joinableKeys.append(key)
+        games[random.choice(joinableKeys)].join(clients)
     if games[gameName].about["status"][-1] == "lobby":
         return games[gameName].join(clients)
 
@@ -890,8 +896,9 @@ def getDataFromStoredGame(boardStorage):
     nameNaughtyFilter = boardStorage[0]["nameNaughtyFilter"]
     debug = boardStorage[0]["debug"]
     gameName = boardStorage[0]["name"]
+    quickplay = boardStorage[0]["quickplay"]
     isSim = False
-    gameAbout = {"gameName":gameName, "isSim":isSim, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    gameAbout = {"gameName":gameName, "quickplay":quickplay, "isSim":isSim, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
     return gameAbout
 
 def loadGame(boardStorage):
@@ -965,7 +972,7 @@ if __name__ == "__main__":
         nameUniqueFilter = 0
 
         #Setting up a test game
-        about = {"gameName":gameName, "isSim":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
+        about = {"gameName":gameName, "quickplay":False, "isSim":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.

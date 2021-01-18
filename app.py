@@ -45,12 +45,17 @@ def createGame():
     isPlaying = data["isHostPlaying"]
     playerCap = 12 #DEFAULT (must be the same as what's on the website)
     debug=True
+    gridDim = (Sizex, Sizey)
+    #This sets the standard decision time
+    turnTime = 30
+    nameUniqueFilter = None
+    nameNaughtyFilter = None
+    quickplay = True
 
     if gameName is None:
         gameName = ''
     if ownerName is None:
         ownerName = ''
-
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
@@ -61,18 +66,10 @@ def createGame():
             data = {"error": "Your name can only contain letters"}
             return jsonify(data)
 
-    gridDim = (Sizex, Sizey)
-    #This sets the standard decision time
-    turnTime = 30
-
-    nameUniqueFilter = None
-    nameNaughtyFilter = None
-
-    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "isSim":False, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "isSim":False, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
     if not isPlaying:
         gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
-
-    out = game.makeGame(gameAbout)
+    out = game.makeGame(gameAbout) ###CREATING THE GAME.
     if not out:
         data = {"error": "could not create game"}
         return jsonify(data)
@@ -84,8 +81,6 @@ def createGame():
     
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
     return jsonify(data)
-
-
 
 #TODO this needs major fixing, check that game exists and playercap stuff
 @app.route('/api/join_game', methods=['POST'])
