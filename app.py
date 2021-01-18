@@ -441,7 +441,7 @@ def addAI():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if game.joinLobby(gameName, [{"name":"", "type":"AI"}]):
+            if game.joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
                 data = ({"error": False})
                 return jsonify(data)
             else:

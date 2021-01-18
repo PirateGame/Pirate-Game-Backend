@@ -245,26 +245,6 @@ class gameHandler():
             if wrongTally == 0:
                 out[clientName] = about
         return out
-    
-    def forecast(self, iterations=0):
-        BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-        boardStorage = BOARDS[self.about["name"]]
-        startTime = time.time()
-        gameAbout = getDataFromStoredGame(boardStorage)
-        overwriteAbout = boardStorage[0]
-        overwriteAbout["debug"] = False
-        overwriteAbout["isSim"] = True
-        overwriteAbout["debug"] = False
-        for clientName in overwriteAbout["clients"]:
-            overwriteAbout["clients"][clientName].about["type"] = "AI"
-            overwriteAbout["clients"][clientName].about["FRONTquestions"] = []
-        for i in range(iterations):
-            self.about["sims"].append(gameHandler(gameAbout, overwriteAbout))
-            print("New sim made.")
-            while self.about["sims"][-1].about["status"][-1] != "dormant":
-                print("ITERATION", i, "TURN", self.about["sims"][-1].about["turnNum"], "HANDLE", self.about["sims"][-1].about["handleNum"])
-                self.about["sims"][-1].turnHandle() 
-        #print("FORECAST TIMED TO:", time.time() - startTime)
 
     def turnProcess(self):
         actions = []
@@ -327,8 +307,6 @@ class gameHandler():
             else:
                 self.about["handleNum"] += 1
             self.writeAboutToBoards()
-            if not self.about["isSim"]:
-                self.forecast()
         else:
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
             self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
@@ -461,7 +439,6 @@ class clientHandler():
             for y in range(self.game.about["gridDim"][1]):
                 if (x,y) not in self.game.about["chosenTiles"]: 
                     options.append((x,y))
-        return random.choice(options)
         #if self.about["type"] == "AI":
         if True:
             return random.choice(options)
@@ -760,7 +737,7 @@ def listClientNames(gameName):
     return out
 
 #join one or several clients to a lobby
-def joinLobby(clients, gameName=""):
+def joinLobby(gameName="", clients=""):
     if gameName == "":
         joinableKeys = []
         for key in games.keys():
