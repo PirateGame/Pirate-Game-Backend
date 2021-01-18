@@ -233,8 +233,9 @@ def getEvent():
             width = game.gameInfo(gameName)["about"]["gridDim"][1]
             ids = []
             #print(tiles)
-            for i in range(len(tiles)):
-                ids.append((tiles[i][0] * width) + tiles[i][1])
+            for turn in tiles:
+                ids.append((tiles[turn][0] * width) + tiles[turn][1])
+            print("AMOUNT OF IDS", len(ids))
             #except IndexError:
                 ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
                 #data = ({"error": "Game Not Started Yet"})
