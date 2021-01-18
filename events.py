@@ -97,7 +97,7 @@ class gameEventHandler():
                 if event["event"] == "end":
                     out.append("~THE GAME HAS BEEN DELETED")
             elif ownerClass == "clientHandler":
-                targetStr = ""
+                targetLst = []
                 for targetNum in range(len(event["targetNames"])):
                     targetClass = event["targetNames"][targetNum].__class__.__name__
                     if targetClass == "gameHandler":
@@ -106,10 +106,10 @@ class gameEventHandler():
                     else:
                         targetClass = "client"
                         targetType = event["targets"][targetNum].about["type"]
-                    targetStr += targetType + ":" + event["targetNames"][targetNum]
-                if targetStr == "":
-                    targetStr = "no one"
-                sourceStr = ""
+                    targetLst.append(targetType + ":" + event["targetNames"][targetNum])
+                if len(targetLst) == 0:
+                    targetLst.append("no one")
+                sourceLst = []
                 for sourceNum in range(len(event["sourceNames"])):
                     sourceClass = event["sources"][sourceNum].__class__.__name__
                     if sourceClass == "gameHandler":
@@ -118,9 +118,12 @@ class gameEventHandler():
                     else:
                         sourceClass = "client"
                         sourceType = event["sources"][sourceNum].about["type"]
-                    sourceStr += sourceType + ":" + event["sourceNames"][sourceNum]
-                if sourceStr == "":
-                    sourceStr = "no one"
+                    sourceLst.append(sourceType + ":" + event["sourceNames"][sourceNum])
+                if len(sourceLst) == 0:
+                    sourceLst.append("no one")
+                
+                targetStr = ",".join(targetLst)
+                sourceStr = ",".join(sourceLst)
                 mirrorStr = ""
                 shieldStr = ""
                 if event["isMirrored"]:
