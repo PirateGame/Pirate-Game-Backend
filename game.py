@@ -456,8 +456,8 @@ class clientHandler():
         elif self.about["type"] == "human":
             if len(self.about["FRONTresponses"]) > 0:
                 out = self.deQueueResponses()
-                print(out)
-                print(ast.literal_eval(out))
+                #print(out)
+                #print(ast.literal_eval(out))
                 return ast.literal_eval(out)
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile on the grid should be next turn's?"]})
