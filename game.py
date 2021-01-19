@@ -442,14 +442,14 @@ class clientHandler():
     def tileChoice(self, whatHappened):
         options = self.game.about["randomCoords"]
         
-        #if self.about["type"] == "AI":
-        if True:
+        if self.about["type"] == "AI":
+        #if True:
             return random.choice(options)
         elif self.about["type"] == "human":
             if len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile would you like for the next turn?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile on the grid should be next turn's?"]})
                 return None
             else:
                 return None
