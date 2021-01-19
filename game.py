@@ -284,12 +284,13 @@ class gameHandler():
                 if self.about["tileOverride"] == False:
                     notUnique = True
                     while notUnique:
-                        newTile = (self.about["randomCoords"][self.about["turnNum"]][0], self.about["randomCoords"][self.about["turnNum"]][1]) #x,y
+                        newTile = random.choice(self.about["randomCoords"]) #x,y
                         if newTile not in self.about["chosenTiles"]:
                             notUnique = False
                 else:
                     newTile = self.about["tileOverride"]
                     self.about["tileOverride"] = False
+                self.about["randomCoords"].remove(newTile)
                 self.about["chosenTiles"][self.about["turnNum"]] = newTile
                 x = newTile[0]
                 y = newTile[1]
@@ -439,11 +440,7 @@ class clientHandler():
                 return None
     
     def tileChoice(self, whatHappened):
-        options = []
-        for x in range(self.game.about["gridDim"][0]):
-            for y in range(self.game.about["gridDim"][1]):
-                if (x,y) not in self.game.about["chosenTiles"]: 
-                    options.append((x,y))
+        options = self.game.about["randomCoords"]
         
         #if self.about["type"] == "AI":
         if True:

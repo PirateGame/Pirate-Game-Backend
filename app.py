@@ -230,8 +230,8 @@ def getEvent():
             #print(tiles)
             for turn in tiles:
                 ids.append((tiles[turn][0] * width) + tiles[turn][1])
-            print("AMOUNT OF IDS", len(ids))
-            print(ids)
+            #print("AMOUNT OF IDS", len(ids))
+            #print(ids)
             #except IndexError:
                 ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
                 #data = ({"error": "Game Not Started Yet"})
