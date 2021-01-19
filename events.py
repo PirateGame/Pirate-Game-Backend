@@ -95,7 +95,7 @@ class gameEventHandler():
                 if event["event"] == "end":
                     out.append("~THE GAME HAS ENDED~")
                 if event["event"] == "leaderboard":
-                    out.append("Leaderboard:", event["other"])
+                    out.append("Leaderboard: " + str(event["other"]))
                 if event["event"] == "delete":
                     out.append("~THE GAME HAS BEEN DELETED")
             elif ownerClass == "clientHandler":
@@ -151,7 +151,7 @@ class gameEventHandler():
                 elif event["event"] == "E":
                     out.append(sourceStr + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "F":
-                    out.append(sourceStr + " chose the next tile: " + str(event["other"][0]))
+                    out.append(sourceStr + " chose the next tile: " + str((event["other"][0][0] + 1, event["other"][0][0] + 1)))
                 else:
                     out.append(sourceStr + " " + self.eventSentenceFillers[str(event["event"])] + " " + targetStr + mirrorStr + shieldStr)
         return out

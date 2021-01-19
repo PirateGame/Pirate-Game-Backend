@@ -1,4 +1,4 @@
-import random, string, time, os
+import random, string, time, os, ast
 import numpy as np
 import grid
 import time
@@ -313,7 +313,8 @@ class gameHandler():
             else:
                 self.about["handleNum"] += 1
             self.writeAboutToBoards()
-        else:
+        elif self.about["turnNum"] == (self.about["gridDim"][0] * self.about["gridDim"][1]):
+            self.about["turnNum"] += 1
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
             self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
@@ -421,6 +422,8 @@ class clientHandler():
                 return None
     
     def victimChoice(self, whatHappened):
+        if len(self.game.about["clients"]) == 1:
+            return "Not enough clients"
         self.victimChoiceWrapper = {}
         options = []
         for clientName in self.game.about["clients"]:
@@ -452,7 +455,10 @@ class clientHandler():
             return random.choice(options)
         elif self.about["type"] == "human":
             if len(self.about["FRONTresponses"]) > 0:
-                return self.deQueueResponses()
+                out = self.deQueueResponses()
+                print(out)
+                print(ast.literal_eval(out))
+                return ast.literal_eval(out)
             if len(self.about["FRONTquestions"]) == 0:
                 self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile on the grid should be next turn's?"]})
                 return None
@@ -487,6 +493,8 @@ class clientHandler():
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("A", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "robs", self.game.about["clients"][choice].about["name"])
+            elif choice == "Not enough clients":
+                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "B": #B - Kill
@@ -495,6 +503,8 @@ class clientHandler():
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("B", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "kills", self.game.about["clients"][choice].about["name"])
+            elif choice == "Not enough clients":
+                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "C": #C - Present (Give someone 1000 of YOUR OWN cash)
@@ -503,6 +513,8 @@ class clientHandler():
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("C", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "gifts", self.game.about["clients"][choice].about["name"])
+            elif choice == "Not enough clients":
+                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
@@ -524,6 +536,8 @@ class clientHandler():
                 self.about["events"].append(self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice].about["money"]]})) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("E", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
+            elif choice == "Not enough clients":
+                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "F": #F - Choose Next Square
