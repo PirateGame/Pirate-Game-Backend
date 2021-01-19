@@ -718,8 +718,10 @@ def gameInfo(gameName): #gameInfo("testGame")["about"]["admins"]
 
 def pause(gameName):
     games[gameName].about["status"].append("paused")
+    games[gameName].about["eventHandler"].make({"owner":games[gameName], "public":True, "event":"pause", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
 def resume(gameName):
     games[gameName].about["status"].append(games[gameName].about["status"][-2])
+    games[gameName].about["eventHandler"].make({"owner":games[gameName], "public":True, "event":"resume", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
 
 #get the info of a client by name and game name
 def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) returns {"about":about}

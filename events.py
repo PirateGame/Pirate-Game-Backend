@@ -92,6 +92,10 @@ class gameEventHandler():
                     out.append("~NEW TURN: " + turnStr + "~")
                 if event["event"] == "start":
                     out.append("~THE GAME HAS STARTED~")
+                if event["event"] == "pause":
+                    out.append("~PAUSED~")
+                if event["event"] == "resume":
+                    out.append("~RESUMED~")
                 if event["event"] == "end":
                     out.append("~THE GAME HAS ENDED~")
                 if event["event"] == "leaderboard":
