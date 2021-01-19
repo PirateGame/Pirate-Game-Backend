@@ -488,32 +488,32 @@ class clientHandler():
     def act(self, whatHappened): 
         if whatHappened == "A": #A - Rob
             choice = self.victimChoice(whatHappened)
-            if choice != None:
+            if choice == "Not enough clients":
+                pass
+            elif choice != None:
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("A", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "robs", self.game.about["clients"][choice].about["name"])
-            elif choice == "Not enough clients":
-                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "B": #B - Kill
             choice = self.victimChoice(whatHappened)
-            if choice != None:
+            if choice == "Not enough clients":
+                pass
+            elif choice != None:
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("B", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "kills", self.game.about["clients"][choice].about["name"])
-            elif choice == "Not enough clients":
-                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "C": #C - Present (Give someone 1000 of YOUR OWN cash)
             choice = self.victimChoice(whatHappened)
-            if choice != None:
+            if choice == "Not enough clients":
+                pass
+            elif choice != None:
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("C", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "gifts", self.game.about["clients"][choice].about["name"])
-            elif choice == "Not enough clients":
-                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "D": #D - Skull and Crossbones (Wipe out (Number of players)/3 people)
@@ -531,12 +531,12 @@ class clientHandler():
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "E": #E - Swap
             choice = self.victimChoice(whatHappened)
-            if choice != None:
+            if choice == "Not enough clients":
+                pass
+            elif choice != None:
                 self.about["events"].append(self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice].about["money"]]})) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("E", self) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
-            elif choice == "Not enough clients":
-                pass
             else:
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "F": #F - Choose Next Square
@@ -968,7 +968,7 @@ if __name__ == "__main__":
         gridDim = (7,7)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
-        admins = [{"name":"Jamie", "type":"human"}] #this person is auto added.
+        admins = [{"name":"Jamie", "type":"AI"}] #this person is auto added.
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
         playerCap = 5
@@ -980,12 +980,12 @@ if __name__ == "__main__":
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
-        clients = [{"name":"Tom", "type":"human"}, {"name":"Alex", "type":"human"}] #Player name, then info about them which currently consists of whether they're playing.
-        print("joining clients to the lobby", joinLobby(gameName=gameName, clients=clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+        #clients = [{"name":"Tom", "type":"human"}, {"name":"Alex", "type":"human"}] #Player name, then info about them which currently consists of whether they're playing.
+        #print("joining clients to the lobby", joinLobby(gameName=gameName, clients=clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
-        clients = [{"name":"Jamie", "type":"human"}] #This is to verify that duplicate usernames aren't allowed.
-        print("joining a dupe client to the lobby", joinLobby(gameName=gameName, clients=clients))
+        #clients = [{"name":"Jamie", "type":"human"}] #This is to verify that duplicate usernames aren't allowed.
+        #print("joining a dupe client to the lobby", joinLobby(gameName=gameName, clients=clients))
 
 
         #Kicking one of the imaginary players. (regardless of whether the game is in lobby or cycling turns)
@@ -996,7 +996,7 @@ if __name__ == "__main__":
         shallIContinue = input()
 
         start(gameName)
-        while status(gameName) != "awaiting" and gameInfo(gameName)["about"]["turnNum"] < turnCount + 1: #Simulate the frontend calling the new turns over and over.
+        while status(gameName) != "dormant": #Simulate the frontend calling the new turns over and over.
             #shallIContinue = input()
             if status(gameName) != "awaiting":
                 turnHandle(gameName)
