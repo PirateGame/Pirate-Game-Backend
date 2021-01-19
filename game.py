@@ -172,8 +172,13 @@ class gameHandler():
         out = []
         for i in range(len(clients)):
             if clients[i]["name"] == "":
-                clients[i]["name"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
-            nameCheck = nameFilter.checkString(self.about["clients"].keys(), clients[i]["name"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
+                nameCheck = "bla"
+                while nameCheck != None:
+                    temp = ''.join(random.choice(string.ascii_letters) for x in range(6))
+                    nameCheck = nameFilter.checkString(self.about["clients"].keys(), temp, self.about["nameNaughtyFilter"], self.about["nameUniqueFilter"])
+                clients[i]["name"] = temp
+            else:
+                nameCheck = nameFilter.checkString(self.about["clients"].keys(), clients[i]["name"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
             if nameCheck == None: #(no problems with the name)
                 if len(self.about["clients"].items()) < self.about["playerCap"]:
                     #if self.about["status"] == "lobby":
@@ -313,6 +318,7 @@ class gameHandler():
             self.debugPrint(str(self.about["name"]) + " @@@ Game over.")
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
             self.about["eventHandler"].make({"owner":self, "public":True, "event":"end", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+            self.about["eventHandler"].make({"owner":self, "public":True, "event":"leaderboard", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[leaderboard(self.about["name"])]}) #EVENT HANDLER
             #if not self.about["isSim"]:
                 #deleteGame([self.about["name"]])
 
@@ -357,11 +363,10 @@ class clientHandler():
     
     def FRONTresponse(self, choice):
         self.about["FRONTresponses"].append(choice)
-        print("Response received:", choice, "to question:", self.about["FRONTquestions"][-1])
+        self.game.debugPrint("Response received: " + choice + " to question: " + str(self.about["FRONTquestions"][-1]))
         del self.about["FRONTquestions"][-1]
     
     def deQueueResponses(self):
-        print("deQueueResponses")
         whatIsDeleted = self.about["FRONTresponses"][-1]
         del self.about["FRONTresponses"][-1]
         return whatIsDeleted
@@ -440,7 +445,7 @@ class clientHandler():
                 return None
     
     def tileChoice(self, whatHappened):
-        options = self.game.about["randomCoords"]
+        options = [str(i) for i in self.game.about["randomCoords"]]
         
         if self.about["type"] == "AI":
         #if True:
@@ -449,7 +454,7 @@ class clientHandler():
             if len(self.about["FRONTresponses"]) > 0:
                 return self.deQueueResponses()
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":[options], "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile on the grid should be next turn's?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile on the grid should be next turn's?"]})
                 return None
             else:
                 return None
@@ -648,12 +653,19 @@ def listGames():
     return games
 
 def makeGame(about, overwriteAbout = None):
-    if about["gameName"] == "":
-        about["gameName"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
     for i in range(len(about["admins"])):
         if about["admins"][i]["name"] == "":
-            about["admins"][i]["name"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
-    nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
+            nameCheck = "bla"
+            while nameCheck != None:
+                about["admins"][i]["name"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
+                nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = about["nameNaughtyFilter"], nameUniqueFilter = about["nameUniqueFilter"])
+    if about["gameName"] == "":
+        nameCheck = "bla"
+        while nameCheck != None:
+            about["gameName"] = ''.join(random.choice(string.ascii_letters) for x in range(6))
+            nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = about["nameNaughtyFilter"], nameUniqueFilter = about["nameUniqueFilter"])
+    else:
+        nameCheck = nameFilter.checkString(games.keys(), about["gameName"], nameNaughtyFilter = about["nameNaughtyFilter"], nameUniqueFilter = about["nameUniqueFilter"])
     if nameCheck == None:
         g = gameHandler(about, overwriteAbout)
         games[about["gameName"]] = g

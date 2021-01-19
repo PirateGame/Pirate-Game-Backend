@@ -94,7 +94,9 @@ class gameEventHandler():
                     out.append("~THE GAME HAS STARTED~")
                 if event["event"] == "end":
                     out.append("~THE GAME HAS ENDED~")
-                if event["event"] == "end":
+                if event["event"] == "leaderboard":
+                    out.append("Leaderboard:", event["other"])
+                if event["event"] == "delete":
                     out.append("~THE GAME HAS BEEN DELETED")
             elif ownerClass == "clientHandler":
                 targetLst = []
@@ -145,6 +147,7 @@ class gameEventHandler():
                         out.append(sourceStr + " gave a present of " + str(event["other"][0]) + str(" to ") + targetStr + mirrorStr + shieldStr)
                     else:
                         out.append(sourceStr + " tried to give a present to " + targetStr + mirrorStr + shieldStr)
+                        #out.append(sourceStr + " tried to give a present of", event["other"], to " + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "E":
                     out.append(sourceStr + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "F":
