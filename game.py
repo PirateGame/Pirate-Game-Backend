@@ -231,7 +231,7 @@ class gameHandler():
         self.about["randomCoords"] = []
         for x in range(self.about["gridDim"][0]):
             for y in range(self.about["gridDim"][1]):
-                self.about["randomCoords"].append((x,y))
+                self.about["randomCoords"].append([x,y])
         random.shuffle(self.about["randomCoords"])
         self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
         self.debugPrintBoards()
@@ -287,11 +287,7 @@ class gameHandler():
         if self.about["status"][-1] != "dormant" and self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
             if self.about["turnNum"] not in self.about["chosenTiles"].keys():
                 if self.about["tileOverride"] == False:
-                    notUnique = True
-                    while notUnique:
-                        newTile = random.choice(self.about["randomCoords"]) #x,y
-                        if newTile not in self.about["chosenTiles"]:
-                            notUnique = False
+                    newTile = random.choice(self.about["randomCoords"]) #x,y
                 else:
                     newTile = self.about["tileOverride"]
                     self.about["tileOverride"] = False
@@ -448,14 +444,17 @@ class clientHandler():
                 return None
     
     def tileChoice(self, whatHappened):
-        options = [str(i) for i in self.game.about["randomCoords"]]
+        optionsA = self.game.about["randomCoords"]
+        options = [str([j + 1 for j in i]) for i in self.game.about["randomCoords"]]
         
         if self.about["type"] == "AI":
         #if True:
-            return random.choice(options)
+            return random.choice(optionsA)
         elif self.about["type"] == "human":
             if len(self.about["FRONTresponses"]) > 0:
                 out = self.deQueueResponses()
+                out = ast.literal_eval(out)
+                out = [j - 1 for j in out]
                 #print(out)
                 #print(ast.literal_eval(out))
                 return ast.literal_eval(out)
@@ -973,8 +972,8 @@ if __name__ == "__main__":
         gameName = "Test-Game " + str(time.time())[-6:]
         turnTime = 30
         playerCap = 5
-        nameNaughtyFilter = 0
-        nameUniqueFilter = 0
+        nameNaughtyFilter = None
+        nameUniqueFilter = None
 
         #Setting up a test game
         about = {"gameName":gameName, "quickplay":False, "isSim":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
