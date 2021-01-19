@@ -458,7 +458,7 @@ class clientHandler():
                 return None
     
     def actHandle(self):
-        #print("ACT HANDLE CALLED FOR", self.about["name"], "WITH QUEUES", self.about["actQueue"], self.about["beActedOnQueue"])
+        #print("ACT HANDLE CALLED FOR", self.about["name"], "WITH QUEUES", self.about["actQueue"], self.about["beActedOnQueue"])#
         if len(self.about["actQueue"]) > 0:
             self.act(self.about["actQueue"][0])
             del self.about["actQueue"][0]
