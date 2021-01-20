@@ -445,6 +445,8 @@ class clientHandler():
     
     def tileChoice(self, whatHappened):
         optionsA = self.game.about["randomCoords"]
+        if len(optionsA) == 0:
+            return "Last turn"
         options = [str([j + 1 for j in i]) for i in self.game.about["randomCoords"]]
         
         if self.about["type"] == "AI":
@@ -541,6 +543,8 @@ class clientHandler():
                 self.about["actQueue"].append(whatHappened)
         if whatHappened == "F": #F - Choose Next Square
             choice = self.tileChoice(whatHappened)
+            if choice == "Last turn":
+                pass
             if choice != None:
                 self.game.about["tileOverride"] = choice
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
