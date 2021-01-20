@@ -650,7 +650,7 @@ class clientHandler():
                 self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
         if whatHappened == "E":
             choice = self.responseChoice(whatHappened)
-            elif choice == "1":
+            if choice == "1":
                 self.about["money"], self.game.about["clients"][sender.about["name"]].about["money"] = self.game.about["clients"][sender.about["name"]].about["money"], self.about["money"]
             elif choice == "2":
                 self.about["shield"] -= 1
