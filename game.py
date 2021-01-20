@@ -649,7 +649,16 @@ class clientHandler():
             if choice != None:
                 self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
         if whatHappened == "E":
-            self.about["money"], self.game.about["clients"][sender.about["name"]].about["money"] = self.game.about["clients"][sender.about["name"]].about["money"], self.about["money"]
+            choice = self.responseChoice(whatHappened)
+            elif choice == "1":
+                self.about["money"], self.game.about["clients"][sender.about["name"]].about["money"] = self.game.about["clients"][sender.about["name"]].about["money"], self.about["money"]
+            elif choice == "2":
+                self.about["shield"] -= 1
+                self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
+            elif choice == "3":
+                self.about["mirror"] -= 1
+                self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]}) #EVENT HANDLER
+                self.game.about["clients"][sender.about["name"]].beActedOn("C", self)
     
     def forceActedOn(self, whatHappened):
         if whatHappened == "D":
