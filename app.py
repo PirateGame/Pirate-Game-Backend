@@ -11,9 +11,9 @@ app = Flask(__name__)
 app = Flask(__name__)
 
 #Bootstrap old games
-print("Shall I purge bootstrapped games? (y/)")
+print("Input enter to purge, other input will mean bootstrapped games won't be purged.")
 shallI = str(input())
-if shallI == "y":
+if shallI == "":
     game.bootstrap({"purge":True})
 else:
     game.bootstrap({"purge":False})
@@ -45,12 +45,17 @@ def createGame():
     isPlaying = data["isHostPlaying"]
     playerCap = 12 #DEFAULT (must be the same as what's on the website)
     debug=True
+    gridDim = (Sizex, Sizey)
+    #This sets the standard decision time
+    turnTime = 30
+    nameUniqueFilter = None
+    nameNaughtyFilter = None
+    quickplay = True
 
     if gameName is None:
         gameName = ''
     if ownerName is None:
         ownerName = ''
-
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
@@ -61,18 +66,10 @@ def createGame():
             data = {"error": "Your name can only contain letters"}
             return jsonify(data)
 
-    gridDim = (Sizex, Sizey)
-    #This sets the standard decision time
-    turnTime = 30
-
-    nameUniqueFilter = None
-    nameNaughtyFilter = None
-
-    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "isSim":False, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "isSim":False, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
     if not isPlaying:
         gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
-
-    out = game.makeGame(gameAbout)
+    out = game.makeGame(gameAbout) ###CREATING THE GAME.
     if not out:
         data = {"error": "could not create game"}
         return jsonify(data)
@@ -84,8 +81,6 @@ def createGame():
     
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
     return jsonify(data)
-
-
 
 #TODO this needs major fixing, check that game exists and playercap stuff
 @app.route('/api/join_game', methods=['POST'])
@@ -215,10 +210,9 @@ def getEvent():
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
         #print("unshownQuestions", questions)
 
-
-        if game.status(gameName) == "dormant":
-            data = ({"error": "game finished"})
-            return jsonify(data)
+        #if game.status(gameName) == "dormant":
+            #data = ({"error": "game finished"})
+            #return jsonify(data)
         if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
             tryNewTurn(gameName)
             data = ({"error": "empty"})
@@ -233,8 +227,10 @@ def getEvent():
             width = game.gameInfo(gameName)["about"]["gridDim"][1]
             ids = []
             #print(tiles)
-            for i in range(len(tiles)):
-                ids.append((tiles[i][0] * width) + tiles[i][1])
+            for turn in tiles:
+                ids.append((tiles[turn][0] * width) + tiles[turn][1])
+            #print("AMOUNT OF IDS", len(ids))
+            #print(ids)
             #except IndexError:
                 ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
                 #data = ({"error": "Game Not Started Yet"})
@@ -445,7 +441,7 @@ def addAI():
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if game.joinLobby(gameName, [{"name":"", "type":"AI"}]):
+            if game.joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
                 data = ({"error": False})
                 return jsonify(data)
             else:
