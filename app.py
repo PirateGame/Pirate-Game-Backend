@@ -10,6 +10,8 @@ app = Flask(__name__)
 #Make the app
 app = Flask(__name__)
 
+print("Version 1.2")
+
 #Bootstrap old games
 print("Input enter to purge, other input will mean bootstrapped games won't be purged.")
 shallI = str(input())
