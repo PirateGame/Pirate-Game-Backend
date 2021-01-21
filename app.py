@@ -19,7 +19,11 @@ else:
     game.bootstrap({"purge":False})
 
 def auth(playerName, gameName, code):
-    secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
+    try:
+        secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
+    except Exception as e:
+        print("FAIL AUTH. exception:", e)
+        return False
     if code == secret:
         return True
     else:

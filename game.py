@@ -257,12 +257,12 @@ class gameHandler():
         random.shuffle(clientsShuffled)
         
         out = []
-
-        changes = [True for i in range(len(clientsShuffled))]
         a = {}
         b = {}
         j = True
-        while j or a != b:
+        log = []
+        while j or (a != b and log[-1]):
+            log.append(a != b)
             j = False
             for clientName in clientsShuffled:
                 a[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
@@ -646,11 +646,11 @@ class clientHandler():
             if choice == None:
                 self.about["beActedOnQueue"].append([whatHappened, sender])
             #self.about["events"].append(self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[sender], "isMirrored":True, "isShielded":False, "other":[]})) #EVENT HANDLER
-            if choice != None:
+            elif choice != None:
                 self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
         if whatHappened == "E":
             choice = self.responseChoice(whatHappened)
-            elif choice == "1":
+            if choice == "1":
                 self.about["money"], self.game.about["clients"][sender.about["name"]].about["money"] = self.game.about["clients"][sender.about["name"]].about["money"], self.about["money"]
             elif choice == "2":
                 self.about["shield"] -= 1
