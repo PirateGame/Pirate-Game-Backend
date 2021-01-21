@@ -456,7 +456,7 @@ class clientHandler():
             if len(self.about["FRONTresponses"]) > 0:
                 out = self.deQueueResponses()
                 out = ast.literal_eval(out)
-                out = [j - 1 for j in out]
+                out = [j - 1 for j in out][::-1]
                 #print(out)
                 #print(ast.literal_eval(out))
                 return out
