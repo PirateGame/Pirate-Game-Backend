@@ -362,11 +362,11 @@ class clientHandler():
     def FRONTresponse(self, choice):
         self.about["FRONTresponses"].append(choice)
         self.game.debugPrint("Response received: " + choice + " to question: " + str(self.about["FRONTquestions"][-1]))
-        del self.about["FRONTquestions"][-1]
+        del self.about["FRONTquestions"][0]
     
     def deQueueResponses(self):
-        whatIsDeleted = self.about["FRONTresponses"][-1]
-        del self.about["FRONTresponses"][-1]
+        whatIsDeleted = self.about["FRONTresponses"][0]
+        del self.about["FRONTresponses"][0]
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
