@@ -78,7 +78,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "events":[], "sims":[], "isSim":about["isSim"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":False, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "events":[], "sims":[], "isSim":about["isSim"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = events.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
         self.about["randomCoords"] = []
@@ -286,11 +286,11 @@ class gameHandler():
             raise Exception("The game is paused, which can't be handled.")
         if self.about["status"][-1] != "dormant" and self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
             if self.about["turnNum"] not in self.about["chosenTiles"].keys():
-                if self.about["tileOverride"] == False:
+                if self.about["tileOverride"] == None:
                     newTile = random.choice(self.about["randomCoords"]) #x,y
                 else:
                     newTile = self.about["tileOverride"]
-                    self.about["tileOverride"] = False
+                    self.about["tileOverride"] = None
                 self.about["randomCoords"].remove(newTile)
                 self.about["chosenTiles"][self.about["turnNum"]] = newTile
                 x = newTile[0]
@@ -346,6 +346,7 @@ class clientHandler():
         self.about["FRONTresponses"] = []
         self.about["FRONTquestions"] = []
 
+
     def buildRandomBoard(self):
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         gr = self.game.about["gridTemplate"].build()
@@ -370,6 +371,7 @@ class clientHandler():
     
     def makeQuestionToFRONT(self, question):
         self.game.debugPrint("A question has been raised. " + str(question))
+        question["timestamp"] = time.time()
         self.about["FRONTquestions"].append(question)
         print("the current questions for this client are", self.about["FRONTquestions"])
         self.game.about["status"][-1] = "awaiting"
