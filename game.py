@@ -463,7 +463,7 @@ class clientHandler():
                 #print(ast.literal_eval(out))
                 return out
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Which tile on the grid should be next turn's?"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Pick the next tile!"]})
                 return None
             else:
                 return None
@@ -547,8 +547,9 @@ class clientHandler():
             choice = self.tileChoice(whatHappened)
             if choice == "Last turn":
                 pass
-            if choice != None:
+            elif choice != None:
                 self.game.about["tileOverride"] = choice
+                print("TILE OVERRIDE SET")
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
                 #print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
             else:
@@ -975,6 +976,7 @@ def bootstrap(about):
 debug = True
 if __name__ == "__main__":
     bootstrap({"purge":True})
+    print("Note: this is not able to communicate with the live or local website!")
     print("Demo? (hit enter)")
     shallIDemo = input()
     demo = True

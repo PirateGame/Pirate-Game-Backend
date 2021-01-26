@@ -10,7 +10,10 @@ app = Flask(__name__)
 #Make the app
 app = Flask(__name__)
 
+print("-" * 50)
 print("Version 1.3 Main Development Branch")
+print("If the program crashes, check the known issues section on our Github. If the crash doesn't appear to be there, please add it!")
+print("-" * 50)
 
 #Bootstrap old games
 print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
