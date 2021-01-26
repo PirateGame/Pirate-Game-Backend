@@ -89,7 +89,7 @@ class gameEventHandler():
             turnStr = str(event["turnNum"] + 1)
             if ownerClass == "gameHandler":
                 if event["event"] == "newTurn":
-                    out.append("~NEW TURN: " + turnStr + "~")
+                    out.append("~TURN" + turnStr + "~")
                 if event["event"] == "start":
                     out.append("~THE GAME HAS STARTED~")
                 if event["event"] == "pause":
