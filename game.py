@@ -271,13 +271,13 @@ class gameHandler():
         for clientName in clientsShuffled:
             if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
                 return False
+        self.writeAboutToBoards()
         if False not in out:
             for clientName in clientsShuffled:
                 self.about["clients"][clientName].logScore()
             return True
         else:
             return False
-        self.writeAboutToBoards()
     
     def turnHandle(self):
         if self.about["turnNum"] < 0:
