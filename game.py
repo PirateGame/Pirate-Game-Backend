@@ -297,11 +297,11 @@ class gameHandler():
                 y = newTile[1]
                 BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
                 for clientName in list(self.about["clients"].keys()):
-                    tileForClient = BOARDS[self.about["name"]][1][clientName][x][y]
+                    tileForClient = BOARDS[self.about["name"]][1][clientName][y][x]
                     self.about["clients"][clientName].about["tileHistory"].append(tileForClient)
                     self.about["clients"][clientName].about["actQueue"].append(tileForClient)
                 self.about["eventHandler"].make({"owner":self, "public":True, "event":"newTurn", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.about["turnNum"]]}) #EVENT HANDLER
-                self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[0] + 1) + "," + str(newTile[1] + 1) + " ------------------------")
+                self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[1] + 1) + "," + str(newTile[0] + 1) + " ------------------------")
             if self.turnProcess():
                 if self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
                     self.about["turnNum"] += 1

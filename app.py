@@ -215,6 +215,8 @@ def getEvent():
     if auth(playerName, gameName, authCode):
         #print("all the events", game.filterEvents(gameName))
         unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
+        print(unshownEvents)
+
         #print("unshownEvents", unshownEvents)
         questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
         #print("unshownQuestions", questions)
@@ -228,6 +230,7 @@ def getEvent():
             return jsonify(data)
         else:
             descriptions = game.describeEvents(gameName, unshownEvents)
+            print(descriptions)
             timestamps = [event["timestamp"] for event in unshownEvents]
 
             questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
