@@ -269,7 +269,7 @@ class gameHandler():
                 out.append(self.about["clients"][clientName].actHandle())
                 b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
         for clientName in clientsShuffled:
-            if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0:
+            if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
                 return False
         if False not in out:
             for clientName in clientsShuffled:
@@ -319,6 +319,7 @@ class gameHandler():
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
             self.about["eventHandler"].make({"owner":self, "public":True, "event":"end", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["eventHandler"].make({"owner":self, "public":True, "event":"leaderboard", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[leaderboard(self.about["name"])]}) #EVENT HANDLER
+            deleteGame(self.about["name"])
             #if not self.about["isSim"]:
                 #deleteGame([self.about["name"]])
 
@@ -1027,7 +1028,7 @@ if __name__ == "__main__":
                 turnHandle(gameName)
                 #playerName = "Alex"
                 #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
-                print("~", status(gameName), "~")
+                print("~", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
             else:
                 for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
                     if len(obj.about["FRONTquestions"]) > 0:
@@ -1042,6 +1043,6 @@ if __name__ == "__main__":
         #print("Enter any key to delete the game...")
         #shallIContinue = input()
 
-        deleteGame([key for key in games])
+        #deleteGame([key for key in games])
         for i in range(3):
             print("")
