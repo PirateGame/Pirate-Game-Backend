@@ -473,16 +473,20 @@ def lobbyCheck():
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
+    
+    try:
+        if game.gameInfo(gameName)["about"]["turnNum"] != -1:
+            data = {"error": False, "state":"started"}
+            return jsonify(data)
 
-    if game.gameInfo(gameName)["about"]["turnNum"] != -1:
-        data = {"error": False, "state":"started"}
-        return jsonify(data)
-
-    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
-        data = {"error": False, "state":"ready"}
-        return jsonify(data)
-    else:
-        data = {"error": False, "state":"Waiting For Other Players"}
+        if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
+            data = {"error": False, "state":"ready"}
+            return jsonify(data)
+        else:
+            data = {"error": False, "state":"Waiting For Other Players"}
+            return jsonify(data)
+    except:
+        data = {"error": True, "state":""}
         return jsonify(data)
 
 if __name__ == "__main__":

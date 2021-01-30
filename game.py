@@ -296,7 +296,7 @@ class gameHandler():
                 x = newTile[0]
                 y = newTile[1]
                 BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
-                for clientName in list(self.about["clients"].keys()):
+                for clientName in self.about["clients"].keys():
                     tileForClient = BOARDS[self.about["name"]][1][clientName][y][x]
                     self.about["clients"][clientName].about["tileHistory"].append(tileForClient)
                     self.about["clients"][clientName].about["actQueue"].append(tileForClient)
@@ -306,6 +306,9 @@ class gameHandler():
                 if self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
                     self.about["turnNum"] += 1
                     self.about["handleNum"] = 0
+                    for clientName in self.about["clients"].keys():
+                        self.about["clients"][clientName].about["actQueue"] = []
+                        self.about["clients"][clientName].about["beActedOnQueue"] = []
             else:
                 self.about["handleNum"] += 1
             self.writeAboutToBoards()
@@ -549,7 +552,6 @@ class clientHandler():
                 pass
             elif choice != None:
                 self.game.about["tileOverride"] = choice
-                print("TILE OVERRIDE SET")
                 self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.game.about["tileOverride"]]}) #EVENT HANDLER
                 #print(self.game.about["name"], "@", self.about["name"], "chose the next square", (self.game.about["tileOverride"][0] + 1, self.game.about["tileOverride"][1] + 1))
             else:
