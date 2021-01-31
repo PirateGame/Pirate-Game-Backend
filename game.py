@@ -145,7 +145,7 @@ class gameHandler():
                     self.game.about["clients"][victim].beActedOn("D", self.about, time.time()) ###ACT
             
             elif len(whoShielded) > 1: #Shield
-                self.game.about["eventHandler"].make({"owner":random.choice(whoMirrored), "public":True, "event":event["event"], "sources":whoShielded, "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
+                self.about["eventHandler"].make({"owner":random.choice(whoMirrored), "public":True, "event":event["event"], "sources":whoShielded, "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
             
             else:
                 for clientName in self.about["tempGroupChoices"]:
@@ -1026,7 +1026,8 @@ debug = True
 if __name__ == "__main__":
     bootstrap({"purge":True})
     print("Note: this is not able to communicate with the live or local website!")
-    print("Demo? (hit enter)")
+    print("An infinite testbench will be run, if there is a turn processing problem it should halt after the predefined 'handleCap'.")
+    print("Commence? (hit enter)")
     shallIDemo = input()
     demo = True
     while demo:
