@@ -139,14 +139,14 @@ class gameHandler():
                     choice = event["sources"][0].about["column"]
                 else:
                     choice = event["sources"][0].about["row"]
-                victims = self.game.whoIsOnThatLine(rOrC, choice)
-                self.game.about["eventHandler"].make({"owner":random.choice(whoMirrored), "public":True, "event":event["event"], "sources":whoMirrored, "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":True, "isShielded":False, "other":[rOrC, choice]}) #EVENT HANDLER
+                print("THIS IS UNFINISHED.")
+                victims = self.whoIsOnThatLine(choice)
+                self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoMirrored)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoMirrored], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":True, "isShielded":False, "other":[rOrC, choice]}) #EVENT HANDLER
                 for victim in victims:
-                    self.game.about["clients"][victim].beActedOn("D", self.about, time.time()) ###ACT
+                    self.about["clients"][victim].beActedOn("D", self.about, time.time()) ###ACT
             
             elif len(whoShielded) > 1: #Shield
-                self.about["eventHandler"].make({"owner":random.choice(whoMirrored), "public":True, "event":event["event"], "sources":whoShielded, "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
-            
+                self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoShielded)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoShielded], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
             else:
                 for clientName in self.about["tempGroupChoices"]:
                     self.about["clients"][clientName].forceActedOn("D")
@@ -269,8 +269,8 @@ class gameHandler():
                 out.append(self.about["clients"][clientName].actHandle())
                 b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
         for clientName in clientsShuffled:
-            print(self.about["clients"][clientName].about["FRONTquestions"])
-            print(self.about["clients"][clientName].about["FRONTresponses"])
+            #print(self.about["clients"][clientName].about["FRONTquestions"])
+            #print(self.about["clients"][clientName].about["FRONTresponses"])
             if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
                 return False
         self.writeAboutToBoards()
@@ -368,19 +368,19 @@ class clientHandler():
     def FRONTresponse(self, choice):
         self.about["FRONTresponses"].append(choice)
         self.game.debugPrint("'" + choice + "' received for question: " + str(self.about["FRONTquestions"][-1]))
-        print("FRONTresponse")
-        print(self.about["FRONTquestions"])
-        print(self.about["actQueue"])
-        print(self.about["beActedOnQueue"])
+        #print("FRONTresponse")
+        #print(self.about["FRONTquestions"])
+        #print(self.about["actQueue"])
+        #print(self.about["beActedOnQueue"])
         #del self.about["FRONTquestions"][0]
     
     def deQueueResponse(self):
         whatIsDeleted = self.about["FRONTresponses"][0]
-        print("DEQUEUE RESPONSE:", self.about["FRONTresponses"][0])
-        print(self.about["FRONTquestions"])
+        #print("DEQUEUE RESPONSE:", self.about["FRONTresponses"][0])
+        #print(self.about["FRONTquestions"])
         del self.about["FRONTresponses"][0]
         del self.about["FRONTquestions"][0]
-        print(self.about["FRONTquestions"])
+        #print(self.about["FRONTquestions"])
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
@@ -426,7 +426,7 @@ class clientHandler():
             options = [self.responseChoiceWrapper[option] for option in options]
             #if len(options) == 1:
                 #return options[0]
-            print("FRONTRESPONSES", self.about["FRONTresponses"])
+            #print("FRONTRESPONSES", self.about["FRONTresponses"])
             if len(self.about["FRONTresponses"]) > 0:
                 return self.responseChoiceWrapperInv[self.deQueueResponse()]
             elif len(self.about["FRONTquestions"]) == 0:
@@ -1022,19 +1022,20 @@ def bootstrap(about):
 # -----------------------------
 
 # MAIN THREAD
-debug = True
 if __name__ == "__main__":
+    debug = False
     bootstrap({"purge":True})
+    print("! TESTBENCH !")
     print("Note: this is not able to communicate with the live or local website!")
     print("An infinite testbench will be run, if there is a turn processing problem it should halt after the predefined 'handleCap'.")
     print("Commence? (hit enter)")
     shallIDemo = input()
     demo = True
+    c = 0
+    d = 0
     while demo:
-        print("DEMO.")
-
         #Let's set up a few variables about our new test game...
-        gridDim = (7,7)
+        gridDim = (15,15)
         gridSize = gridDim[0] * gridDim[1]
         turnCount = gridSize + 1 #maximum of gridSize + 1
         admins = [{"name":"Jamie", "type":"AI"}] #this person is auto added.
@@ -1050,7 +1051,8 @@ if __name__ == "__main__":
 
         #Adding each of the imaginary players to the lobby sequentially.
         clients = [{"name":"Tom", "type":"human"}, {"name":"Alex", "type":"human"}] #Player name, then info about them which currently consists of whether they're playing.
-        print("joining clients to the lobby", joinLobby(gameName=gameName, clients=clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
+        joinLobby(gameName=gameName, clients=clients)
+        #print("joining clients to the lobby", joinLobby(gameName=gameName, clients=clients)) #This will create all the new players listed above so they're part of the gameHandler instance as individual clientHandler instances.
         #In future, when a user decides they don't want to play but still want to be in a game, the frontend will have to communicate with the backend to tell it to replace the isPlaying attribute in self.game.about["clients"][client].about
         
         #clients = [{"name":"Jamie", "type":"human"}] #This is to verify that duplicate usernames aren't allowed.
@@ -1065,6 +1067,9 @@ if __name__ == "__main__":
         #shallIContinue = input()
 
         start(gameName)
+        c += 1
+        print("GAME NUMBER", c)
+        print("TOTAL TURNS TESTED", d)
         handleCap = 20
         while status(gameName) != "dormant" and gameInfo(gameName)["about"]["handleNum"] < handleCap: #Simulate the frontend calling the new turns over and over.
             #shallIContinue = input()
@@ -1072,7 +1077,7 @@ if __name__ == "__main__":
                 turnHandle(gameName)
                 #playerName = "Alex"
                 #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
-                print("~", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
+                print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
             else:
                 for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
                     if len(obj.about["FRONTquestions"]) > 0:
@@ -1092,5 +1097,6 @@ if __name__ == "__main__":
         #shallIContinue = input()
 
         deleteGame([key for key in games])
+        d += gridDim[0] * gridDim[1]
         for i in range(3):
             print("")
