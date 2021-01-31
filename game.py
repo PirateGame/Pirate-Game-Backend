@@ -380,6 +380,7 @@ class clientHandler():
         print(self.about["FRONTquestions"])
         del self.about["FRONTresponses"][0]
         del self.about["FRONTquestions"][0]
+        print(self.about["FRONTquestions"])
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
@@ -889,9 +890,15 @@ def randomiseBoard(gameName, clientName):
 def FRONTresponse(gameName, clientName, choice):
     games[gameName].about["clients"][clientName].FRONTresponse(choice)
     if games[gameName].about["status"][-1] != "paused":
-        if games[gameName].about["status"][-1] != "active":
+        p = []
+        for clientNa, obj in gameInfo(gameName)["about"]["clients"].items():
+            if clientName != clientNa and len(obj.about["FRONTquestions"]) > 0:
+                p.append(False)
+        if len(p) == 0 and games[gameName].about["status"][-1] != "active":
             games[gameName].about["status"].append("active")
         games[gameName].turnHandle()
+    else:
+        print("The response was recorded, but no turn processing was carried out due to the game being paused.")
 
 def filterClients(gameName, requirements, clients=[]):
     return games[gameName].filterClients(requirements, clients)
