@@ -710,7 +710,6 @@ class clientHandler():
         if whatHappened == "D":
             self.about["money"] = 0
 
-
 # .____ .     . __    _   ___   _______ _   ___   __    _   _____      .____   ___   .___           .    .___  .___ 
 # /     /     / |\   |  .'   \ '   /    | .'   `. |\   |   (           /     .'   `. /   \         /|    /   \ /   \
 # |__.  |     | | \  |  |          |    | |     | | \  |    `--.       |__.  |     | |__-'        /  \   |,_-' |,_-'
@@ -1011,7 +1010,6 @@ def bootstrap(about):
             debugPrint("@@@@ Failed to load games, so boards.npy was nuked.")
             BOARDS = {}
             np.save("boards.npy", BOARDS)
-
 
 # .___   .____  __   __   ___  
 # /   `  /      |    |  .'   `.
