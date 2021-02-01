@@ -141,16 +141,16 @@ class gameHandler():
                     choice = event["sources"][0].about["row"]
                 print("THIS IS UNFINISHED.")
                 victims = self.whoIsOnThatLine(choice)
-                self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoMirrored)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoMirrored], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":True, "isShielded":False, "other":[rOrC, choice]}) #EVENT HANDLER
+                self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoMirrored)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoMirrored], "targets":[self.about["clients"][victim] for victim in victims], "isMirrored":True, "isShielded":False, "other":[rOrC, choice]}) #EVENT HANDLER
                 for victim in victims:
-                    self.about["clients"][victim].beActedOn("D", self.about, time.time()) ###ACT
+                    self.about["clients"][victim].about["beActedOnQueue"].append(["D", self, time.time()]) ###DELAYED ACT
             
             elif len(whoShielded) > 1: #Shield
                 self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoShielded)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoShielded], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
             else:
                 for clientName in self.about["tempGroupChoices"]:
                     self.about["clients"][clientName].forceActedOn("D")
-            self.about["tempGroupChoices"] = {}
+        self.about["tempGroupChoices"] = {}
         self.writeAboutToBoards()
             
     def info(self):
