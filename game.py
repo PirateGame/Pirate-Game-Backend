@@ -407,7 +407,7 @@ class clientHandler():
                 return self.rOrCChoiceWrapperInv[self.deQueueResponse()]
             elif len(self.about["FRONTquestions"]) == 0:
                 options = [self.rOrCChoiceWrapper[option] for option in options]
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "queueType":queueType, "clientName": self.about["name"], "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"which team / ship do you want to attack?","Your captain is "+self.rOrCChoiceWrapper[self.about["column"]], "Your team is "+self.rOrCChoiceWrapper[self.about["row"]]]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "queueType":queueType, "clientName": self.about["name"], "options":options, "labels":["You landed on a " + str(self.game.about["eventHandler"].eventDescriptions[whatHappened]) + "action.","Which team / ship do you want to attack?","Your captain is "+self.rOrCChoiceWrapper[self.about["column"]], "Your team is "+self.rOrCChoiceWrapper[self.about["row"]]]})
                 return None
             else:
                 return None
@@ -454,9 +454,9 @@ class clientHandler():
             elif len(self.about["FRONTquestions"]) == 0:
                 options = [self.victimChoiceWrapper[option] for option in options]
                 if whatHappened == "C":
-                    self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "queueType":queueType, "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Who do you want to give a present to?"]})
+                    self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "queueType":queueType, "options":options, "labels":["You landed on a Present action.", "Who do you want to give a present to?"]})
                 else:
-                    self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "queueType":queueType, "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Who do you want to be your victim?"]})
+                    self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "queueType":queueType, "options":options, "labels":["You landed on a " + str(self.game.about["eventHandler"].eventDescriptions[whatHappened]) + " action.", "Who do you want to be your victim?"]})
                 return None
             else:
                 return None
@@ -477,7 +477,7 @@ class clientHandler():
                 #print(ast.literal_eval(out))
                 return out
             if len(self.about["FRONTquestions"]) == 0:
-                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "queueType":queueType, "options":options, "labels":[self.game.about["eventHandler"].eventDescriptions[whatHappened],"Pick the next tile!"]})
+                self.makeQuestionToFRONT({"gameName":self.game.about["name"], "clientName": self.about["name"], "queueType":queueType, "options":options, "labels":["Pick the next tile!"]})
                 return None
             else:
                 return None
@@ -687,6 +687,7 @@ class clientHandler():
                 if len(self.about["beActedOnQueue"]) > 0:
                     del self.about["beActedOnQueue"][0]
                 #self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
+                print(sender.about)
                 self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
             if choice == None:
                 self.about["beActedOnQueue"].append([whatHappened, sender, timestamp])
