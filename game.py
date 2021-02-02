@@ -78,7 +78,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "events":[], "sims":[], "isSim":about["isSim"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "sims":[], "isSim":about["isSim"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandler"] = events.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
         self.about["randomCoords"] = []
@@ -143,7 +143,7 @@ class gameHandler():
                 victims = self.whoIsOnThatLine(choice)
                 self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoMirrored)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoMirrored], "targets":[self.about["clients"][victim] for victim in victims], "isMirrored":True, "isShielded":False, "other":[rOrC, choice]}) #EVENT HANDLER
                 for victim in victims:
-                    self.about["clients"][victim].about["beActedOnQueue"].append(["D", self, time.time()]) ###DELAYED ACT
+                    self.about["clients"][victim].about["beActedOnQueue"].append(["D", self.about["clients"][random.choice(whoMirrored)], time.time()]) ###DELAYED ACT
             
             elif len(whoShielded) > 1: #Shield
                 self.about["eventHandler"].make({"owner":self.about["clients"][random.choice(whoShielded)], "public":True, "event":event["event"], "sources":[self.about["clients"][i] for i in whoShielded], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
@@ -687,7 +687,6 @@ class clientHandler():
                 if len(self.about["beActedOnQueue"]) > 0:
                     del self.about["beActedOnQueue"][0]
                 #self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
-                print(sender.about)
                 self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
             if choice == None:
                 self.about["beActedOnQueue"].append([whatHappened, sender, timestamp])
