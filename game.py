@@ -893,7 +893,7 @@ def FRONTresponse(gameName, clientName, choice):
     if games[gameName].about["status"][-1] != "paused":
         p = []
         for clientNa, obj in gameInfo(gameName)["about"]["clients"].items():
-            if clientName != clientNa and len(obj.about["FRONTquestions"]) > 0:
+            if clientName != clientNa and len(obj.about["FRONTquestions"]) > 1:
                 p.append(False)
         if len(p) == 0 and games[gameName].about["status"][-1] != "active":
             games[gameName].about["status"].append("active")
