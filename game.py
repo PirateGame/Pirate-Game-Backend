@@ -688,7 +688,7 @@ class clientHandler():
                 if len(self.about["beActedOnQueue"]) > 0:
                     del self.about["beActedOnQueue"][0]
                 #self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
-                print(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + sender.about["name"] + '"' + ' in event["sourceNames"]']))[-1])
+                #print(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + sender.about["name"] + '"' + ' in event["sourceNames"]']))[-1])
                 self.game.groupDecisionAdd(self.about["name"], sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + sender.about["name"] + '"' + ' in event["sourceNames"]']))[-1], choice)
             if choice == None:
                 self.about["beActedOnQueue"].append([whatHappened, sender, timestamp])
