@@ -307,6 +307,8 @@ class gameHandler():
                 self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[1] + 1) + "," + str(newTile[0] + 1) + " ------------------------")
             if self.turnProcess():
                 if self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
+                    if games[gameName].about["status"][-1] != "active":
+                        games[gameName].about["status"].append("active")
                     self.about["turnNum"] += 1
                     self.about["handleNum"] = 0
                     for clientName in self.about["clients"].keys():
@@ -314,6 +316,8 @@ class gameHandler():
                         self.about["clients"][clientName].about["beActedOnQueue"] = []
             else:
                 self.about["handleNum"] += 1
+                if games[gameName].about["status"][-1] != "awaiting":
+                    games[gameName].about["status"].append("awaiting")
             self.writeAboutToBoards()
         elif self.about["turnNum"] == (self.about["gridDim"][0] * self.about["gridDim"][1]):
             self.about["turnNum"] += 1
@@ -390,8 +394,6 @@ class clientHandler():
 
         self.about["FRONTquestions"].append(question)
         #print("the current questions for this client are", self.about["FRONTquestions"])
-        if games[gameName].about["status"][-1] != "awaiting":
-            games[gameName].about["status"].append("awaiting")
 
     def rOrCChoice(self, whatHappened, queueType):
         self.rOrCChoiceWrapperInv = {"Jolly Rodger":"A", "Barnacle":"B", "Queen Anne's Revenge":"C", "Captain Hook":"0", "Blackbeard":"1", "Jack sparrow":"2"}
@@ -891,12 +893,6 @@ def randomiseBoard(gameName, clientName):
 def FRONTresponse(gameName, clientName, choice):
     games[gameName].about["clients"][clientName].FRONTresponse(choice)
     if games[gameName].about["status"][-1] != "paused":
-        p = []
-        for clientNa, obj in gameInfo(gameName)["about"]["clients"].items():
-            if clientName != clientNa and len(obj.about["FRONTquestions"]) > 1:
-                p.append(False)
-        if len(p) == 0 and games[gameName].about["status"][-1] != "active":
-            games[gameName].about["status"].append("active")
         games[gameName].turnHandle()
     else:
         print("The response was recorded, but no turn processing was carried out due to the game being paused.")
@@ -1073,16 +1069,19 @@ if __name__ == "__main__":
         handleCap = 20
         while status(gameName) != "dormant" and gameInfo(gameName)["about"]["handleNum"] < handleCap: #Simulate the frontend calling the new turns over and over.
             #shallIContinue = input()
-            if status(gameName) != "awaiting":
-                turnHandle(gameName)
+            #if status(gameName) != "awaiting":
                 #playerName = "Alex"
                 #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
-                print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
-            else:
-                for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
-                    if len(obj.about["FRONTquestions"]) > 0:
-                        choice = random.choice(obj.about["FRONTquestions"][0]["options"])
-                        FRONTresponse(gameName, clientName, choice)
+            #else:
+            tally = []
+            for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
+                if len(obj.about["FRONTquestions"]) > 0:
+                    choice = random.choice(obj.about["FRONTquestions"][0]["options"])
+                    FRONTresponse(gameName, clientName, choice)
+                    tally.append(1)
+            if 1 not in tally:
+                turnHandle(gameName)
+            print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
             #randomiseBoard(gameName, "Tom")
             #print("event log:", returnEvents(gameName, {"public":True}))
             #print("tom's serialised board:", serialReadBoard(gameName, "Tom"))
