@@ -134,6 +134,7 @@ class gameHandler():
                     whoShielded.append(key)
             
             if len(whoMirrored) > 1: #Mirror
+                print("GROUP MIRROR")
                 rOrC = event["other"][0]
                 if rOrC == 1:
                     choice = event["sources"][0].about["column"]
@@ -687,7 +688,8 @@ class clientHandler():
                 if len(self.about["beActedOnQueue"]) > 0:
                     del self.about["beActedOnQueue"][0]
                 #self.game.about["eventHandler"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[], "isMirrored":False, "isShielded":True, "other":[]}) #EVENT HANDLER
-                self.game.groupDecisionAdd(self.about["name"], sender.about["events"][-1], choice)
+                print(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + sender.about["name"] + '"' + ' in event["sourceNames"]']))[-1])
+                self.game.groupDecisionAdd(self.about["name"], sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + sender.about["name"] + '"' + ' in event["sourceNames"]']))[-1], choice)
             if choice == None:
                 self.about["beActedOnQueue"].append([whatHappened, sender, timestamp])
         if whatHappened == "E":
