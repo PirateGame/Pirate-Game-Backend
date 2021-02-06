@@ -185,81 +185,6 @@ def startGame(data):
         emit("response", data)
 
 
-def tryNewTurn(gameName):
-    rQ = game.getRemainingQuestions(gameName)
-    fE = game.filterEvents(gameName, {}, ['len(event["whoToShow"]) > 0'])
-    tN = game.gameInfo(gameName)["about"]["turnNum"]
-    if len(rQ) == 0 and len(fE) == 0 and tN != -1:
-        #print("Starting next round as all events have been shown and there are no remaining questions.")
-        game.turnHandle(gameName)
-        return True
-    else:
-        #print("A new turn can't be triggered as there are still questions to be answered or events to be shown.")
-        #print(rQ, fE, tN)
-        return False
-
-@socketio.on('getEvent')
-def getEvent(data):
-    gameName = data["gameName"]
-    playerName = data["playerName"]
-    authCode = data["authCode"]
-
-    if auth(playerName, gameName, authCode):
-        #print("all the events", game.filterEvents(gameName))
-        unshownEvents = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-        print(unshownEvents)
-
-        #print("unshownEvents", unshownEvents)
-        questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-        #print("unshownQuestions", questions)
-
-        #if game.status(gameName) == "dormant":
-            #data = ({"error": "game finished"})
-            #emit("response", data)
-        if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
-            tryNewTurn(gameName)
-            data = ({"error": "empty"})
-            emit("response", data)
-        else:
-            descriptions = game.describeEvents(gameName, unshownEvents)
-            print(descriptions)
-            timestamps = [event["timestamp"] for event in unshownEvents]
-
-            questions = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["FRONTquestions"]
-            
-            tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
-            width = game.gameInfo(gameName)["about"]["gridDim"][1]
-            ids = []
-            #print(tiles)
-            for turn in tiles:
-                ids.append((tiles[turn][0] * width) + tiles[turn][1])
-            #print("AMOUNT OF IDS", len(ids))
-            #print(ids)
-            #except IndexError:
-                ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
-                #data = ({"error": "Game Not Started Yet"})
-                #emit("response", data)
-
-            money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
-            bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
-            shield = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
-            mirror = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
-
-            #print("----------------EVENTS---------------------")
-            #for desc in descriptions:
-                #print(desc)
-            #print("----------------QUESTIONS------------------")
-            #for question in questions:
-                #print(question["labels"])
-            #print("-------------------------------------------")
-
-            data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
-            game.shownToClient(gameName, playerName, timestamps)
-            emit("response", data)
-    else:
-        data = ({"error": "Authentication failed"})
-        emit("response", data)
-
 @socketio.on('submitResponse')
 def submitResponse(data):
     gameName = data["gameName"]
@@ -470,5 +395,40 @@ def sendUpdateToClient(gameName, playerName, group, data):
         emit("event", data, room=game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
 
+def turnUpdate(gameName, playerName):
+
+    tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
+    width = game.gameInfo(gameName)["about"]["gridDim"][1]
+    ids = []
+    #print(tiles)
+    for turn in tiles:
+        ids.append((tiles[turn][0] * width) + tiles[turn][1])
+    
+    
+    money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
+    bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+    shield = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
+    mirror = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
+
+    Events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
+    descriptions = game.describeEvents(gameName, unshownEvents)
+    data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror, "events": descriptions}
+    
+    emit("turn", data, room=game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+
+
 if __name__ == "__main__":
     socketio.run(app, debug=True, host="localhost")
+
+"""def tryNewTurn(gameName):
+    rQ = game.getRemainingQuestions(gameName)
+    fE = game.filterEvents(gameName, {}, ['len(event["whoToShow"]) > 0'])
+    tN = game.gameInfo(gameName)["about"]["turnNum"]
+    if len(rQ) == 0 and len(fE) == 0 and tN != -1:
+        #print("Starting next round as all events have been shown and there are no remaining questions.")
+        game.turnHandle(gameName)
+        return True
+    else:
+        #print("A new turn can't be triggered as there are still questions to be answered or events to be shown.")
+        #print(rQ, fE, tN)
+        return False"""
