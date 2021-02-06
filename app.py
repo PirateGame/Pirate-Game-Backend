@@ -92,6 +92,9 @@ def createGame(data):
         gameName = out["gameName"]
         admins = out["admins"]
 
+    join_room(gameName)
+    game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["socket"] = request.sid
+
     authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
@@ -132,25 +135,6 @@ def joinGame(data):
         data = {"error": "Something went wrong"}
         emit("response", data)
 
-#TODO this needs to be made so that it knows when to update the player.
-@socketio.on('getPlayers')
-def getPlayers(data):
-    
-    gameName = data["gameName"]
-    session = game.gameInfo(gameName)
-    if session == False:
-        data = {"error": "game not found"}
-        emit("response", data)
-    
-    clientList = game.listClients(gameName)
-    toSend = []
-    for clientName,about in clientList.items():
-        text = str(about["type"]) + ": " + str(clientName)
-        toSend.append(text)
-    data = {"names":toSend}
-
-    data.update({"error": False})
-    emit("response", data)
 
 @socketio.on('getBarTiles')
 def getBarTiles(data): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
@@ -373,22 +357,7 @@ def getBoard(data):
         emit("response", data)
     
 
-@socketio.on('getGameState')
-def getGameState(data):
-    gameName = data["gameName"]
 
-    state = game.status(gameName)
-
-    data = {"error": False, "state":state}
-
-    #if player number == number of boards submitted then we should send a state of ready to the host.
-    #this will turn their start button from red to green, and allow them to press it.
-    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
-        data = {"error": False, "state":"ready"}
-        emit("response", data)
-    else:
-        data = data
-        emit("response", data)
 
 @socketio.on('amIHost')
 def amIHost(data):
@@ -455,11 +424,32 @@ def addAI(data):
         data = ({"error": "Authentication failed"})
         emit("response", data)
 
-@socketio.on('lobbyCheck')
-def lobbyCheck(data):
+
+
+#Functions that send the client data to update them.
+
+
+
+def sendPlayerListToClients(gameName,):
+    session = game.gameInfo(gameName)
+    if session == False:
+        data = {"error": "game not found"}
+        emit("response", data)
+    
+    clientList = game.listClients(gameName)
+    toSend = []
+    for clientName,about in clientList.items():
+        text = str(about["type"]) + ": " + str(clientName)
+        toSend.append(text)
+    data = {"names":toSend}
+
+    data.update({"error": False})
+    emit("response", data)
+
+
+
+def SendGameStatusToClient(gameName):
     gameName = data["gameName"]
-    playerName = data["playerName"]
-    authCode = data["authCode"]
 
     if game.gameInfo(gameName)["about"]["turnNum"] != -1:
         data = {"error": False, "state":"started"}
@@ -471,6 +461,28 @@ def lobbyCheck(data):
     else:
         data = {"error": False, "state":"Waiting For Other Players"}
         emit("response", data)
+
+
+#this should be combined into the above event
+@socketio.on('getGameState')
+def getGameState(data):
+    gameName = data["gameName"]
+
+    state = game.status(gameName)
+
+    data = {"error": False, "state":state}
+
+    #if player number == number of boards submitted then we should send a state of ready to the host.
+    #this will turn their start button from red to green, and allow them to press it.
+    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
+        data = {"error": False, "state":"ready"}
+        emit("response", data)
+    else:
+        data = data
+        emit("response", data)
+
+
+####GET EVENT OVERHALL####
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, host="localhost")
