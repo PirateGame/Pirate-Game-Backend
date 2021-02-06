@@ -36,7 +36,7 @@ class prettyPrinter():
         else:
             raise Exception("This case is not implemented...either both row_labels and col_labels must be given, or neither.")
 
-def debugPrint(message):
+def debugPrint(message, debug=False):
     if debug:
         print("~"*220)
         print("BACK:wrappers(debug):", message)
@@ -726,6 +726,17 @@ class clientHandler():
 ### and also the main thread, which includes demo code. ###
 # ------------------------------------------------------------------------------------------------------------------
 
+def checkGameState(gameName):
+    if gameInfo(gameName)["about"]["turnNum"] != -1:
+        data = {"error": False, "state":"started"}
+        SendGameStatusToClient(gameName, data)
+
+    if readyPerc(gameName) == 1 and status(gameName) != "active" and status(gameName) != "paused":
+        data = {"error": False, "state":"ready"}
+        SendGameStatusToClient(gameName, data)
+    else:
+        data = {"error": False, "state":"Waiting For Other Players"}
+        SendGameStatusToClient(gameName, data)
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def listGames():
@@ -1027,7 +1038,7 @@ def bootstrap(about):
 # -----------------------------
 
 # MAIN THREAD
-if __name__ == "__main__":
+def demo():
     debug = False
     bootstrap({"purge":True})
     print("! TESTBENCH !")
@@ -1109,6 +1120,14 @@ if __name__ == "__main__":
         for i in range(3):
             print("")
 
+
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -1116,24 +1135,12 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 #Make the app
 app = Flask(__name__)
 
-print("-" * 50)
-print("Version 2 Main Development Branch")
-print("If the program crashes, check the known issues section on our Github. If the crash doesn't appear to be there, please add it!")
-print("-" * 50)
-
-#Bootstrap old games
-print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
-shallI = str(input())
-if shallI == "":
-    game.bootstrap({"purge":True})
-else:
-    game.bootstrap({"purge":False})
 
 
 
 def auth(playerName, gameName, code):
     try:
-        secret = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
+        secret = clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
     except Exception as e:
         print("FAIL AUTH. exception:", e)
         return False
@@ -1144,7 +1151,7 @@ def auth(playerName, gameName, code):
         return False
 
 def isHost(gameName, playerName):
-    secret = game.gameInfo(gameName)["about"]["admins"][0]["name"]
+    secret = gameInfo(gameName)["about"]["admins"][0]["name"]
     if playerName == secret:
         return True
     else:
@@ -1193,7 +1200,7 @@ def createGame(data):
     gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "isSim":False, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
     if not isPlaying:
         gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
-    out = game.makeGame(gameAbout) ###CREATING THE GAME.
+    out = makeGame(gameAbout) ###CREATING THE GAME.
     if not out:
         data = {"error": "could not create game"}
         emit("response", data)
@@ -1204,7 +1211,7 @@ def createGame(data):
     join_room(gameName)
     alterClients(gameName, [ownerName], {"socket":request.sid})
 
-    authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
+    authcode = clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
     emit("response", data)
@@ -1235,8 +1242,8 @@ def joinGame(data):
             emit("response", data)
 
 
-    if game.joinLobby(gameName, [{"name":playerName, "type":"human"}]):
-        authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
+    if joinLobby(gameName, [{"name":playerName, "type":"human"}]):
+        authcode = clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         join_room(gameName)
         alterClients(gameName, [playerName], {"socket":request.sid})
         data = {"error": False, "authcode": authcode}
@@ -1251,16 +1258,16 @@ def getBarTiles(data): #This is used for building the list of tiles that are goi
     gameName = data["gameName"]
     playerName = data["playerName"]
         
-    data = game.gameInfo(gameName)["gridTemplate"]["tileNums"]
+    data = gameInfo(gameName)["gridTemplate"]["tileNums"]
     
-    return jsonify(game.serialReadBoard(gameName, playerName, positions=False))
+    return jsonify(serialReadBoard(gameName, playerName, positions=False))
 
 @socketio.on('getGridDim')
 def getGridDim(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
 
-    data = game.gameInfo(gameName)["about"]["gridDim"]
+    data = gameInfo(gameName)["about"]["gridDim"]
     out = {"x": data[0], "y": data[1]}
 
     return jsonify(out)
@@ -1273,8 +1280,8 @@ def startGame(data):
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if game.start(gameName):
-                game.turnHandle(gameName)
+            if start(gameName):
+                turnHandle(gameName)
                 data = ({"error":False})
                 emit("response", data)
             else:
@@ -1295,7 +1302,7 @@ def submitResponse(data):
     authCode = data["authCode"]
     choice = data["choice"]
 
-    game.FRONTresponse(gameName, playerName, choice)
+    FRONTresponse(gameName, playerName, choice)
 
     data = {"error": False}
     emit("response", data)
@@ -1313,7 +1320,7 @@ def modifyGame(data):
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            game.alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap})
+            alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap})
             data = ({"error": False})
             emit("response", data)
         else:
@@ -1335,8 +1342,8 @@ def setTeam(data):
     ship = ["A","B","C"][data["Ship"]]
 
     if auth(playerName, gameName, authCode):
-        game.alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
-        game.alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
+        alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
+        alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
         data = ({"error": False})
         emit("response", data)
     else:
@@ -1353,8 +1360,8 @@ def saveBoard(data):
     board = data["board"]
 
     if auth(playerName, gameName, authCode):
-        if game.serialWriteBoard(gameName, playerName, board):
-            game.readyUp(gameName, playerName)
+        if serialWriteBoard(gameName, playerName, board):
+            readyUp(gameName, playerName)
             data = {"error": False}
             emit("response", data)
         else:
@@ -1373,9 +1380,9 @@ def randomiseBoard(data):
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
-        game.randomiseBoard(gameName, playerName)
+        randomiseBoard(gameName, playerName)
 
-        board = game.serialReadBoard(gameName, playerName)
+        board = serialReadBoard(gameName, playerName)
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
@@ -1388,7 +1395,7 @@ def getBoard(data):
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
-        board = game.serialReadBoard(gameName, playerName)
+        board = serialReadBoard(gameName, playerName)
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
@@ -1425,7 +1432,7 @@ def kickPlayer(data):
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if game.leave(gameName, [playerToKick]):
+            if leave(gameName, [playerToKick]):
                 print("hopefully that kicked a player?")
                 data = ({"error": False})
                 emit("response", data)
@@ -1448,7 +1455,7 @@ def addAI(data):
     
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            if game.joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
+            if joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
                 data = ({"error": False})
                 emit("response", data)
             else:
@@ -1469,12 +1476,12 @@ def addAI(data):
 
 
 def sendPlayerListToClients(gameName):
-    session = game.gameInfo(gameName)
+    session = gameInfo(gameName)
     if session == False:
         data = {"error": "game not found"}
         emit("response", data, room=gameName)
     
-    clientList = game.listClients(gameName)
+    clientList = listClients(gameName)
     toSend = []
     for clientName,about in clientList.items():
         text = str(about["type"]) + ": " + str(clientName)
@@ -1486,17 +1493,8 @@ def sendPlayerListToClients(gameName):
 
 
 
-def SendGameStatusToClient(gameName):
-    if gameInfo(gameName)["about"]["turnNum"] != -1:
-        data = {"error": False, "state":"started"}
-        emit("status", data, room=gameName)
-
-    if readyPerc(gameName) == 1 and status(gameName) != "active" and status(gameName) != "paused":
-        data = {"error": False, "state":"ready"}
-        emit("status", data, room=gameName)
-    else:
-        data = {"error": False, "state":"Waiting For Other Players"}
-        emit("status", data, room=gameName)
+def SendGameStatusToClient(gameName, data):
+    emit("status", data, room=gameName)
 
 
 
@@ -1504,43 +1502,48 @@ def sendUpdateToClient(gameName, playerName, group, data):
     if group:
         emit("event", data, room=gameName)
     else:
-        emit("event", data, room=game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+        emit("event", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
 
 def turnUpdate(gameName, playerName):
 
-    tiles = game.gameInfo(gameName)["about"]["chosenTiles"]
-    width = game.gameInfo(gameName)["about"]["gridDim"][1]
+    tiles = gameInfo(gameName)["about"]["chosenTiles"]
+    width = gameInfo(gameName)["about"]["gridDim"][1]
     ids = []
     #print(tiles)
     for turn in tiles:
         ids.append((tiles[turn][0] * width) + tiles[turn][1])
     
     
-    money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
-    bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
-    shield = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
-    mirror = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
+    money = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
+    bank = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
+    shield = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
+    mirror = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
 
-    Events = game.sortEvents(gameName, "timestamp", game.filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-    descriptions = game.describeEvents(gameName, unshownEvents)
+    Events = sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
+    descriptions = describeEvents(gameName, unshownEvents)
     data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror, "events": descriptions}
     
-    emit("turn", data, room=game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+    emit("turn", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host="localhost")
+    print("-" * 50)
+    print("Version 2 Main Development Branch")
+    print("If the program crashes, check the known issues section on our Github. If the crash doesn't appear to be there, please add it!")
+    print("-" * 50)
 
-"""def tryNewTurn(gameName):
-    rQ = game.getRemainingQuestions(gameName)
-    fE = game.filterEvents(gameName, {}, ['len(event["whoToShow"]) > 0'])
-    tN = game.gameInfo(gameName)["about"]["turnNum"]
-    if len(rQ) == 0 and len(fE) == 0 and tN != -1:
-        #print("Starting next round as all events have been shown and there are no remaining questions.")
-        game.turnHandle(gameName)
-        return True
+    #Bootstrap old games
+    print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
+    shallI = str(input())
+    if shallI == "":
+        bootstrap({"purge":True})
     else:
-        #print("A new turn can't be triggered as there are still questions to be answered or events to be shown.")
-        #print(rQ, fE, tN)
-        return False"""
+        bootstrap({"purge":False})
+    print("do you want to run demo(d) or flask(f)")
+    ans = input()
+    if ans == 'f':
+        socketio.run(app, debug=True, host="localhost")
+    else:
+        demo()
