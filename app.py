@@ -50,7 +50,7 @@ def test_connect():
     emit('my response', {'data': 'Connected'})
 
 
-@socketio.on('create_game')
+@socketio.on('createGame')
 def createGame(data):
     print("create_game requested")
     gameName = data["gameName"]
@@ -98,7 +98,7 @@ def createGame(data):
     emit("response", data)
 
 
-@socketio.on('join_game')
+@socketio.on('joinGame')
 def joinGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
