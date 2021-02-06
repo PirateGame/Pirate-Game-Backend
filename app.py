@@ -444,7 +444,7 @@ def sendPlayerListToClients(gameName):
     session = game.gameInfo(gameName)
     if session == False:
         data = {"error": "game not found"}
-        emit("response", data)
+        emit("response", data, room=gameName)
     
     clientList = game.listClients(gameName)
     toSend = []
@@ -458,8 +458,7 @@ def sendPlayerListToClients(gameName):
 
 
 
-def SendGameStatusToClient(data, gameName):
-    emit("gameUpdate", data, room=gameName)
+def SendGameStatusToClient(gameName):
 
     if game.gameInfo(gameName)["about"]["turnNum"] != -1:
         data = {"error": False, "state":"started"}
