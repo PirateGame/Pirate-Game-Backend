@@ -14,7 +14,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 app = Flask(__name__)
 
 print("-" * 50)
-print("Version 1.3 Main Development Branch")
+print("Version 2 Main Development Branch")
 print("If the program crashes, check the known issues section on our Github. If the crash doesn't appear to be there, please add it!")
 print("-" * 50)
 
@@ -99,8 +99,7 @@ def createGame(data):
         admins = out["admins"]
 
     join_room(gameName)
-    game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["socket"] = request.sid
-    #alterClients(gameName, [clientName], {"socket":request.sid}) #USE THIS INSTEAD.
+    alterClients(gameName, [ownerName], {"socket":request.sid})
 
     authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
@@ -135,7 +134,8 @@ def joinGame(data):
 
     if game.joinLobby(gameName, [{"name":playerName, "type":"human"}]):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
-        print(playerName + " joined game " + gameName)
+        join_room(gameName)
+        alterClients(gameName, [playerName], {"socket":request.sid})
         data = {"error": False, "authcode": authcode}
         emit("response", data)
     else:
@@ -440,7 +440,7 @@ def addAI(data):
 
 
 
-def sendPlayerListToClients(gameName,):
+def sendPlayerListToClients(gameName):
     session = game.gameInfo(gameName)
     if session == False:
         data = {"error": "game not found"}
@@ -454,12 +454,12 @@ def sendPlayerListToClients(gameName,):
     data = {"names":toSend}
 
     data.update({"error": False})
-    emit("response", data)
+    emit("response", data, room=gameName)
 
 
 
-def SendGameStatusToClient(gameName):
-    gameName = data["gameName"]
+def SendGameStatusToClient(data, gameName):
+    emit("gameUpdate", data, room=gameName)
 
     if game.gameInfo(gameName)["about"]["turnNum"] != -1:
         data = {"error": False, "state":"started"}
@@ -475,8 +475,8 @@ def SendGameStatusToClient(gameName):
 
 #this should be combined into the above event
 @socketio.on('getGameState')
-def getGameState(data):
-    gameName = data["gameName"]
+def getGameState(data, gameName):
+    emit("gameUpdate", data, room=gameName)
 
     state = game.status(gameName)
 
@@ -492,7 +492,13 @@ def getGameState(data):
         emit("response", data)
 
 
-####GET EVENT OVERHALL####
+
+def sendUpdateToClient(gameName, playerName, group, data):
+    if group:
+        emit("event", data, room=gameName)
+    else:
+        emit("event", data, room=game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, host="localhost")
