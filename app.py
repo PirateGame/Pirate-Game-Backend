@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect
+from flask_socketio import SocketIO, emit
 import random, string
 import numpy as np
 import game
@@ -6,11 +7,10 @@ from game import gameHandler, clientHandler, prettyPrinter
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-#Make the app
-app = Flask(__name__)
-
-print("Version 1.2")
+print("Version 2")
 
 #Bootstrap old games
 print("Input enter to purge, other input will mean bootstrapped games won't be purged.")
@@ -19,6 +19,8 @@ if shallI == "":
     game.bootstrap({"purge":True})
 else:
     game.bootstrap({"purge":False})
+
+
 
 def auth(playerName, gameName, code):
     try:
@@ -39,11 +41,18 @@ def isHost(gameName, playerName):
     else:
         return False
 
-### ROUTES...
 
-@app.route('/api/create_game', methods=['POST'])
-def createGame():
-    data = request.get_json()
+### SOCKET ROUTES...
+
+@socketio.on('connect')
+def test_connect():
+    print("user has connected")
+    emit('my response', {'data': 'Connected'})
+
+
+@socketio.on('create_game')
+def createGame(data):
+    print("create_game requested")
     gameName = data["gameName"]
     ownerName = data["ownerName"]
     Sizex = int(data["Sizex"])
@@ -65,12 +74,12 @@ def createGame():
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
-            return jsonify(data)
+            emit("response", data)
 
     for char in ownerName:
         if char not in (string.ascii_letters + ' '):
             data = {"error": "Your name can only contain letters"}
-            return jsonify(data)
+            emit("response", data)
 
     gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "isSim":False, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
     if not isPlaying:
@@ -78,7 +87,7 @@ def createGame():
     out = game.makeGame(gameAbout) ###CREATING THE GAME.
     if not out:
         data = {"error": "could not create game"}
-        return jsonify(data)
+        emit("response", data)
     else:
         gameName = out["gameName"]
         admins = out["admins"]
@@ -86,53 +95,52 @@ def createGame():
     authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
-    return jsonify(data)
+    emit("response", data)
 
-#TODO this needs major fixing, check that game exists and playercap stuff
-@app.route('/api/join_game', methods=['POST'])
-def joinGame():
-    data = request.get_json()
+
+@socketio.on('join_game')
+def joinGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
 
 
     if len(gameName)<1:
         data = {"error": "Please enter a game name"}
-        return jsonify(data)
+        emit("response", data)
     if len(playerName)<1:
         data = {"error": "please enter a name"}
-        return jsonify(data)
+        emit("response", data)
 
 
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
-            return jsonify(data)
+            emit("response", data)
 
     for char in playerName:
         if char not in (string.ascii_letters + ' '):
             data = {"error": "Your name can only contain letters"}
-            return jsonify(data)
+            emit("response", data)
 
 
     if game.joinLobby(gameName, [{"name":playerName, "type":"human"}]):
         authcode = game.clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         print(playerName + " joined game " + gameName)
         data = {"error": False, "authcode": authcode}
-        return jsonify(data)
+        emit("response", data)
     else:
         data = {"error": "Something went wrong"}
-        return jsonify(data)
+        emit("response", data)
 
-@app.route('/api/getPlayers', methods=['POST'])
-def getPlayers():
+#TODO this needs to be made so that it knows when to update the player.
+@socketio.on('getPlayers')
+def getPlayers(data):
     
-    data = request.get_json()
     gameName = data["gameName"]
     session = game.gameInfo(gameName)
     if session == False:
         data = {"error": "game not found"}
-        return jsonify(data)
+        emit("response", data)
     
     clientList = game.listClients(gameName)
     toSend = []
@@ -142,11 +150,10 @@ def getPlayers():
     data = {"names":toSend}
 
     data.update({"error": False})
-    return jsonify(data)
+    emit("response", data)
 
-@app.route('/api/getBarTiles', methods=['POST'])
-def getBarTiles(): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
-    data = request.get_json()
+@socketio.on('getBarTiles')
+def getBarTiles(data): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
     gameName = data["gameName"]
     playerName = data["playerName"]
         
@@ -154,9 +161,8 @@ def getBarTiles(): #This is used for building the list of tiles that are going t
     
     return jsonify(game.serialReadBoard(gameName, playerName, positions=False))
 
-@app.route('/api/getGridDim', methods=['POST'])
-def getGridDim():
-    data = request.get_json()
+@socketio.on('getGridDim')
+def getGridDim(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
 
@@ -165,9 +171,8 @@ def getGridDim():
 
     return jsonify(out)
 
-@app.route('/api/startGame', methods=['POST'])
-def startGame():
-    data = request.get_json()
+@socketio.on('startGame')
+def startGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -177,16 +182,16 @@ def startGame():
             if game.start(gameName):
                 game.turnHandle(gameName)
                 data = ({"error":False})
-                return jsonify(data)
+                emit("response", data)
             else:
                 data = ({"error":"game not found"})
-                return jsonify(data)
+                emit("response", data)
         else:
             data = ({"error":"You can't do this"})
-            return jsonify(data)
+            emit("response", data)
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
 
 def tryNewTurn(gameName):
@@ -202,9 +207,8 @@ def tryNewTurn(gameName):
         #print(rQ, fE, tN)
         return False
 
-@app.route('/api/getEvent', methods=['POST'])
-def getEvent():
-    data = request.get_json()
+@socketio.on('getEvent')
+def getEvent(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -218,11 +222,11 @@ def getEvent():
 
         #if game.status(gameName) == "dormant":
             #data = ({"error": "game finished"})
-            #return jsonify(data)
+            #emit("response", data)
         if len(unshownEvents) == 0 and len(questions) == 0 and game.gameInfo(gameName)["about"]["turnNum"] > -1:
             tryNewTurn(gameName)
             data = ({"error": "empty"})
-            return jsonify(data)
+            emit("response", data)
         else:
             descriptions = game.describeEvents(gameName, unshownEvents)
             timestamps = [event["timestamp"] for event in unshownEvents]
@@ -240,7 +244,7 @@ def getEvent():
             #except IndexError:
                 ##this will happen if there are no tiles in the chosenTiles list, probably because the game hasn't started.
                 #data = ({"error": "Game Not Started Yet"})
-                #return jsonify(data)
+                #emit("response", data)
 
             money = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
             bank = game.clientInfo({"gameName":gameName, "clientName": playerName})["about"]["bank"]
@@ -257,14 +261,13 @@ def getEvent():
 
             data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
             game.shownToClient(gameName, playerName, timestamps)
-            return jsonify(data)
+            emit("response", data)
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
-@app.route('/api/submitResponse', methods=['POST'])
-def submitResponse():
-    data = request.get_json()
+@socketio.on('submitResponse')
+def submitResponse(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -273,11 +276,10 @@ def submitResponse():
     game.FRONTresponse(gameName, playerName, choice)
 
     data = {"error": False}
-    return jsonify(data)
+    emit("response", data)
 
-@app.route('/api/modifyGame', methods=['POST'])
-def modifyGame():
-    data = request.get_json()
+@socketio.on('modifyGame')
+def modifyGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -291,20 +293,19 @@ def modifyGame():
         if isHost(gameName, playerName):
             game.alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap})
             data = ({"error": False})
-            return jsonify(data)
+            emit("response", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            return jsonify(data)
+            emit("response", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
 
 #Set team/ship
-@app.route('/api/setTeam', methods=['POST'])
-def setTeam():
-    data = request.get_json()
+@socketio.on('setTeam')
+def setTeam(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -315,16 +316,15 @@ def setTeam():
         game.alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
         game.alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
         data = ({"error": False})
-        return jsonify(data)
+        emit("response", data)
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
     return
 
 
-@app.route('/api/saveBoard', methods=['POST'])
-def saveBoard():
-    data = request.get_json()
+@socketio.on('saveBoard')
+def saveBoard(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -334,19 +334,18 @@ def saveBoard():
         if game.serialWriteBoard(gameName, playerName, board):
             game.readyUp(gameName, playerName)
             data = {"error": False}
-            return jsonify(data)
+            emit("response", data)
         else:
 
             data = {"error": "board did not fit requirements"}
-            return jsonify(data)
+            emit("response", data)
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
 
-@app.route('/api/randomiseBoard', methods=['POST'])
-def randomiseBoard():
-    data = request.get_json()
+@socketio.on('randomiseBoard')
+def randomiseBoard(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -358,11 +357,10 @@ def randomiseBoard():
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
-@app.route('/api/getBoard', methods=['POST'])
-def getBoard():
-    data = request.get_json()
+@socketio.on('getBoard')
+def getBoard(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -372,12 +370,11 @@ def getBoard():
         return jsonify(board)
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
     
 
-@app.route('/api/getGameState', methods=['POST'])
-def getGameState():
-    data = request.get_json()
+@socketio.on('getGameState')
+def getGameState(data):
     gameName = data["gameName"]
 
     state = game.status(gameName)
@@ -388,14 +385,13 @@ def getGameState():
     #this will turn their start button from red to green, and allow them to press it.
     if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
         data = {"error": False, "state":"ready"}
-        return jsonify(data)
+        emit("response", data)
     else:
         data = data
-        return jsonify(data)
+        emit("response", data)
 
-@app.route('/api/amIHost', methods=['POST'])
-def amIHost():
-    data = request.get_json()
+@socketio.on('amIHost')
+def amIHost(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -403,19 +399,18 @@ def amIHost():
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
             data = ({"error": False})
-            return jsonify(data)
+            emit("response", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            return jsonify(data)
+            emit("response", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
 
-@app.route('/api/kickPlayer', methods=['POST'])
-def kickPlayer():
-    data = request.get_json()
+@socketio.on('kickPlayer')
+def kickPlayer(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -426,21 +421,20 @@ def kickPlayer():
             if game.leave(gameName, [playerToKick]):
                 print("hopefully that kicked a player?")
                 data = ({"error": False})
-                return jsonify(data)
+                emit("response", data)
             else:
                 data = ({"error": "Player kick failed"})
-                return jsonify(data)
+                emit("response", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            return jsonify(data)
+            emit("response", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
-@app.route('/api/addAI', methods=['POST'])
-def addAI():
-    data = request.get_json()
+@socketio.on('addAI')
+def addAI(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -449,35 +443,34 @@ def addAI():
         if isHost(gameName, playerName):
             if game.joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
                 data = ({"error": False})
-                return jsonify(data)
+                emit("response", data)
             else:
                 data = ({"error": "adding AI failed"})
-                return jsonify(data)
+                emit("response", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            return jsonify(data)
+            emit("response", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        return jsonify(data)
+        emit("response", data)
 
-@app.route('/api/lobbyCheck', methods=['POST'])
-def lobbyCheck():
-    data = request.get_json()
+@socketio.on('lobbyCheck')
+def lobbyCheck(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
 
     if game.gameInfo(gameName)["about"]["turnNum"] != -1:
         data = {"error": False, "state":"started"}
-        return jsonify(data)
+        emit("response", data)
 
     if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
         data = {"error": False, "state":"ready"}
-        return jsonify(data)
+        emit("response", data)
     else:
         data = {"error": False, "state":"Waiting For Other Players"}
-        return jsonify(data)
+        emit("response", data)
 
 if __name__ == "__main__":
-    app.run(debug=False, host="localhost")
+    socketio.run(app, debug=True, host="localhost")
