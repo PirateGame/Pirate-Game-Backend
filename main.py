@@ -1533,20 +1533,22 @@ def turnUpdate(gameName, playerName):
 
 if __name__ == "__main__":
     print("-" * 50)
-    print("Version 2 Main Development Branch")
+    print("Pirate Game 2.0 Early Development Branch")
     print("If the program crashes, check the known issues section on our Github. If the crash doesn't appear to be there, please add it!")
     print("-" * 50)
 
     #Bootstrap old games
     print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
-    shallI = str(input())
-    if shallI == "":
+    ans = str(input())
+    if ans == "":
         bootstrap({"purge":True})
     else:
         bootstrap({"purge":False})
-    print("do you want to run demo(d) or flask(f)")
-    ans = input()
-    if ans == 'f':
-        socketio.run(app, debug=True, host="localhost")
-    else:
-        demo()
+    ans = None
+    while ans not in ["f","d"]:
+        print("demo(d) or flask(f)?")
+        ans = input()
+        if ans == 'f':
+            socketio.run(app, debug=True, host="localhost")
+        elif ans == "d":
+            demo()
