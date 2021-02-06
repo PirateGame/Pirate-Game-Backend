@@ -458,37 +458,8 @@ def sendPlayerListToClients(gameName):
 
 
 
-def SendGameStatusToClient(gameName):
-
-    if game.gameInfo(gameName)["about"]["turnNum"] != -1:
-        data = {"error": False, "state":"started"}
-        emit("response", data)
-
-    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
-        data = {"error": False, "state":"ready"}
-        emit("response", data)
-    else:
-        data = {"error": False, "state":"Waiting For Other Players"}
-        emit("response", data)
-
-
-#this should be combined into the above event
-@socketio.on('getGameState')
-def getGameState(data, gameName):
-    emit("gameUpdate", data, room=gameName)
-
-    state = game.status(gameName)
-
-    data = {"error": False, "state":state}
-
-    #if player number == number of boards submitted then we should send a state of ready to the host.
-    #this will turn their start button from red to green, and allow them to press it.
-    if game.readyPerc(gameName) == 1 and game.status(gameName) != "active" and game.status(gameName) != "paused":
-        data = {"error": False, "state":"ready"}
-        emit("response", data)
-    else:
-        data = data
-        emit("response", data)
+def SendGameStatusToClient(gameName, data):
+    emit("status", data, room=gameName)
 
 
 

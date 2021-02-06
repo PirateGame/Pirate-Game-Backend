@@ -4,6 +4,7 @@ import grid
 import time
 import events
 import nameFilter
+import gameTOapp
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 games = {}
@@ -723,6 +724,18 @@ class clientHandler():
 ### and also the main thread, which includes demo code. ###
 # ------------------------------------------------------------------------------------------------------------------
 
+def checkGameState(gameName):
+    if gameInfo(gameName)["about"]["turnNum"] != -1:
+        data = {"error": False, "state":"started"}
+        gameTOapp.updateClientStatus(data)
+
+    if readyPerc(gameName) == 1 and status(gameName) != "active" and status(gameName) != "paused":
+        data = {"error": False, "state":"ready"}
+        gameTOapp.updateClientStatus(data)
+    else:
+        data = {"error": False, "state":"Waiting For Other Players"}
+        gameTOapp.updateClientStatus(data)
+
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def listGames():
     return games
@@ -780,9 +793,11 @@ def gameInfo(gameName): #gameInfo("testGame")["about"]["admins"]
 def pause(gameName):
     games[gameName].about["status"].append("paused")
     games[gameName].about["eventHandler"].make({"owner":games[gameName], "public":True, "event":"pause", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+    checkGameState(gameName)
 def resume(gameName):
     games[gameName].about["status"].append(games[gameName].about["status"][-2])
     games[gameName].about["eventHandler"].make({"owner":games[gameName], "public":True, "event":"resume", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+    checkGameState(gameName)
 
 #get the info of a client by name and game name
 def clientInfo(about): #clientInfo({"gameName":"game1", "clientName":"Jamie"}) returns {"about":about}
@@ -852,13 +867,16 @@ def turnHandle(gameName):
     return games[gameName].turnHandle()
 
 def start(gameName):
-    return games[gameName].start()
+    checkGameState(gameName)
+    temp = games[gameName].start()
+    return temp
 
 def status(gameName):
     return games[gameName].status()
 
 def setStatus(gameName, status):
     games[gameName].about["status"].append(status)
+    checkGameState(gameName)
     return True
 
 def playerCount(gameName):
@@ -879,7 +897,7 @@ def serialReadBoard(gameName, clientName, positions=True):
 def serialWriteBoard(gameName, clientName, serial):
     try:
         games[gameName].serialWriteBoard(gameName, clientName, serial)
-        #this should work as each player only submits their board once
+        checkGameState(gameName)
         return True
     except Exception as e:
         return e
