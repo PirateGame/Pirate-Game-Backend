@@ -100,6 +100,7 @@ def createGame(data):
 
     join_room(gameName)
     game.clientInfo({"gameName":gameName, "clientName":ownerName})["about"]["socket"] = request.sid
+    #alterClients(gameName, [clientName], {"socket":request.sid}) #USE THIS INSTEAD.
 
     authcode = game.clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     

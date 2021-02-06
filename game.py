@@ -929,10 +929,10 @@ def alterClients(gameName, clientNames, alterations):
     for clientName in clientNames:
         if clientName in games[gameName].about["clients"]:
             for key,value in alterations.items():
-                if key in games[gameName].about["clients"][clientName].about:
-                    games[gameName].about["clients"][clientName].about[key] = value
-                else:
-                    success.append("Key: " + str(key) + " doesn't exist for value " + str(value) + " to be assigned to.")
+                #if key in games[gameName].about["clients"][clientName].about:
+                games[gameName].about["clients"][clientName].about[key] = value
+                #else:
+                    #success.append("Key: " + str(key) + " doesn't exist for value " + str(value) + " to be assigned to.")
         else:
             for a in alterations.items():
                 success.append("Client" + clientName + "doesn't exist.")
@@ -945,11 +945,11 @@ def alterGames(gameNames, alterations):
     for gameName in gameNames:
         if gameName in games:
             for key,value in alterations.items():
-                if key in games[gameName].about:
-                    games[gameName].about[key] = value
-                    success.append(True)
-                else:
-                    success.append("Key", key, "doesn't exist for value", value, "to be assigned to.")
+                #if key in games[gameName].about:
+                games[gameName].about[key] = value
+                success.append(True)
+                #else:
+                    #success.append("Key", key, "doesn't exist for value", value, "to be assigned to.")
         else:
             for a in alterations.items():
                 success.append("Game", gameName, "doesn't exist.")
