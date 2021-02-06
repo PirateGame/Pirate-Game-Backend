@@ -2,8 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 import random, string
 import numpy as np
-import game
-from game import gameHandler, clientHandler, prettyPrinter
+import game as game
 
 
 app = Flask(__name__)
