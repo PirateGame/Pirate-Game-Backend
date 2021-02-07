@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import random, string
 import numpy as np
 import random, string, time, os, ast
@@ -1133,10 +1133,8 @@ def demo():
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
 
-#Make the app
-app = Flask(__name__)
 
 
 
@@ -1165,7 +1163,6 @@ def isHost(gameName, playerName):
 
 @socketio.on('connect')
 def test_connect():
-    print("user has connected")
     emit('my response', {'data': 'Connected'})
 
 
@@ -1248,6 +1245,7 @@ def joinGame(data):
     if joinLobby(gameName, [{"name":playerName, "type":"human"}]):
         authcode = clientInfo({"gameName":gameName, "clientName":playerName})["about"]["authCode"]
         join_room(gameName)
+        sendPlayerListToClients(gameName)
         alterClients(gameName, [playerName], {"socket":request.sid})
         data = {"error": False, "authcode": authcode}
         emit("response", data)
@@ -1405,8 +1403,6 @@ def getBoard(data):
         emit("response", data)
     
 
-
-
 @socketio.on('amIHost')
 def amIHost(data):
     gameName = data["gameName"]
@@ -1436,7 +1432,7 @@ def kickPlayer(data):
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
             if leave(gameName, [playerToKick]):
-                print("hopefully that kicked a player?")
+                sendPlayerListToClients(gameName)
                 data = ({"error": False})
                 emit("response", data)
             else:
@@ -1455,10 +1451,10 @@ def addAI(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
-    
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
             if joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
+                sendPlayerListToClients(gameName)
                 data = ({"error": False})
                 emit("response", data)
             else:
@@ -1524,8 +1520,8 @@ def turnUpdate(gameName, playerName):
     mirror = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
 
     Events = sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-    descriptions = describeEvents(gameName, unshownEvents)
-    data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror, "events": descriptions}
+    descriptions = describeEvents(gameName, Events)
+    data = {"error": False, "events": descriptions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror, "events": descriptions}
     
     emit("turn", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
