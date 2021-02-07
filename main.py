@@ -90,7 +90,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "randomiseOnly":about["randomiseOnly"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandlerWrap"] = eventHandlerWrap(self)
         self.about["eventHandler"] =  self.about["eventHandlerWrap"].eventHandler #events.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
@@ -1174,6 +1174,7 @@ def createGame(data):
     Sizex = int(data["Sizex"])
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
+    randomiseOnly = False
     playerCap = 12 #DEFAULT (must be the same as what's on the website)
     debug=True
     gridDim = (Sizex, Sizey)
@@ -1197,7 +1198,7 @@ def createGame(data):
             data = {"error": "Your name can only contain letters"}
             emit("response", data)
 
-    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "live":True, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "live":True, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly": randomiseOnly}
     if not isPlaying:
         gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
     out = makeGame(gameAbout) ###CREATING THE GAME.
@@ -1316,12 +1317,12 @@ def modifyGame(data):
     naughty = data["naughty"]
     similar = data["similar"]
     DecisionTime = data["DecisionTime"]
-    randmoiseOnly = data["randomiseOnly"]
+    randomiseOnly = data["randomiseOnly"]
     playerCap = int(data["playerLimit"])
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap})
+            alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap, "randomiseOnly": randomiseOnly})
             data = ({"error": False})
             emit("response", data)
         else:
@@ -1345,7 +1346,7 @@ def setTeam(data):
     if auth(playerName, gameName, authCode):
         alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
         alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
-        data = ({"error": False})
+        data = ({"error": False, "randomise":gameInfo(gameName)["about"]["randomiseOnly"]})
         emit("response", data)
     else:
         data = ({"error": "Authentication failed"})
