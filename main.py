@@ -1546,6 +1546,6 @@ if __name__ == "__main__":
         print("demo(d) or flask(f)?")
         ans = input()
         if ans == 'f':
-            socketio.run(app, debug=True, host="localhost")
+            socketio.run(app, debug=False, host="localhost")
         elif ans == "d":
             demo()
