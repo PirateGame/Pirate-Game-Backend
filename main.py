@@ -850,14 +850,17 @@ def listClientNames(gameName):
         out.append(games[gameName].about["clients"][client].about["name"])
     return out
 
+def listQuickPlayGames():
+    joinableKeys = []
+    for key in games.keys():
+        if games[key].about["quickplay"]:
+            joinableKeys.append(key)
+    return joinableKeys
+
 #join one or several clients to a lobby
 def joinLobby(gameName="", clients=""):
     if gameName == "":
-        joinableKeys = []
-        for key in games.keys():
-            if games[key].about["quickplay"]:
-                joinableKeys.append(key)
-        gameName = random.choice(joinableKeys)
+        gameName = random.choice(listQuickPlayGames())
         return {"gameName":gameName, "response":games[gameName].join(clients)}
     if games[gameName].about["status"][-1] == "lobby":
         return {"gameName":gameName, "response":games[gameName].join(clients)}
