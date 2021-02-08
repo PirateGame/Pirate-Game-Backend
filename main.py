@@ -857,9 +857,10 @@ def joinLobby(gameName="", clients=""):
         for key in games.keys():
             if games[key].about["quickplay"]:
                 joinableKeys.append(key)
-        games[random.choice(joinableKeys)].join(clients)
+        gameName = random.choice(joinableKeys)
+        return {"gameName":gameName, "response":games[gameName].join(clients)}
     if games[gameName].about["status"][-1] == "lobby":
-        return games[gameName].join(clients)
+        return {"gameName":gameName, "response":games[gameName].join(clients)}
 
 def leave(gameName, clients):
     if len(games[gameName].about["clienst"]) == 1:
@@ -1168,7 +1169,6 @@ def test_connect():
     print("user has connected")
     emit('my response', {'data': 'Connected'})
 
-
 @socketio.on('createGame')
 def createGame(data):
     print("create_game requested")
@@ -1219,12 +1219,10 @@ def createGame(data):
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
     emit("response", data)
 
-
 @socketio.on('joinGame')
 def joinGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
-
 
     if len(gameName)<1:
         data = {"error": "Please enter a game name"}
@@ -1254,7 +1252,6 @@ def joinGame(data):
     else:
         data = {"error": "Something went wrong"}
         emit("response", data)
-
 
 @socketio.on('getBarTiles')
 def getBarTiles(data): #This is used for building the list of tiles that are going to be displayed in the side board for the user to drag across.
@@ -1334,7 +1331,6 @@ def modifyGame(data):
         data = ({"error": "Authentication failed"})
         emit("response", data)
 
-
 #Set team/ship
 @socketio.on('setTeam')
 def setTeam(data):
@@ -1353,7 +1349,6 @@ def setTeam(data):
         data = ({"error": "Authentication failed"})
         emit("response", data)
     return
-
 
 @socketio.on('saveBoard')
 def saveBoard(data):
@@ -1374,7 +1369,6 @@ def saveBoard(data):
     else:
         data = ({"error": "Authentication failed"})
         emit("response", data)
-
 
 @socketio.on('randomiseBoard')
 def randomiseBoard(data):
@@ -1404,9 +1398,6 @@ def getBoard(data):
         data = ({"error": "Authentication failed"})
         emit("response", data)
     
-
-
-
 @socketio.on('amIHost')
 def amIHost(data):
     gameName = data["gameName"]
@@ -1424,7 +1415,6 @@ def amIHost(data):
     else:
         data = ({"error": "Authentication failed"})
         emit("response", data)
-
 
 @socketio.on('kickPlayer')
 def kickPlayer(data):
@@ -1472,11 +1462,7 @@ def addAI(data):
         data = ({"error": "Authentication failed"})
         emit("response", data)
 
-
-
 #Functions that send the client data to update them.
-
-
 
 def sendPlayerListToClients(gameName):
     session = gameInfo(gameName)
@@ -1494,19 +1480,14 @@ def sendPlayerListToClients(gameName):
     data.update({"error": False})
     emit("response", data, room=gameName)
 
-
-
 def SendGameStatusToClient(gameName, data):
     emit("status", data, room=gameName)
-
-
 
 def sendUpdateToClient(gameName, playerName, group, data):
     if group:
         emit("event", data, room=gameName)
     else:
         emit("event", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
-
 
 def turnUpdate(gameName, playerName):
 
@@ -1528,8 +1509,6 @@ def turnUpdate(gameName, playerName):
     data = {"error": False, "events": descriptions, "questions": questions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror, "events": descriptions}
     
     emit("turn", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
-
-
 
 if __name__ == "__main__":
     print("-" * 50)
