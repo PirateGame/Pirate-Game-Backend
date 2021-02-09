@@ -896,6 +896,7 @@ def readyPerc(gameName):
 
 def readyUp(gameName, playerName):
     games[gameName].about["clients"][playerName].about["ready"] = True
+    checkGameState(gameName)
 
 def serialReadBoard(gameName, clientName, positions=True):
     return games[gameName].serialReadBoard(clientName, positions)
@@ -1162,12 +1163,12 @@ def isHost(gameName, playerName):
 ### SOCKET ROUTES...
 
 @socketio.on('connect')
-def test_connect():
+def FtestConnect():
     emit('response', {'data': 'Connected'})
 
 
 @socketio.on('createGame')
-def createGame(data):
+def FcreateGame(data):
     print("create_game requested")
     gameName = data["gameName"]
     ownerName = data["ownerName"]
@@ -1191,12 +1192,12 @@ def createGame(data):
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
-            emit("response", data)
+            emit("createGameResponse", data)
 
     for char in ownerName:
         if char not in (string.ascii_letters + ' '):
             data = {"error": "Your name can only contain letters"}
-            emit("response", data)
+            emit("createGameResponse", data)
 
     gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "live":True, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly": randomiseOnly}
     if not isPlaying:
@@ -1204,7 +1205,7 @@ def createGame(data):
     out = makeGame(gameAbout) ###CREATING THE GAME.
     if not out:
         data = {"error": "could not create game"}
-        emit("response", data)
+        emit("createGameResponse", data)
     else:
         gameName = out["gameName"]
         admins = out["admins"]
@@ -1216,32 +1217,32 @@ def createGame(data):
     authcode = clientInfo({"gameName":gameName, "clientName":admins[0]["name"]})["about"]["authCode"]
     
     data = {"error": False, "authcode": authcode, "playerName":admins[0]["name"], "gameName":gameName}
-    emit("response", data)
+    emit("createGameResponse", data)
 
 
 @socketio.on('joinGame')
-def joinGame(data):
+def FjoinGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
 
 
     if len(gameName)<1:
         data = {"error": "Please enter a game name"}
-        emit("response", data)
+        emit("joinGameResponse", data)
     if len(playerName)<1:
         data = {"error": "please enter a name"}
-        emit("response", data)
+        emit("joinGameResponse", data)
 
 
     for char in gameName:
         if char not in string.ascii_letters:
             data = {"error": "Game name can only contain letters"}
-            emit("response", data)
+            emit("joinGameResponse", data)
 
     for char in playerName:
         if char not in (string.ascii_letters + ' '):
             data = {"error": "Your name can only contain letters"}
-            emit("response", data)
+            emit("joinGameResponse", data)
 
 
     if joinLobby(gameName, [{"name":playerName, "type":"human"}]):
@@ -1250,30 +1251,32 @@ def joinGame(data):
         sendPlayerListToClients(gameName)
         alterClients(gameName, [playerName], {"socket":request.sid})
         data = {"error": False, "authcode": authcode}
-        emit("response", data)
+        emit("joinGameResponse", data)
     else:
         data = {"error": "Something went wrong"}
-        emit("response", data)
+        emit("joinGameResponse", data)
 
 @socketio.on('getTiles')
-def getTiles(data):
+def FgetTiles(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     
-    emit("response", serialReadBoard(gameName, playerName, positions=False))
+    data = {"error": False, "tiles": serialReadBoard(gameName, playerName, positions=False)}
+
+    emit("getTilesResponse", data)
 
 @socketio.on('getGridDim')
-def getGridDim(data):
+def FgetGridDim(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
 
     data = gameInfo(gameName)["about"]["gridDim"]
-    out = {"x": data[0], "y": data[1]}
+    out = {"error":False, "x": data[0], "y": data[1]}
 
-    emit("response", data)
+    emit("getGridDimResponse", out)
 
 @socketio.on('startGame')
-def startGame(data):
+def FstartGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1283,20 +1286,19 @@ def startGame(data):
             if start(gameName):
                 turnHandle(gameName)
                 data = ({"error":False})
-                emit("response", data)
+                emit("startGameResponse", data)
             else:
                 data = ({"error":"game not found"})
-                emit("response", data)
+                emit("startGameResponse", data)
         else:
             data = ({"error":"You can't do this"})
-            emit("response", data)
+            emit("startGameResponse", data)
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
-
+        emit("startGameResponse", data)
 
 @socketio.on('submitResponse')
-def submitResponse(data):
+def FsubmitResponse(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1305,10 +1307,10 @@ def submitResponse(data):
     FRONTresponse(gameName, playerName, choice)
 
     data = {"error": False}
-    emit("response", data)
+    emit("submitResponseResponse", data)
 
 @socketio.on('modifyGame')
-def modifyGame(data):
+def FmodifyGame(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1322,17 +1324,17 @@ def modifyGame(data):
         if isHost(gameName, playerName):
             alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap, "randomiseOnly": randomiseOnly})
             data = ({"error": False})
-            emit("response", data)
+            emit("modifyGameResponse", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            emit("response", data)
+            emit("modifyGameResponse", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("modifyGameResponse", data)
 
 @socketio.on('setTeam')
-def setTeam(data):
+def FsetTeam(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1345,14 +1347,14 @@ def setTeam(data):
         alterClients(gameName, [playerName], {"row": str(ship)}) #Ship
         alterClients(gameName, [playerName], {"column": str(Captain)}) #captain
         data = ({"error": False, "randomise":gameInfo(gameName)["about"]["randomiseOnly"]})
-        emit("response", data)
+        emit("setTeamResponse", data)
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("setTeamResponse", data)
     return
 
 @socketio.on('saveBoard')
-def saveBoard(data):
+def FsaveBoard(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1362,17 +1364,17 @@ def saveBoard(data):
         if serialWriteBoard(gameName, playerName, board):
             readyUp(gameName, playerName)
             data = {"error": False}
-            emit("response", data)
+            emit("saveBoardResponse", data)
         else:
 
             data = {"error": "board did not fit requirements"}
-            emit("response", data)
+            emit("saveBoardResponse", data)
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("saveBoardResponse", data)
 
 @socketio.on('randomiseBoard')
-def randomiseBoard(data):
+def FrandomiseBoard(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1381,26 +1383,26 @@ def randomiseBoard(data):
         randomiseBoard(gameName, playerName)
 
         board = serialReadBoard(gameName, playerName)
-        return jsonify(board)
+        emit("randomiseBoardResponse", {"error":False, "board":board})
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("randomiseBoardResponse", data)
 
 @socketio.on('getBoard')
-def getBoard(data):
+def FgetBoard(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
         board = serialReadBoard(gameName, playerName)
-        return jsonify(board)
+        emit("getBoardResponse", board)
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("getBoardResponse", data)
     
 @socketio.on('amIHost')
-def amIHost(data):
+def FamIHost(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1408,17 +1410,17 @@ def amIHost(data):
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
             data = ({"error": False})
-            emit("response", data)
+            emit("amIHostResponse", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            emit("response", data)
+            emit("amIHostResponse", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("amIHostResponse", data)
 
 @socketio.on('kickPlayer')
-def kickPlayer(data):
+def FkickPlayer(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1429,20 +1431,20 @@ def kickPlayer(data):
             if leave(gameName, [playerToKick]):
                 sendPlayerListToClients(gameName)
                 data = ({"error": False})
-                emit("response", data)
+                emit("kickPlayerResponse", data)
             else:
                 data = ({"error": "Player kick failed"})
-                emit("response", data)
+                emit("kickPlayerResponse", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            emit("response", data)
+            emit("kickPlayerResponse", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("kickPlayerResponse", data)
 
 @socketio.on('addAI')
-def addAI(data):
+def FaddAI(data):
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1451,17 +1453,17 @@ def addAI(data):
             if joinLobby(gameName=gameName, clients=[{"name":"", "type":"AI"}]):
                 sendPlayerListToClients(gameName)
                 data = ({"error": False})
-                emit("response", data)
+                emit("addAIResponse", data)
             else:
                 data = ({"error": "adding AI failed"})
-                emit("response", data)
+                emit("addAIResponse", data)
         else:
             data = ({"error": "You do not have permission to do this"})
-            emit("response", data)
+            emit("addAIResponse", data)
 
     else:
         data = ({"error": "Authentication failed"})
-        emit("response", data)
+        emit("addAIResponse", data)
 
 
 
