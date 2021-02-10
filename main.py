@@ -1395,8 +1395,8 @@ def FgetBoard(data):
     authCode = data["authCode"]
 
     if auth(playerName, gameName, authCode):
-        board = serialReadBoard(gameName, playerName)
-        emit("getBoardResponse", board)
+        data = {"error":False, "board":serialReadBoard(gameName, playerName)}
+        emit("getBoardResponse", data)
     else:
         data = ({"error": "Authentication failed"})
         emit("getBoardResponse", data)
@@ -1465,6 +1465,15 @@ def FaddAI(data):
         data = ({"error": "Authentication failed"})
         emit("addAIResponse", data)
 
+@socketio.on('requestGameState')
+def FrequestGameState(data):
+    gameName = data["gameName"]
+    checkGameState(gameName)
+
+@socketio.on('requestPlayerList')
+def FrequestPlayerList(data):
+    gameName = data["gameName"]
+    sendPlayerListToClients(gameName)
 
 
 #Functions that send the client data to update them.
