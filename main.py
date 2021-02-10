@@ -64,8 +64,8 @@ class eventHandlerWrap():
         self.game = game
         self.eventHandler = events.gameEventHandler(game)
     def make(self, about):
+        event = self.eventHandler.make(about)
         if self.game.about["live"]:
-            event = self.eventHandler.make(about)
             whoToShow = event["whoToShow"]
             for clientName in whoToShow:
                 descriptions = self.eventHandler.describe(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + clientName + '"' + ' in event["whoToShow"]'])))
@@ -248,28 +248,6 @@ class gameHandler():
         BOARDS = np.load("boards.npy", allow_pickle=True).tolist()
         BOARDS[self.about["name"]][1][clientName] = self.about["gridTemplate"].serialWriteBoard(BOARDS[self.about["name"]][1][clientName], serial)
         BOARDS = np.save("boards.npy", BOARDS)
-
-    def gameLoop(self):
-        threading.Timer(self.about["turnTime"], gameLoop).start()
-        self.turnHandle()
-
-    def start(self):
-        self.about["status"].append("active")
-        self.about["startTime"] = time.time()
-        self.about["turnNum"] += 1
-        self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"start", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
-
-        self.about["randomCoords"] = []
-        for x in range(self.about["gridDim"][0]):
-            for y in range(self.about["gridDim"][1]):
-                self.about["randomCoords"].append([x,y])
-        random.shuffle(self.about["randomCoords"])
-        self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
-        self.debugPrintBoards()
-        self.writeAboutToBoards()
-        if not self.about["live"]:
-            gameLoop()
-        return True
     
     def filterClients(self, requirements, clients=[]):
         if clients == []:
@@ -283,6 +261,48 @@ class gameHandler():
             if wrongTally == 0:
                 out[clientName] = about
         return out
+        
+    def gameLoop(self):
+        threading.Timer(self.about["turnTime"], gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
+        
+        self.turnHandle()
+
+        clientsShuffled = list(self.about["clients"].keys())
+        random.shuffle(clientsShuffled)
+
+        hasQuestions = {}
+        for clientName in clientsShuffled:
+            if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
+                hasQuestions[clientName] = True
+            else:
+                hasQuestions[clientName] = False
+        if a:
+            for clientName in hasQuestions.keys():
+                if hasQuestions[clientName]:
+                    self.about["clients"][clientName].about["type"] = "AI"
+            self.turnHandle()
+            for clientName in hasQuestions.keys():
+                if hasQuestions[clientName]:
+                    self.about["clients"][clientName].about["type"] = "human"
+    
+    def start(self):
+        if self.about["turnNum"] == -1:
+            self.about["status"].append("active")
+            self.about["startTime"] = time.time()
+            self.about["turnNum"] += 1
+            self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"start", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
+
+            self.about["randomCoords"] = []
+            for x in range(self.about["gridDim"][0]):
+                for y in range(self.about["gridDim"][1]):
+                    self.about["randomCoords"].append([x,y])
+            random.shuffle(self.about["randomCoords"])
+            self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
+            self.debugPrintBoards()
+            self.writeAboutToBoards()
+            if self.about["live"]:
+                gameLoop()
+        return True
 
     def turnProcess(self):
         actions = []
@@ -378,9 +398,9 @@ class clientHandler():
 
         ##TYPE = AI, spectator, human
         if about["type"] == "human":
-            self.about = {"name":clientName, "beActedOnQueue":[], "actQueue":[], "type": about["type"], "ready":False, "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":0, "mirror":0, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
+            self.about = {"name":clientName, "beActedOnQueue":[], "actQueue":[], "type": about["type"], "ready":False, "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":0, "mirror":0, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
         elif about["type"] == "AI":
-            self.about = {"name":clientName, "beActedOnQueue":[], "actQueue":[], "type": about["type"], "ready":True, "events":[], "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":0, "mirror":0, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
+            self.about = {"name":clientName, "beActedOnQueue":[], "actQueue":[], "type": about["type"], "ready":True, "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60)), "money":0, "bank":0, "scoreHistory":[], "tileHistory":[], "shield":0, "mirror":0, "row":random.choice(["A", "B", "C"]), "column":str(random.randint(0,2))}
         elif about["type"] == "spectator":
             self.about = {"name":clientName, "type": about["type"], "ready":True, "authCode":''.join(random.choice(string.ascii_letters + string.digits) for x in range(60))}
         self.about["estimateHandler"] = events.clientEstimateHandler(self)
@@ -423,7 +443,8 @@ class clientHandler():
         question["timestamp"] = time.time()
 
         self.about["FRONTquestions"].append(question)
-        sendQuestionToClient(self.game.about["name"], self.about["name"], {"labels":question["labels"], "options":question["options"]})
+        if self.game.about["live"]:
+            sendQuestionToClient(self.game.about["name"], self.about["name"], {"labels":question["labels"], "options":question["options"]})
         #print("the current questions for this client are", self.about["FRONTquestions"])
 
     def rOrCChoice(self, whatHappened, queueType):
@@ -590,7 +611,7 @@ class clientHandler():
             choice = self.rOrCChoice(whatHappened, queueType)
             if choice != None:
                 victims = self.game.whoIsOnThatLine(choice)
-                self.about["events"].append(self.game.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[choice]})) #EVENT HANDLER
+                self.game.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][victim] for victim in victims], "isMirrored":False, "isShielded":False, "other":[choice]}) #EVENT HANDLER
                 for victim in victims:
                     self.game.about["clients"][victim].beActedOn("D", self, time.time()) ###ACT
                 #if rOrC == "column":
@@ -604,7 +625,7 @@ class clientHandler():
             if choice == "Not enough clients":
                 pass
             elif choice != None:
-                self.about["events"].append(self.game.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice].about["money"]]})) #EVENT HANDLER
+                self.game.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":whatHappened, "sources":[self], "targets":[self.game.about["clients"][choice]], "isMirrored":False, "isShielded":False, "other":[self.about["money"], self.game.about["clients"][choice].about["money"]]}) #EVENT HANDLER
                 self.game.about["clients"][choice].beActedOn("E", self, time.time()) ###ACT
                 #print(self.game.about["name"], "@", self.about["name"], "swaps with", self.game.about["clients"][choice].about["name"])
             else:
@@ -1015,7 +1036,8 @@ def getDataFromStoredGame(boardStorage):
     gameName = boardStorage[0]["name"]
     quickplay = boardStorage[0]["quickplay"]
     live = boardStorage[0]["live"]
-    gameAbout = {"gameName":gameName, "quickplay":quickplay, "live":live, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter}
+    randomiseOnly = boardStorage[0]["randomiseOnly"]
+    gameAbout = {"gameName":gameName, "quickplay":quickplay, "live":live, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly":randomiseOnly}
     return gameAbout
 
 def loadGame(boardStorage):
@@ -1089,9 +1111,10 @@ def demo():
         playerCap = 5
         nameNaughtyFilter = None
         nameUniqueFilter = None
+        randomiseOnly = False
 
         #Setting up a test game
-        about = {"gameName":gameName, "quickplay":False, "live":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug}
+        about = {"gameName":gameName, "quickplay":False, "live":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug, "randomiseOnly":randomiseOnly}
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
