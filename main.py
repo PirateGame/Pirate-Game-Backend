@@ -249,6 +249,10 @@ class gameHandler():
         BOARDS[self.about["name"]][1][clientName] = self.about["gridTemplate"].serialWriteBoard(BOARDS[self.about["name"]][1][clientName], serial)
         BOARDS = np.save("boards.npy", BOARDS)
 
+    def gameLoop(self):
+        threading.Timer(self.about["turnTime"], gameLoop).start()
+        self.turnHandle()
+
     def start(self):
         self.about["status"].append("active")
         self.about["startTime"] = time.time()
@@ -263,6 +267,7 @@ class gameHandler():
         self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
         self.debugPrintBoards()
         self.writeAboutToBoards()
+        gameLoop()
         return True
     
     def filterClients(self, requirements, clients=[]):
@@ -1296,7 +1301,6 @@ def FstartGame(data):
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
             if start(gameName):
-                turnHandle(gameName)
                 data = ({"error":False})
                 emit("startGameResponse", data)
             else:
