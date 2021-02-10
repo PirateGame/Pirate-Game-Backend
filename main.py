@@ -267,7 +267,8 @@ class gameHandler():
         self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
         self.debugPrintBoards()
         self.writeAboutToBoards()
-        gameLoop()
+        if not self.about["live"]:
+            gameLoop()
         return True
     
     def filterClients(self, requirements, clients=[]):
@@ -1194,15 +1195,14 @@ def FcreateGame(data):
     Sizex = int(data["Sizex"])
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
-    randomiseOnly = False
-    playerCap = 12 #DEFAULT (must be the same as what's on the website)
+    randomiseOnly = data["randomiseOnly"]
+    playerCap = data["playerLimit"]
     debug=True
     gridDim = (Sizex, Sizey)
-    #This sets the standard decision time
-    turnTime = 30
-    nameUniqueFilter = None
-    nameNaughtyFilter = None
-    quickplay = True
+    turnTime = data["DescisionTime"]
+    nameUniqueFilter = data["similar"]
+    nameNaughtyFilter = data["naughty"]
+    quickplay = False
 
     if gameName is None:
         gameName = ''
