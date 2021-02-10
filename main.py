@@ -753,14 +753,14 @@ class clientHandler():
 def checkGameState(gameName):
     if gameInfo(gameName)["about"]["turnNum"] != -1:
         data = {"error": False, "state":"started"}
-        SendGameStatusToClient(gameName, data)
+        sendGameStatusToClient(gameName, data)
 
     if readyPerc(gameName) == 1 and status(gameName) != "active" and status(gameName) != "paused":
         data = {"error": False, "state":"ready"}
-        SendGameStatusToClient(gameName, data)
+        sendGameStatusToClient(gameName, data)
     else:
         data = {"error": False, "state":"Waiting For Other Players"}
-        SendGameStatusToClient(gameName, data)
+        sendGameStatusToClient(gameName, data)
 
 #if not playing will they need an id to see the game stats or is that spoiling the fun?
 def listGames():
