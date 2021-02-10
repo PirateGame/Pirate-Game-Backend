@@ -65,12 +65,11 @@ class eventHandlerWrap():
         self.eventHandler = events.gameEventHandler(game)
     def make(self, about):
         if self.game.about["live"]:
-            checkGameState(self.game.about["name"])
-        event = self.eventHandler.make(about)
-        whoToShow = event["whoToShow"]
-        for clientName in whoToShow:
-            descriptions = self.eventHandler.describe(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + clientName + '"' + ' in event["whoToShow"]'])))
-            turnUpdate(self.game.about["name"], clientName, descriptions)
+            event = self.eventHandler.make(about)
+            whoToShow = event["whoToShow"]
+            for clientName in whoToShow:
+                descriptions = self.eventHandler.describe(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + clientName + '"' + ' in event["whoToShow"]'])))
+                turnUpdate(self.game.about["name"], clientName, descriptions)
 
 class gameHandler():
     def debugPrint(self, message):
