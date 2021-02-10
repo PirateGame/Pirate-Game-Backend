@@ -69,7 +69,7 @@ class eventHandlerWrap():
         event = self.eventHandler.make(about)
         whoToShow = event["whoToShow"]
         for clientName in whoToShow:
-            descriptions = games[gameName].about["eventHandler"].describe(sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]'])))
+            descriptions = self.eventHandler.describe(sortEvents(self.game.about["name"], "timestamp", filterEvents(self.game.about["name"], {}, ['"' + clientName + '"' + ' in event["whoToShow"]'])))
             turnUpdate(self.game["name"], clientName, descriptions)
 
 class gameHandler():
