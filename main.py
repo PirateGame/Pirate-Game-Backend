@@ -9,11 +9,20 @@ import events
 import nameFilter
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
+
+########################################################################################################################################################################################################
+#██████╗ ██╗██████╗  █████╗ ████████╗███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
+#██╔══██╗██║██╔══██╗██╔══██╗╚══██╔══╝██╔════╝    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
+#██████╔╝██║██████╔╝███████║   ██║   █████╗      ██║  ███╗███████║██╔████╔██║█████╗  
+#██╔═══╝ ██║██╔══██╗██╔══██║   ██║   ██╔══╝      ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  
+#██║     ██║██║  ██║██║  ██║   ██║   ███████╗    ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
+#╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝     ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
+########################################################################################################################################################################################################
+
 games = {}
 #maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
 
 ### I may have stole this from https://stackoverflow.com/a/25588771 and edited it quite a bit. -used to make printing pretty of course! ###
-
 class prettyPrinter():
     def flattenList(self, t):
         flat_list = [item for sublist in t for item in sublist]
@@ -41,13 +50,14 @@ def debugPrint(message, debug=False):
         print("~"*220)
         print("BACK:wrappers(debug):", message)
 
+########################################################################################################################################################################################################
 #   ___       .    __   __ .____           .    __    _ .___          ___  .     _ .____  __    _  _______        ___   ____    _______ .____    ___   _______   _____
 # .'   \     /|    |    |  /              /|    |\   |  /   `       .'   \ /     | /      |\   |  '   /         .'   `. /   \  '   /    /      .'   \ '   /     (     
 # |         /  \   |\  /|  |__.          /  \   | \  |  |    |      |      |     | |__.   | \  |      |         |     | |,_-<      |    |__.   |          |      `--. 
 # |    _   /---'\  | \/ |  |            /---'\  |  \ |  |    |      |      |     | |      |  \ |      |         |     | |    `     |    |      |          |         | 
 #  `.___|,'      \ /    /  /----/     ,'      \ |   \|  /---/        `.__, /---/ / /----/ |   \|      /          `.__.' `----'  `--/    /----/  `.__,     /    \___.' 
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+########################################################################################################################################################################################################
 
 class eventHandlerWrap():
     def __init__(self, game):
@@ -56,7 +66,11 @@ class eventHandlerWrap():
     def make(self, about):
         if self.game.about["live"]:
             checkGameState(self.game.about["name"])
-        self.eventHandler.make(about)
+        event = self.eventHandler.make(about)
+        whoToShow = event["whoToShow"]
+        for clientName in whoToShow:
+            descriptions = games[gameName].about["eventHandler"].describe(sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]'])))
+            turnUpdate(self.game["name"], clientName, descriptions)
 
 class gameHandler():
     def debugPrint(self, message):
@@ -404,6 +418,7 @@ class clientHandler():
         question["timestamp"] = time.time()
 
         self.about["FRONTquestions"].append(question)
+        sendQuestionToClient(self.game.about["name"], self.about["name"], {"labels":question["labels"], "options":question["options"]})
         #print("the current questions for this client are", self.about["FRONTquestions"])
 
     def rOrCChoice(self, whatHappened, queueType):
@@ -725,6 +740,7 @@ class clientHandler():
         if whatHappened == "D":
             self.about["money"] = 0
 
+########################################################################################################################################################################################################
 # .____ .     . __    _   ___   _______ _   ___   __    _   _____      .____   ___   .___           .    .___  .___ 
 # /     /     / |\   |  .'   \ '   /    | .'   `. |\   |   (           /     .'   `. /   \         /|    /   \ /   \
 # |__.  |     | | \  |  |          |    | |     | | \  |    `--.       |__.  |     | |__-'        /  \   |,_-' |,_-'
@@ -732,7 +748,7 @@ class clientHandler():
 # /      `._.'  |   \|   `.__,     /    /  `.__.' |   \|  \___.'       /      `.__.' /   \     ,'      \ /     /    
 ### FUNCTIONS THAT ALLOW APP.PY TO INTERACT WITH GAME AND CLIENT OBJECTS, ###
 ### and also the main thread, which includes demo code. ###
-# ------------------------------------------------------------------------------------------------------------------
+########################################################################################################################################################################################################
 
 def checkGameState(gameName):
     if gameInfo(gameName)["about"]["turnNum"] != -1:
@@ -1037,15 +1053,15 @@ def bootstrap(about):
             BOARDS = {}
             np.save("boards.npy", BOARDS)
 
+########################################################################################################################################################################################################
 # .___   .____  __   __   ___  
 # /   `  /      |    |  .'   `.
 # |    | |__.   |\  /|  |     |
 # |    | |      | \/ |  |     |
 # /---/  /----/ /    /   `.__.'
 ### Used for debugging and testing of the overall structure of how a game should operate in relation to the backend. ###
-# -----------------------------
+########################################################################################################################################################################################################
 
-# MAIN THREAD
 def demo():
     debug = False
     bootstrap({"purge":True})
@@ -1128,21 +1144,18 @@ def demo():
         for i in range(3):
             print("")
 
-
-####################################################################################################################
-####################################################################################################################
-####################################################################################################################
-####################################################################################################################
-####################################################################################################################
-####################################################################################################################
+########################################################################################################################################################################################################
+#███████╗██╗      █████╗ ███████╗██╗  ██╗
+#██╔════╝██║     ██╔══██╗██╔════╝██║ ██╔╝
+#█████╗  ██║     ███████║███████╗█████╔╝ 
+#██╔══╝  ██║     ██╔══██║╚════██║██╔═██╗ 
+#██║     ███████╗██║  ██║███████║██║  ██╗
+#╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+########################################################################################################################################################################################################
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
-
-
-
-
 
 def auth(playerName, gameName, code):
     try:
@@ -1162,7 +1175,6 @@ def isHost(gameName, playerName):
         return True
     else:
         return False
-
 
 ### SOCKET ROUTES...
 
@@ -1305,7 +1317,8 @@ def FsubmitResponse(data):
     authCode = data["authCode"]
     choice = data["choice"]
 
-    FRONTresponse(gameName, playerName, choice)
+    if auth(playerName, gameName, authCode):
+        FRONTresponse(gameName, playerName, choice)
 
     data = {"error": False}
     emit("submitResponseResponse", data)
@@ -1476,6 +1489,10 @@ def FrequestPlayerList(data):
     gameName = data["gameName"]
     sendPlayerListToClients(gameName)
 
+@socketio.on('requestAllEvents')
+def retrieveEventList(gameName, playerName):
+    events = games[gameName].about["eventLogs"][playerName]
+    emit("requestAllEventsResponse", events)
 
 #Functions that send the client data to update them.
 
@@ -1496,16 +1513,18 @@ def sendPlayerListToClients(gameName):
     data.update({"error": False})
     emit("playerList", data, room=gameName)
 
-def SendGameStatusToClient(gameName, data):
+def sendGameStatusToClient(gameName, data):
     emit("status", data, room=gameName)
 
-def sendUpdateToClient(gameName, playerName, group, data):
-    if group:
-        emit("event", data, room=gameName)
-    else:
-        emit("event", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+def sendQuestionToClient(gameName, playerName, data):
+    #data = {"labels":["this is the question", "this is the instrusctions"], "options":[]}
+    emit("Question", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
-def turnUpdate(gameName, playerName):
+@socketio.on_error()
+def chat_error_handler(e):
+    print('An error has occurred: ' + str(e))
+
+def turnUpdate(gameName, playerName, descriptions):
 
     tiles = gameInfo(gameName)["about"]["chosenTiles"]
     width = gameInfo(gameName)["about"]["gridDim"][1]
@@ -1520,11 +1539,18 @@ def turnUpdate(gameName, playerName):
     shield = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["shield"]
     mirror = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
 
-    Events = sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["whoToShow"]']))
-    descriptions = describeEvents(gameName, Events)
-    data = {"error": False, "events": descriptions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror, "events": descriptions}
+    data = {"error": False, "events": descriptions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
     
     emit("turn", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+
+########################################################################################################################################################################################################
+#███╗   ███╗ █████╗ ██╗███╗   ██╗    ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ██████╗ 
+#████╗ ████║██╔══██╗██║████╗  ██║    ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗██╔══██╗
+#██╔████╔██║███████║██║██╔██╗ ██║       ██║   ███████║██████╔╝█████╗  ███████║██║  ██║
+#██║╚██╔╝██║██╔══██║██║██║╚██╗██║       ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║██║  ██║
+#██║ ╚═╝ ██║██║  ██║██║██║ ╚████║       ██║   ██║  ██║██║  ██║███████╗██║  ██║██████╔╝
+#╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ 
+########################################################################################################################################################################################################
 
 if __name__ == "__main__":
     print("-" * 50)
