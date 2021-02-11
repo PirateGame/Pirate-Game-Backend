@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from prometheus_flask_exporter import PrometheusMetrics
 import random, string
 import numpy as np
 import random, string, time, os, ast
@@ -1191,6 +1192,7 @@ def demo():
 ########################################################################################################################################################################################################
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
 
