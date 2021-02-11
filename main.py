@@ -1545,6 +1545,7 @@ def sendPlayerListToClients(gameName):
         emit("playerList", data, room=gameName)
     
     clientList = listClients(gameName)
+    print(clientList)
     toSend = []
     for clientName,about in clientList.items():
         text = str(about["type"]) + ": " + str(clientName)
