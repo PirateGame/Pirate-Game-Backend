@@ -1230,7 +1230,7 @@ def FcreateGame(data):
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
     randomiseOnly = False
-    playerCap = False
+    playerCap = 5
     debug=True
     gridDim = (Sizex, Sizey)
     turnTime = False
@@ -1609,6 +1609,6 @@ if __name__ == "__main__":
         print("demo(d) or flask(f)?")
         ans = input()
         if ans == 'f':
-            socketio.run(app, debug=False, host="localhost")
+            socketio.run(app, debug=False, host="0.0.0.0")
         elif ans == "d":
             demo()
