@@ -7,6 +7,7 @@ import grid
 import time
 import events
 import nameFilter
+import threading
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
@@ -103,7 +104,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "randomiseOnly":about["randomiseOnly"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "openGameLoop":False, "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "randomiseOnly":about["randomiseOnly"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
         self.about["eventHandlerWrap"] = eventHandlerWrap(self)
         self.about["eventHandler"] =  self.about["eventHandlerWrap"].eventHandler #events.gameEventHandler(self)
         self.about["tempGroupChoices"] = {}
@@ -147,7 +148,6 @@ class gameHandler():
             self.about["tempGroupChoices"][clientName] = choice
             if len(self.about["tempGroupChoices"]) == len(event["targets"]):
                 self.groupDecisionConclude(event)
-        self.writeAboutToBoards()
 
     def groupDecisionConclude(self, event):
         if event["event"] == "D":
@@ -178,7 +178,6 @@ class gameHandler():
                 for clientName in self.about["tempGroupChoices"]:
                     self.about["clients"][clientName].forceActedOn("D")
         self.about["tempGroupChoices"] = {}
-        self.writeAboutToBoards()
             
     def info(self):
         return {"about":self.about, "gridTemplate":self.about["gridTemplate"].about}
@@ -263,10 +262,9 @@ class gameHandler():
         return out
         
     def gameLoop(self):
-        threading.Timer(self.about["turnTime"], gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
+        threading.Timer(self.about["turnTime"], self.gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
+        self.about["openGameLoop"] = True
         
-        self.turnHandle()
-
         clientsShuffled = list(self.about["clients"].keys())
         random.shuffle(clientsShuffled)
 
@@ -276,7 +274,7 @@ class gameHandler():
                 hasQuestions[clientName] = True
             else:
                 hasQuestions[clientName] = False
-        if a:
+        if True in hasQuestions.values():
             for clientName in hasQuestions.keys():
                 if hasQuestions[clientName]:
                     self.about["clients"][clientName].about["type"] = "AI"
@@ -284,6 +282,11 @@ class gameHandler():
             for clientName in hasQuestions.keys():
                 if hasQuestions[clientName]:
                     self.about["clients"][clientName].about["type"] = "human"
+        self.turnHandle()
+        self.writeAboutToBoards()
+
+        print("loop done")
+        self.about["openGameLoop"] = False
     
     def start(self):
         if self.about["turnNum"] == -1:
@@ -300,8 +303,8 @@ class gameHandler():
             self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
             self.debugPrintBoards()
             self.writeAboutToBoards()
-            if self.about["live"]:
-                gameLoop()
+            #if self.about["live"]:
+            self.gameLoop()
         return True
 
     def turnProcess(self):
@@ -326,7 +329,6 @@ class gameHandler():
             #print(self.about["clients"][clientName].about["FRONTresponses"])
             if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
                 return False
-        self.writeAboutToBoards()
         if False not in out:
             for clientName in clientsShuffled:
                 self.about["clients"][clientName].logScore()
@@ -335,6 +337,7 @@ class gameHandler():
             return False
     
     def turnHandle(self):
+        self.about["openHandle"] = True
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
         if self.about["status"][-1] == "paused":
@@ -370,7 +373,6 @@ class gameHandler():
                 self.about["handleNum"] += 1
                 if self.about["status"][-1] != "awaiting":
                     self.about["status"].append("awaiting")
-            self.writeAboutToBoards()
         elif self.about["turnNum"] == (self.about["gridDim"][0] * self.about["gridDim"][1]):
             self.about["turnNum"] += 1
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
@@ -378,6 +380,7 @@ class gameHandler():
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
             self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"end", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"leaderboard", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[leaderboard(self.about["name"])]}) #EVENT HANDLER
+        self.about["openHandle"] = False
 
     def getAllMyClientsQuestions(self):
         out = []
@@ -565,7 +568,9 @@ class clientHandler():
                 return False
             return True
         elif len(self.about["actQueue"]) > 0:
+            print("A", self.about["actQueue"])
             self.act(self.about["actQueue"][0])
+            print("B", self.about["actQueue"])
             del self.about["actQueue"][0]
             if len(self.about["actQueue"]) > 0:
                 return False
@@ -961,11 +966,15 @@ def randomiseBoard(gameName, clientName):
     return games[gameName].about["clients"][clientName].buildRandomBoard()
 
 def FRONTresponse(gameName, clientName, choice):
-    games[gameName].about["clients"][clientName].FRONTresponse(choice)
-    if games[gameName].about["status"][-1] != "paused":
-        games[gameName].turnHandle()
+    if not games[gameName].about["openGameLoop"]:
+        games[gameName].about["clients"][clientName].FRONTresponse(choice)
+        if games[gameName].about["status"][-1] != "paused":
+            games[gameName].turnHandle()
+        else:
+            print("The response was recorded, but no turn processing was carried out due to the game being paused.")
     else:
-        print("The response was recorded, but no turn processing was carried out due to the game being paused.")
+        print("You can't respond anymore, the game loop is open.")
+    
 
 def filterClients(gameName, requirements, clients=[]):
     return games[gameName].filterClients(requirements, clients)
@@ -1107,7 +1116,7 @@ def demo():
         turnCount = gridSize + 1 #maximum of gridSize + 1
         admins = [{"name":"Jamie", "type":"AI"}] #this person is auto added.
         gameName = "Test-Game " + str(time.time())[-6:]
-        turnTime = 30
+        turnTime = 1
         playerCap = 5
         nameNaughtyFilter = None
         nameUniqueFilter = None
@@ -1138,7 +1147,7 @@ def demo():
         c += 1
         print("GAME NUMBER", c)
         print("TOTAL TURNS TESTED", d)
-        handleCap = 20
+        handleCap = 2000000
         while status(gameName) != "dormant" and gameInfo(gameName)["about"]["handleNum"] < handleCap: #Simulate the frontend calling the new turns over and over.
             #shallIContinue = input()
             #if status(gameName) != "awaiting":
@@ -1151,8 +1160,8 @@ def demo():
                     choice = random.choice(obj.about["FRONTquestions"][0]["options"])
                     FRONTresponse(gameName, clientName, choice)
                     tally.append(1)
-            if 1 not in tally:
-                turnHandle(gameName)
+            #if 1 not in tally:
+                #turnHandle(gameName)
             print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
             #randomiseBoard(gameName, "Tom")
             #print("event log:", returnEvents(gameName, {"public":True}))
