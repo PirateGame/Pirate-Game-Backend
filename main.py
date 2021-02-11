@@ -1044,7 +1044,7 @@ def getDataFromStoredGame(boardStorage):
     debug = boardStorage[0]["debug"]
     gameName = boardStorage[0]["name"]
     quickplay = boardStorage[0]["quickplay"]
-    live = boardStorage[0]["live"]
+    live = False #boardStorage[0]["live"]
     randomiseOnly = boardStorage[0]["randomiseOnly"]
     gameAbout = {"gameName":gameName, "quickplay":quickplay, "live":live, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly":randomiseOnly}
     return gameAbout
