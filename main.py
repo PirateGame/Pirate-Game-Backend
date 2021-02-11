@@ -1229,13 +1229,13 @@ def FcreateGame(data):
     Sizex = int(data["Sizex"])
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
-    randomiseOnly = data["randomiseOnly"]
-    playerCap = data["playerLimit"]
+    randomiseOnly = False
+    playerCap = False
     debug=True
     gridDim = (Sizex, Sizey)
-    turnTime = data["DescisionTime"]
-    nameUniqueFilter = data["similar"]
-    nameNaughtyFilter = data["naughty"]
+    turnTime = False
+    nameUniqueFilter = False
+    nameNaughtyFilter = False
     quickplay = False
 
     if gameName is None:
@@ -1599,9 +1599,11 @@ if __name__ == "__main__":
     print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
     ans = str(input())
     if ans == "":
-        bootstrap({"purge":True})
+        #bootstrap({"purge":True})
+        pass
     else:
-        bootstrap({"purge":False})
+        #bootstrap({"purge":False})
+        pass
     ans = None
     while ans not in ["f","d"]:
         print("demo(d) or flask(f)?")
