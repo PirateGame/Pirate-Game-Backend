@@ -1234,8 +1234,8 @@ def FcreateGame(data):
     debug=True
     gridDim = (Sizex, Sizey)
     turnTime = False
-    nameUniqueFilter = False
-    nameNaughtyFilter = False
+    nameUniqueFilter = None
+    nameNaughtyFilter = None
     quickplay = False
 
     if gameName is None:
@@ -1531,6 +1531,10 @@ def retrieveEventList(gameName, playerName):
     events = games[gameName].about["eventLogs"][playerName]
     emit("requestAllEventsResponse", events)
 
+@socketio.on_error()
+def chat_error_handler(e):
+    print('An error has occurred: ' + str(e))
+
 #Functions that send the client data to update them.
 
 def sendPlayerListToClients(gameName):
@@ -1545,9 +1549,8 @@ def sendPlayerListToClients(gameName):
     for clientName,about in clientList.items():
         text = str(about["type"]) + ": " + str(clientName)
         toSend.append(text)
-    data = {"names":toSend}
+    data = {"error": False, "names":toSend}
 
-    data.update({"error": False})
     emit("playerList", data, room=gameName)
 
 def sendGameStatusToClient(gameName, data):
@@ -1556,10 +1559,6 @@ def sendGameStatusToClient(gameName, data):
 def sendQuestionToClient(gameName, playerName, data):
     #data = {"labels":["this is the question", "this is the instrusctions"], "options":[]}
     emit("Question", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
-
-@socketio.on_error()
-def chat_error_handler(e):
-    print('An error has occurred: ' + str(e))
 
 def turnUpdate(gameName, playerName, descriptions):
 
