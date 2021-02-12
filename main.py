@@ -1233,7 +1233,8 @@ def FcreateGame(data):
     playerCap = 5
     debug=True
     gridDim = (Sizex, Sizey)
-    turnTime = False
+    turnTime = 10
+    decisionTime = 15
     nameUniqueFilter = None
     nameNaughtyFilter = None
     quickplay = False
