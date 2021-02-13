@@ -263,6 +263,8 @@ class gameHandler():
         return out
         
     def gameLoop(self):
+        global app
+        global socketio
         threading.Timer(self.about["turnTime"], self.gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
         self.about["openGameLoop"] = True
         
@@ -290,6 +292,8 @@ class gameHandler():
         self.about["openGameLoop"] = False
     
     def start(self):
+        #Tell clients that the game has started
+        sendGameStatusToClient(self.about["name"], {"state": "started"})
         if self.about["turnNum"] == -1:
             self.about["status"].append("active")
             self.about["startTime"] = time.time()
@@ -338,6 +342,8 @@ class gameHandler():
             return False
     
     def turnHandle(self):
+        global app
+        global socketio
         self.about["openHandle"] = True
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
@@ -1190,11 +1196,12 @@ def demo():
 #██║     ███████╗██║  ██║███████║██║  ██╗
 #╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 ########################################################################################################################################################################################################
-
+from gevent import monkey
+monkey.patch_all()
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True, async_mode="gevent")
 
 def auth(playerName, gameName, code):
     try:
@@ -1539,6 +1546,8 @@ def chat_error_handler(e):
 #Functions that send the client data to update them.
 
 def sendPlayerListToClients(gameName):
+    global app
+    global socketio
     print("sending player list to clients")
     session = gameInfo(gameName)
     if session == False:
@@ -1556,13 +1565,19 @@ def sendPlayerListToClients(gameName):
     emit("playerList", data, room=gameName)
 
 def sendGameStatusToClient(gameName, data):
+    global app
+    global socketio
     emit("status", data, room=gameName)
 
 def sendQuestionToClient(gameName, playerName, data):
+    global app
+    global socketio
     #data = {"labels":["this is the question", "this is the instrusctions"], "options":[]}
     emit("Question", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
 def turnUpdate(gameName, playerName, descriptions):
+    global app
+    global socketio
 
     tiles = gameInfo(gameName)["about"]["chosenTiles"]
     width = gameInfo(gameName)["about"]["gridDim"][1]
