@@ -106,10 +106,6 @@ class gameHandler():
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
         self.about = {"name":about["gameName"], "openGameLoop":False, "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "randomiseOnly":about["randomiseOnly"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
-        self.about["eventHandlerWrap"] = eventHandlerWrap(self)
-        self.about["eventHandler"] =  self.about["eventHandlerWrap"].eventHandler #events.gameEventHandler(self)
-        self.about["tempGroupChoices"] = {}
-        self.about["randomCoords"] = []
 
         if overwriteAbout == None:
             self.updateBOARDS(self.about["name"], [self.about, {}])
@@ -124,6 +120,10 @@ class gameHandler():
             self.updateBOARDS(self.about["name"], [self.about, None])
         
         self.pP = prettyPrinter()
+        self.about["eventHandlerWrap"] = eventHandlerWrap(self)
+        self.about["eventHandler"] =  self.about["eventHandlerWrap"].eventHandler #events.gameEventHandler(self)
+        self.about["tempGroupChoices"] = {}
+        self.about["randomCoords"] = []
     
     def writeAboutToBoards(self):
         self.updateBOARDS(self.about["name"], [self.about, None])
@@ -304,8 +304,8 @@ class gameHandler():
             self.debugPrint(str(self.about["name"]) + " @@@ STARTED with " + str(len(self.about["clients"])) + " clients, here's more info... " + str(self.info()))
             self.debugPrintBoards()
             self.writeAboutToBoards()
-            #if self.about["live"]:
-            self.gameLoop()
+            if self.about["live"]:
+                self.gameLoop()
         return True
 
     def turnProcess(self):
@@ -1045,7 +1045,7 @@ def getDataFromStoredGame(boardStorage):
     debug = boardStorage[0]["debug"]
     gameName = boardStorage[0]["name"]
     quickplay = boardStorage[0]["quickplay"]
-    live = False #boardStorage[0]["live"]
+    live = boardStorage[0]["live"]
     randomiseOnly = boardStorage[0]["randomiseOnly"]
     gameAbout = {"gameName":gameName, "quickplay":quickplay, "live":live, "debug":debug, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly":randomiseOnly}
     return gameAbout
@@ -1054,6 +1054,8 @@ def loadGame(boardStorage):
     #try:
     gameAbout = getDataFromStoredGame(boardStorage)
     overwriteAbout = boardStorage[0]
+    gameAbout["live"] = False
+    overwriteAbout["live"] = False
     #overwriteAbout["sims"] = []
     makeGame(gameAbout, overwriteAbout)["gameName"]
     #except Exception as e:
@@ -1101,7 +1103,6 @@ def bootstrap(about):
 
 def demo():
     debug = False
-    bootstrap({"purge":True})
     print("! TESTBENCH !")
     print("Note: this is not able to communicate with the live or local website!")
     print("An infinite testbench will be run, if there is a turn processing problem it should halt after the predefined 'handleCap'.")
@@ -1122,9 +1123,10 @@ def demo():
         nameNaughtyFilter = None
         nameUniqueFilter = None
         randomiseOnly = False
+        live = False #If true, the game loop is used, if false, the code below will trigger turns.
 
         #Setting up a test game
-        about = {"gameName":gameName, "quickplay":False, "live":False, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug, "randomiseOnly":randomiseOnly}
+        about = {"gameName":gameName, "quickplay":False, "live":live, "admins":admins, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "debug":debug, "randomiseOnly":randomiseOnly}
         makeGame(about)
 
         #Adding each of the imaginary players to the lobby sequentially.
@@ -1161,8 +1163,8 @@ def demo():
                     choice = random.choice(obj.about["FRONTquestions"][0]["options"])
                     FRONTresponse(gameName, clientName, choice)
                     tally.append(1)
-            #if 1 not in tally:
-                #turnHandle(gameName)
+            if not live and 1 not in tally:
+                turnHandle(gameName)
             print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
             #randomiseBoard(gameName, "Tom")
             #print("event log:", returnEvents(gameName, {"public":True}))
@@ -1600,11 +1602,9 @@ if __name__ == "__main__":
     print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
     ans = str(input())
     if ans == "":
-        #bootstrap({"purge":True})
-        pass
+        bootstrap({"purge":True})
     else:
-        #bootstrap({"purge":False})
-        pass
+        bootstrap({"purge":False})
     ans = None
     while ans not in ["f","d"]:
         print("demo(d) or flask(f)?")
