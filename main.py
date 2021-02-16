@@ -12,6 +12,13 @@ import threading
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
+import eventlet
+app = Flask(__name__)
+metrics = PrometheusMetrics(app)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True, async_mode="eventlet")
+eventlet.monkey_patch()
+
 ########################################################################################################################################################################################################
 #██████╗ ██╗██████╗  █████╗ ████████╗███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
 #██╔══██╗██║██╔══██╗██╔══██╗╚══██╔══╝██╔════╝    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
@@ -1198,12 +1205,7 @@ def demo():
 #██║     ███████╗██║  ██║███████║██║  ██╗
 #╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 ########################################################################################################################################################################################################
-from gevent import monkey
-monkey.patch_all()
-app = Flask(__name__)
-metrics = PrometheusMetrics(app)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True, async_mode="gevent")
+
 
 def auth(playerName, gameName, code):
     try:
@@ -1563,19 +1565,21 @@ def sendPlayerListToClients(gameName):
         text = str(about["type"]) + ": " + str(clientName)
         toSend.append(text)
     data = {"error": False, "names":toSend}
-
-    emit("playerList", data, room=gameName)
+    with app.app_context(): 
+        emit("playerList", data, namespace='/', room=gameName)
 
 def sendGameStatusToClient(gameName, data):
     global app
     global socketio
-    emit("status", data, room=gameName)
+    with app.app_context():
+        emit("status", data, namespace='/', room=gameName)
 
 def sendQuestionToClient(gameName, playerName, data):
     global app
     global socketio
     #data = {"labels":["this is the question", "this is the instrusctions"], "options":[]}
-    emit("Question", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+    with app.app_context():
+        emit("Question", data, namespace='/', room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
 def turnUpdate(gameName, playerName, descriptions):
     global app
@@ -1595,8 +1599,8 @@ def turnUpdate(gameName, playerName, descriptions):
     mirror = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
 
     data = {"error": False, "events": descriptions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
-    
-    emit("turn", data, room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+    with app.app_context():
+        emit("turn", data, namespace='/', room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
 ########################################################################################################################################################################################################
 #███╗   ███╗ █████╗ ██╗███╗   ██╗    ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ██████╗ 
