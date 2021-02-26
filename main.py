@@ -270,33 +270,36 @@ class gameHandler():
         return out
         
     def gameLoop(self):
-        global app
-        global socketio
-        threading.Timer(self.about["turnTime"], self.gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
-        self.about["openGameLoop"] = True
-        
-        clientsShuffled = list(self.about["clients"].keys())
-        random.shuffle(clientsShuffled)
+        try:
+            global app
+            global socketio
+            threading.Timer(self.about["turnTime"], self.gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
+            self.about["openGameLoop"] = True
+            
+            clientsShuffled = list(self.about["clients"].keys())
+            random.shuffle(clientsShuffled)
 
-        hasQuestions = {}
-        for clientName in clientsShuffled:
-            if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
-                hasQuestions[clientName] = True
-            else:
-                hasQuestions[clientName] = False
-        if True in hasQuestions.values():
-            for clientName in hasQuestions.keys():
-                if hasQuestions[clientName]:
-                    self.about["clients"][clientName].about["type"] = "AI"
+            hasQuestions = {}
+            for clientName in clientsShuffled:
+                if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
+                    hasQuestions[clientName] = True
+                else:
+                    hasQuestions[clientName] = False
+            if True in hasQuestions.values():
+                for clientName in hasQuestions.keys():
+                    if hasQuestions[clientName]:
+                        self.about["clients"][clientName].about["type"] = "AI"
+                self.turnHandle()
+                for clientName in hasQuestions.keys():
+                    if hasQuestions[clientName]:
+                        self.about["clients"][clientName].about["type"] = "human"
             self.turnHandle()
-            for clientName in hasQuestions.keys():
-                if hasQuestions[clientName]:
-                    self.about["clients"][clientName].about["type"] = "human"
-        self.turnHandle()
-        self.writeAboutToBoards()
+            self.writeAboutToBoards()
 
-        print("loop done")
-        self.about["openGameLoop"] = False
+            print("loop done")
+            self.about["openGameLoop"] = False
+        except Exception as e:
+            print("ERROR IN GAMELOOP THREAD!", e)
     
     def start(self):
         #Tell clients that the game has started
@@ -582,9 +585,7 @@ class clientHandler():
                 return False
             return True
         elif len(self.about["actQueue"]) > 0:
-            print("A", self.about["actQueue"])
             self.act(self.about["actQueue"][0])
-            print("B", self.about["actQueue"])
             del self.about["actQueue"][0]
             if len(self.about["actQueue"]) > 0:
                 return False
