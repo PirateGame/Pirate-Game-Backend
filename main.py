@@ -339,8 +339,8 @@ class gameHandler():
                 a[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
                 out.append(self.about["clients"][clientName].actHandle())
                 b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
-                print("ACTQUEUE:", b[clientName])
         for clientName in clientsShuffled:
+            print(clientName, "QUESTION QUEUE", self.about["clients"][clientName].about["FRONTquestions"])
             #print(self.about["clients"][clientName].about["FRONTquestions"])
             #print(self.about["clients"][clientName].about["FRONTresponses"])
             if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
