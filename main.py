@@ -339,6 +339,7 @@ class gameHandler():
                 a[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
                 out.append(self.about["clients"][clientName].actHandle())
                 b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
+                print("ACTQUEUE:", b[clientName])
         for clientName in clientsShuffled:
             #print(self.about["clients"][clientName].about["FRONTquestions"])
             #print(self.about["clients"][clientName].about["FRONTresponses"])
