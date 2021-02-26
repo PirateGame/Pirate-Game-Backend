@@ -281,10 +281,11 @@ class gameHandler():
 
             hasQuestions = {}
             for clientName in clientsShuffled:
-                if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
-                    hasQuestions[clientName] = True
-                else:
-                    hasQuestions[clientName] = False
+                if self.about["clients"][clientName].about["type"] == "human":
+                    if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
+                        hasQuestions[clientName] = True
+                    else:
+                        hasQuestions[clientName] = False
             if True in hasQuestions.values():
                 for clientName in hasQuestions.keys():
                     if hasQuestions[clientName]:
