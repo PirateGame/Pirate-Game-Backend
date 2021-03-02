@@ -287,13 +287,13 @@ class gameHandler():
                     else:
                         hasQuestions[clientName] = False
             if True in hasQuestions.values():
+                for clientName in hasQuestions.keys():
+                    if hasQuestions[clientName]:
+                        self.about["clients"][clientName].about["type"] = "AI"
                 for clientName, obj in self.about["clients"].items():
                     if len(obj.about["FRONTquestions"]) > 0:
                         choice = random.choice(obj.about["FRONTquestions"][0]["options"])
                         self.about["clients"][clientName].FRONTresponse(choice)
-                for clientName in hasQuestions.keys():
-                    if hasQuestions[clientName]:
-                        self.about["clients"][clientName].about["type"] = "AI"
                 self.turnHandle()
                 for clientName in hasQuestions.keys():
                     if hasQuestions[clientName]:
