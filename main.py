@@ -934,7 +934,7 @@ def joinLobby(gameName="", clients=""):
         return {"gameName":gameName, "response":games[gameName].join(clients)}
 
 def leave(gameName, clients):
-    if len(games[gameName].about["clienst"]) == 1:
+    if len(games[gameName].about["clients"]) == 1:
         deleteGame(gameName)
     return games[gameName].leave(clients)
 
