@@ -1281,7 +1281,7 @@ def FcreateGame(data):
             data = {"error": "Your name can only contain letters"}
             emit("createGameResponse", data)
 
-    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "live":True, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly": randomiseOnly}
+    gameAbout = {"gameName":gameName, "admins":[{"name":ownerName, "type":"human"}], "gameLoop":True, "live":True, "quickplay":quickplay, "debug":debug, "gridDim":gridDim, "turnTime":turnTime, "playerCap":playerCap, "nameUniqueFilter":nameUniqueFilter, "nameNaughtyFilter":nameNaughtyFilter, "randomiseOnly": randomiseOnly}
     if not isPlaying:
         gameAbout["admins"] = [{"name":ownerName, "type":"spectator"}]
     out = makeGame(gameAbout) ###CREATING THE GAME.
