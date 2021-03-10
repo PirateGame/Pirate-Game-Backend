@@ -270,11 +270,11 @@ class gameHandler():
         return out
         
     def gameLoop(self):
-        print("HIYA")
         try:
             global app
             global socketio
-            threading.Timer(self.about["turnTime"], self.gameLoop).start() #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
+            a = threading.Timer(self.about["turnTime"], self.gameLoop) #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
+            a.start()
             self.about["openGameLoop"] = True
             clientsShuffled = list(self.about["clients"].keys())
             random.shuffle(clientsShuffled)
@@ -301,7 +301,7 @@ class gameHandler():
             self.turnHandle()
             self.writeAboutToBoards()
 
-            print("loop done")
+            a.join()
             self.about["openGameLoop"] = False
         except Exception as e:
             self.debugPrint("ERROR IN GAMELOOP THREAD!", e)
