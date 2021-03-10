@@ -1597,7 +1597,7 @@ def turnUpdate(gameName, playerName, descriptions):
     ids = []
     #print(tiles)
     for turn in tiles:
-        ids.append((tiles[turn][0] * width) + tiles[turn][1])
+        ids.append((tiles[turn][1] * width) + tiles[turn][0])
     
     
     money = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["money"]
