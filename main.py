@@ -68,6 +68,13 @@ def debugPrint(message, debug=False):
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 ########################################################################################################################################################################################################
 
+from threading import Timer
+
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
+
 class eventHandlerWrap():
     def __init__(self, game):
         self.game = game
@@ -271,40 +278,44 @@ class gameHandler():
         
     def gameLoop(self):
         try:
+            print("GAMELOOP", self.about["turnNum"])
             global app
             global socketio
-            a = threading.Timer(self.about["turnTime"], self.gameLoop) #set a new turn scheduled for after the turn time #THIS TIMER NEEDS TO BE ASYNC MODIFIED TO HAVE EXTRA DECISION TIME(S)
-            a.start()
-            self.about["openGameLoop"] = True
-            clientsShuffled = list(self.about["clients"].keys())
-            random.shuffle(clientsShuffled)
-            hasQuestions = {}
-            for clientName in clientsShuffled:
-                if self.about["clients"][clientName].about["type"] == "human":
-                    if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
-                        hasQuestions[clientName] = True
-                    else:
-                        hasQuestions[clientName] = False
-            print("HASQUESTIONS", hasQuestions)
-            if True in hasQuestions.values():
-                for clientName in hasQuestions.keys():
-                    if hasQuestions[clientName]:
-                        self.about["clients"][clientName].about["type"] = "AI"
-                for clientName, obj in self.about["clients"].items():
-                    if len(obj.about["FRONTquestions"]) > 0:
-                        choice = random.choice(obj.about["FRONTquestions"][0]["options"])
-                        self.about["clients"][clientName].FRONTresponse(choice)
+            if self.about["status"] == "dormant":
+                print("GAMELOOP CLOSED.")
+                self.timer.cancel()
+                return
+            else:
+                print("hi????")
+                self.about["openGameLoop"] = True
+                clientsShuffled = list(self.about["clients"].keys())
+                random.shuffle(clientsShuffled)
+                hasQuestions = {}
+                for clientName in clientsShuffled:
+                    if self.about["clients"][clientName].about["type"] == "human":
+                        if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
+                            hasQuestions[clientName] = True
+                        else:
+                            hasQuestions[clientName] = False
+                print("HASQUESTIONS(HUMANS)", hasQuestions)
+                if True in hasQuestions.values():
+                    for clientName in hasQuestions.keys():
+                        if hasQuestions[clientName]:
+                            self.about["clients"][clientName].about["type"] = "AI"
+                    for clientName, obj in self.about["clients"].items():
+                        if len(obj.about["FRONTquestions"]) > 0:
+                            choice = random.choice(obj.about["FRONTquestions"][0]["options"])
+                            self.about["clients"][clientName].FRONTresponse(choice)
+                    self.turnHandle()
+                    for clientName in hasQuestions.keys():
+                        if hasQuestions[clientName]:
+                            self.about["clients"][clientName].about["type"] = "human"
                 self.turnHandle()
-                for clientName in hasQuestions.keys():
-                    if hasQuestions[clientName]:
-                        self.about["clients"][clientName].about["type"] = "human"
-            self.turnHandle()
-            self.writeAboutToBoards()
+                self.writeAboutToBoards()
 
-            a.join()
-            self.about["openGameLoop"] = False
+                self.about["openGameLoop"] = False
         except Exception as e:
-            self.debugPrint("ERROR IN GAMELOOP THREAD!", e)
+            self.debugPrint("ERROR IN GAMELOOP THREAD! " + str(e))
     
     def start(self):
         #Tell clients that the game has started
@@ -325,7 +336,8 @@ class gameHandler():
             self.debugPrintBoards()
             self.writeAboutToBoards()
             if self.about["gameLoop"]:
-                self.gameLoop()
+                self.timer = RepeatTimer(self.about["turnTime"], self.gameLoop())
+                self.timer.start()
         return True
 
     def turnProcess(self):
@@ -346,7 +358,7 @@ class gameHandler():
                 out.append(self.about["clients"][clientName].actHandle())
                 b[clientName] = self.about["clients"][clientName].about["actQueue"] + self.about["clients"][clientName].about["beActedOnQueue"]
         for clientName in clientsShuffled:
-            print(clientName, "QUESTION QUEUE", self.about["clients"][clientName].about["FRONTquestions"])
+            #print(clientName, "QUESTION QUEUE", self.about["clients"][clientName].about["FRONTquestions"])
             #print(self.about["clients"][clientName].about["FRONTquestions"])
             #print(self.about["clients"][clientName].about["FRONTresponses"])
             if len(self.about["clients"][clientName].about["FRONTquestions"]) > 0 or len(self.about["clients"][clientName].about["FRONTresponses"]) > 0:
@@ -1123,6 +1135,27 @@ def bootstrap(about):
 ### Used for debugging and testing of the overall structure of how a game should operate in relation to the backend. ###
 ########################################################################################################################################################################################################
 
+from multiprocessing import Process, Event
+
+class Timer(Process):
+    def __init__(self, interval, function, args=[], kwargs={}):
+        super(Timer, self).__init__()
+        self.interval = interval
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+        self.finished = Event()
+
+    def cancel(self):
+        """Stop the timer if it hasn't finished yet"""
+        self.finished.set()
+
+    def run(self):
+        self.finished.wait(self.interval)
+        if not self.finished.is_set():
+            self.function(*self.args, **self.kwargs)
+        self.finished.set()
+
 def demo():
     debug = False
     print("! TESTBENCH !")
@@ -1170,12 +1203,16 @@ def demo():
         #print("Enter any key to iterate a turn...")
         #shallIContinue = input()
 
-        print("=======")
         c += 1
+        print("=======")
         print("GAME NUMBER", c)
         print("TOTAL TURNS TESTED", d)
+        print("=======")
         handleCap = 2000000
         start(gameName)
+        timer = Timer(5, games[gameName].gameLoop)
+        time.sleep(100)
+        timer.cancel()
         if not gameLoop:
             while status(gameName) != "dormant" and gameInfo(gameName)["about"]["handleNum"] < handleCap: #Simulate the frontend calling the new turns over and over.
                 #shallIContinue = input()
@@ -1202,7 +1239,7 @@ def demo():
                 print("Enter any key to delete the game...")
                 shallIContinue = input()
         else:
-            shallIContinue = input()
+            pass #shallIContinue = input()
         if status(gameName) != "dormant":
             noCrash = False
         
