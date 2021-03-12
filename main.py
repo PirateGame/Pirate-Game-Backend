@@ -1286,6 +1286,7 @@ def isHost(gameName, playerName):
 def FtestConnect():
     emit('response', {'data': 'Connected'})
 
+
 @socketio.on('createGame')
 def FcreateGame(data):
     print("create_game requested")
@@ -1295,13 +1296,13 @@ def FcreateGame(data):
     Sizey = int(data["Sizey"])
     isPlaying = data["isHostPlaying"]
     randomiseOnly = False
-    playerCap = 5
+    playerCap = 12
     debug=True
     gridDim = (Sizex, Sizey)
     turnTime = 10
     decisionTime = 15
-    nameUniqueFilter = None
-    nameNaughtyFilter = None
+    nameUniqueFilter = True
+    nameNaughtyFilter = True
     quickplay = False
 
     if gameName is None:
