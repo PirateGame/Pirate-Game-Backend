@@ -68,12 +68,27 @@ def debugPrint(message, debug=False):
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 ########################################################################################################################################################################################################
 
-from threading import Timer
+from multiprocessing import Process, Event
 
-class RepeatTimer(Timer):
+
+class Timer(Process):
+    def __init__(self, interval, function, args=[], kwargs={}):
+        super(Timer, self).__init__()
+        self.interval = interval
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+        self.finished = Event()
+
+    def cancel(self):
+        """Stop the timer if it hasn't finished yet"""
+        self.finished.set()
+
     def run(self):
-        while not self.finished.wait(self.interval):
+        self.finished.wait(self.interval)
+        if not self.finished.is_set():
             self.function(*self.args, **self.kwargs)
+        self.finished.set()
 
 class eventHandlerWrap():
     def __init__(self, game):
@@ -336,7 +351,7 @@ class gameHandler():
             self.debugPrintBoards()
             self.writeAboutToBoards()
             if self.about["gameLoop"]:
-                self.timer = RepeatTimer(self.about["turnTime"], self.gameLoop())
+                self.timer = Timer(self.about["turnTime"], self.gameLoop())
                 self.timer.start()
         return True
 
@@ -1210,9 +1225,6 @@ def demo():
         print("=======")
         handleCap = 2000000
         start(gameName)
-        timer = Timer(5, games[gameName].gameLoop)
-        time.sleep(100)
-        timer.cancel()
         if not gameLoop:
             while status(gameName) != "dormant" and gameInfo(gameName)["about"]["handleNum"] < handleCap: #Simulate the frontend calling the new turns over and over.
                 #shallIContinue = input()
