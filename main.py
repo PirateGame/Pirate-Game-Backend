@@ -8,7 +8,7 @@ import grid
 import time
 import events
 import nameFilter
-import threading
+from threading import Timer
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
@@ -69,7 +69,6 @@ def debugPrint(message, debug=False):
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 ########################################################################################################################################################################################################
 
-from threading import Timer
 
 class RepeatTimer(Timer):
     def run(self):
@@ -1224,9 +1223,10 @@ def demo():
                 tally = []
                 for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
                     if len(obj.about["FRONTquestions"]) > 0:
-                        choice = random.choice(obj.about["FRONTquestions"][0]["options"])
-                        FRONTresponse(gameName, clientName, choice)
-                        tally.append(1)
+                        #choice = random.choice(obj.about["FRONTquestions"][0]["options"])
+                        #FRONTresponse(gameName, clientName, choice)
+                        #tally.append(1)
+                        pass
                 if not live and 1 not in tally:
                     turnHandle(gameName)
                 print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
