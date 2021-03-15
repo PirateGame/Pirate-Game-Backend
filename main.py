@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_flask_exporter import PrometheusMetrics, Gauge, Counter, Summary
 import random, string
 import numpy as np
 import random, string, time, os, ast
@@ -19,6 +19,7 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True, async_mode="eventlet")
 eventlet.monkey_patch()
 
+connectedSockets = Gauge('socket_io_connected', "Number of currently connected sockets")
 ########################################################################################################################################################################################################
 #██████╗ ██╗██████╗  █████╗ ████████╗███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
 #██╔══██╗██║██╔══██╗██╔══██╗╚══██╔══╝██╔════╝    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
@@ -1295,9 +1296,14 @@ def isHost(gameName, playerName):
 ### SOCKET ROUTES...
 
 @socketio.on('connect')
-def FtestConnect():
+def Fconnect():
+    connectedSockets.inc()
     emit('response', {'data': 'Connected'})
 
+@socketio.on('disconnect')
+def FdisConnect():
+    #remove from game
+    connectedSockets.dec()
 
 @socketio.on('createGame')
 def FcreateGame(data):
