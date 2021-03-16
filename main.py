@@ -8,7 +8,7 @@ import grid
 import time
 import events
 import nameFilter
-from threading import Timer
+import threading
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
@@ -55,7 +55,7 @@ class prettyPrinter():
         else:
             raise Exception("This case is not implemented...either both row_labels and col_labels must be given, or neither.")
 
-def debugPrint(message, debug=False):
+def debugPrint(message, debug=True):
     if debug:
         print("~"*220)
         print("BACK:wrappers(debug):", message)
@@ -69,11 +69,6 @@ def debugPrint(message, debug=False):
 ### CLASSES USED TO DESCRIBE GAMES AND CLIENTS ###
 ########################################################################################################################################################################################################
 
-
-class RepeatTimer(Timer):
-    def run(self):
-        while not self.finished.wait(self.interval):
-            self.function(*self.args, **self.kwargs)
 
 class eventHandlerWrap():
     def __init__(self, game):
@@ -90,7 +85,6 @@ class eventHandlerWrap():
 class gameHandler():
     def debugPrint(self, message):
         if self.about["debug"]:
-            print("~"*220)
             print("BACK:gameHandler(debug):", message)
     
     def debugPrintBoards(self):
@@ -279,14 +273,10 @@ class gameHandler():
     def gameLoop(self):
         try:
             print("GAMELOOP", self.about["turnNum"])
-            global app
-            global socketio
             if self.about["status"] == "dormant":
                 print("GAMELOOP CLOSED.")
-                self.timer.cancel()
                 return
             else:
-                print("hi????")
                 self.about["openGameLoop"] = True
                 clientsShuffled = list(self.about["clients"].keys())
                 random.shuffle(clientsShuffled)
@@ -314,6 +304,13 @@ class gameHandler():
                 self.writeAboutToBoards()
 
                 self.about["openGameLoop"] = False
+                print("HERERERE")
+                print(self.about["name"])
+                T = threading.Timer(5, gameLoop, [self.about["name"]])
+                T.start()
+                print(T)
+
+
         except Exception as e:
             self.debugPrint("ERROR IN GAMELOOP THREAD! " + str(e))
     
@@ -336,8 +333,7 @@ class gameHandler():
             self.debugPrintBoards()
             self.writeAboutToBoards()
             if self.about["gameLoop"]:
-                self.timer = RepeatTimer(self.about["turnTime"], self.gameLoop())
-                self.timer.start()
+                self.gameLoop()
         return True
 
     def turnProcess(self):
@@ -371,8 +367,7 @@ class gameHandler():
             return False
     
     def turnHandle(self):
-        global app
-        global socketio
+        print("turn handle")
         self.about["openHandle"] = True
         if self.about["turnNum"] < 0:
             raise Exception("The game is on turn -1, which can't be handled.")
@@ -397,6 +392,8 @@ class gameHandler():
                 self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"newTurn", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[self.about["turnNum"]]}) #EVENT HANDLER
                 self.debugPrint(str(self.about["name"]) + " @@ ------------------------ Turn " + str(self.about["turnNum"] + 1) + " --- Tile" + str(newTile[1] + 1) + "," + str(newTile[0] + 1) + " ------------------------")
             if self.turnProcess():
+                print("turn complete")
+                #we have a response, so move onto next turn.
                 if self.about["turnNum"] < (self.about["gridDim"][0] * self.about["gridDim"][1]):
                     if self.about["status"][-1] != "active":
                         self.about["status"].append("active")
@@ -406,7 +403,7 @@ class gameHandler():
                         self.about["clients"][clientName].about["actQueue"] = []
                         self.about["clients"][clientName].about["beActedOnQueue"] = []
             else:
-                self.about["handleNum"] += 1
+                #waiting for a response
                 if self.about["status"][-1] != "awaiting":
                     self.about["status"].append("awaiting")
         elif self.about["turnNum"] == (self.about["gridDim"][0] * self.about["gridDim"][1]):
@@ -482,6 +479,9 @@ class clientHandler():
         question["timestamp"] = time.time()
 
         self.about["FRONTquestions"].append(question)
+        #TODO change this to decision time
+        T = threading.Timer(5, games[self.game.about["name"]].gameLoop)
+        T.start()
         if self.game.about["live"]:
             sendQuestionToClient(self.game.about["name"], self.about["name"], {"labels":question["labels"], "options":question["options"]})
         #print("the current questions for this client are", self.about["FRONTquestions"])
@@ -959,6 +959,9 @@ def turnHandle(gameName):
     #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
     return games[gameName].turnHandle()
 
+def gameLoop(gameName):
+    games[gameName].gameLoop()
+
 def start(gameName):
     temp = games[gameName].start()
     return temp
@@ -1135,29 +1138,8 @@ def bootstrap(about):
 ### Used for debugging and testing of the overall structure of how a game should operate in relation to the backend. ###
 ########################################################################################################################################################################################################
 
-from multiprocessing import Process, Event
-
-class Timer(Process):
-    def __init__(self, interval, function, args=[], kwargs={}):
-        super(Timer, self).__init__()
-        self.interval = interval
-        self.function = function
-        self.args = args
-        self.kwargs = kwargs
-        self.finished = Event()
-
-    def cancel(self):
-        """Stop the timer if it hasn't finished yet"""
-        self.finished.set()
-
-    def run(self):
-        self.finished.wait(self.interval)
-        if not self.finished.is_set():
-            self.function(*self.args, **self.kwargs)
-        self.finished.set()
-
 def demo():
-    debug = False
+    debug = True
     print("! TESTBENCH !")
     print("Note: this is not able to communicate with the live or local website!")
     print("An infinite testbench will be run, if there is a turn processing problem it should halt after the predefined 'handleCap'.")
@@ -1208,42 +1190,14 @@ def demo():
         print("GAME NUMBER", c)
         print("TOTAL TURNS TESTED", d)
         print("=======")
-        handleCap = 2000000
         start(gameName)
-        timer = Timer(5, games[gameName].gameLoop)
-        time.sleep(100)
-        timer.cancel()
-        if not gameLoop:
-            while status(gameName) != "dormant" and gameInfo(gameName)["about"]["handleNum"] < handleCap: #Simulate the frontend calling the new turns over and over.
-                #shallIContinue = input()
-                #if status(gameName) != "awaiting":
-                    #playerName = "Alex"
-                    #print("SORTED EVENTS FOR ALEX", sortEvents(gameName, "timestamp", filterEvents(gameName, {}, ['"' + playerName + '"' + ' in event["sourceNames"] or ' + '"' + playerName + '"' + ' in event["targetNames"]'])))
-                #else:
-                tally = []
-                for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
-                    if len(obj.about["FRONTquestions"]) > 0:
-                        #choice = random.choice(obj.about["FRONTquestions"][0]["options"])
-                        #FRONTresponse(gameName, clientName, choice)
-                        #tally.append(1)
-                        pass
-                if not live and 1 not in tally:
-                    turnHandle(gameName)
-                print("~", "turn", str(gameInfo(gameName)["about"]["turnNum"]) + ",", status(gameName) + str(", handle ") + str(gameInfo(gameName)["about"]["handleNum"]), "~")
-                #randomiseBoard(gameName, "Tom")
-                #print("event log:", returnEvents(gameName, {"public":True}))
-                #print("tom's serialised board:", serialReadBoard(gameName, "Tom"))
-                #message = [{'x': 0, 'y': 0, 'w': 1, 'h': 1, 'id': 0, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 1, 'w': 1, 'h': 1, 'id': 8, 'content': 'Rob', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 2, 'w': 1, 'h': 1, 'id': 16, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 3, 'w': 1, 'h': 1, 'id': 24, 'content': 'Present', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 4, 'w': 1, 'h': 1, 'id': 32, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 5, 'w': 1, 'h': 1, 'id': 40, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 6, 'w': 1, 'h': 1, 'id': 48, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 0, 'y': 7, 'w': 1, 'h': 1, 'id': 56, 'content': 'Bomb', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 0, 'w': 1, 'h': 1, 'id': 1, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 1, 'w': 1, 'h': 1, 'id': 9, 'content': 'Mirror', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 2, 'w': 1, 'h': 1, 'id': 17, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 3, 'w': 1, 'h': 1, 'id': 25, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 4, 'w': 1, 'h': 1, 'id': 33, 'content': 'Kill', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 5, 'w': 1, 'h': 1, 'id': 41, 'content': '3000', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 6, 'w': 1, 'h': 1, 'id': 49, 'content': 'Double', 'noResize': True, 'noMove': False}, {'x': 1, 'y': 7, 'w': 1, 'h': 1, 'id': 57, 'content': 'Shield', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 0, 'w': 1, 'h': 1, 'id': 2, 'content': 'Double', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 1, 'w': 1, 'h': 1, 'id': 10, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 2, 'w': 1, 'h': 1, 'id': 18, 'content': 'Present', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 3, 'w': 1, 'h': 1, 'id': 26, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 4, 'w': 1, 'h': 1, 'id': 34, 'content': '3000', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 5, 'w': 1, 'h': 1, 'id': 42, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 6, 'w': 1, 'h': 1, 'id': 50, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 2, 'y': 7, 'w': 1, 'h': 1, 'id': 58, 'content': 'Swap', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 0, 'w': 1, 'h': 1, 'id': 3, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 1, 'w': 1, 'h': 1, 'id': 11, 'content': 'Shield', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 2, 'w': 1, 'h': 1, 'id': 19, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 3, 'w': 1, 'h': 1, 'id': 27, 'content': 'Bomb', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 4, 'w': 1, 'h': 1, 'id': 35, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 5, 'w': 1, 'h': 1, 'id': 43, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 6, 'w': 1, 'h': 1, 'id': 51, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 3, 'y': 7, 'w': 1, 'h': 1, 'id': 59, 'content': 'Bank', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 0, 'w': 1, 'h': 1, 'id': 4, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 1, 'w': 1, 'h': 1, 'id': 12, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 2, 'w': 1, 'h': 1, 'id': 20, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 3, 'w': 1, 'h': 1, 'id': 28, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 4, 'w': 1, 'h': 1, 'id': 36, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 5, 'w': 1, 'h': 1, 'id': 44, 'content': '5000', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 6, 'w': 1, 'h': 1, 'id': 52, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 4, 'y': 7, 'w': 1, 'h': 1, 'id': 60, 'content': 'Choose Next Square', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 0, 'w': 1, 'h': 1, 'id': 5, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 1, 'w': 1, 'h': 1, 'id': 13, 'content': 'Rob', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 2, 'w': 1, 'h': 1, 'id': 21, 'content': 'Skull and Crossbones', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 3, 'w': 1, 'h': 1, 'id': 29, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 4, 'w': 1, 'h': 1, 'id': 37, 'content': 'Skull and Crossbones', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 5, 'w': 1, 'h': 1, 'id': 45, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 6, 'w': 1, 'h': 1, 'id': 53, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 5, 'y': 7, 'w': 1, 'h': 1, 'id': 61, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 0, 'w': 1, 'h': 1, 'id': 6, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 1, 'w': 1, 'h': 1, 'id': 14, 'content': 'Choose Next Square', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 2, 'w': 1, 'h': 1, 'id': 22, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 3, 'w': 1, 'h': 1, 'id': 30, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 4, 'w': 1, 'h': 1, 'id': 38, 'content': 'Swap', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 5, 'w': 1, 'h': 1, 'id': 46, 'content': 'Mirror', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 6, 'w': 1, 'h': 1, 'id': 54, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 6, 'y': 7, 'w': 1, 'h': 1, 'id': 62, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 0, 'w': 1, 'h': 1, 'id': 7, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 1, 'w': 1, 'h': 1, 'id': 15, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 2, 'w': 1, 'h': 1, 'id': 23, 'content': '1000', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 3, 'w': 1, 'h': 1, 'id': 31, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 4, 'w': 1, 'h': 1, 'id': 39, 'content': 'Kill', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 5, 'w': 1, 'h': 1, 'id': 47, 'content': '200', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 6, 'w': 1, 'h': 1, 'id': 55, 'content': 'Bank', 'noResize': True, 'noMove': False}, {'x': 7, 'y': 7, 'w': 1, 'h': 1, 'id': 63, 'content': '200', 'noResize': True, 'noMove': False}]
-                #print(serialWriteBoard(gameName, "Tom", message))
-            if gameInfo(gameName)["about"]["handleNum"] >= handleCap:
-                print("IT BROKE.")
-                print("Enter any key to delete the game...")
-                shallIContinue = input()
-        else:
-            pass #shallIContinue = input()
-        if status(gameName) != "dormant":
-            noCrash = False
-        
+        while status(gameName) != "dormant":
+
+            for clientName, obj in gameInfo(gameName)["about"]["clients"].items():
+                if len(obj.about["FRONTquestions"]) > 0:
+                    choice = random.choice(obj.about["FRONTquestions"][0]["options"])
+                    FRONTresponse(gameName, clientName, choice)
+
         #print("Enter any key to delete the game...")
         #shallIContinue = input()
 
