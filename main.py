@@ -16,7 +16,7 @@ import eventlet
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True, async_mode="eventlet")
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
 eventlet.monkey_patch()
 
 connectedSockets = Gauge('socket_io_connected', "Number of currently connected sockets")
@@ -304,11 +304,12 @@ class gameHandler():
                 self.writeAboutToBoards()
 
                 self.about["openGameLoop"] = False
-                print("HERERERE")
-                print(self.about["name"])
                 T = threading.Timer(5, gameLoop, [self.about["name"]])
                 T.start()
-                print(T)
+                T.join()
+                time.sleep(0.1)
+                print(T.is_alive())
+                #gameLoop(self.about["name"])
 
 
         except Exception as e:
@@ -479,9 +480,6 @@ class clientHandler():
         question["timestamp"] = time.time()
 
         self.about["FRONTquestions"].append(question)
-        #TODO change this to decision time
-        T = threading.Timer(5, games[self.game.about["name"]].gameLoop)
-        T.start()
         if self.game.about["live"]:
             sendQuestionToClient(self.game.about["name"], self.about["name"], {"labels":question["labels"], "options":question["options"]})
         #print("the current questions for this client are", self.about["FRONTquestions"])
@@ -960,6 +958,7 @@ def turnHandle(gameName):
     return games[gameName].turnHandle()
 
 def gameLoop(gameName):
+    print("starting game loop")
     games[gameName].gameLoop()
 
 def start(gameName):

@@ -1,12 +1,10 @@
-import threading
+import socket
 import time
 
-def foo(msg):
-    print(msg)
-    
+soc = socket.socket()
 
-T = threading.Timer(5, print, ["hello"])
-T.start()
+soc.connect(("127.0.0.1", 5000))
+
 while True:
+    soc.send(b"gameLoop")
     time.sleep(1)
-    print("Working...")
