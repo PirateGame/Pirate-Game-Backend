@@ -8,7 +8,7 @@ import grid
 import time
 import events
 import nameFilter
-import threading
+import csv
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
@@ -30,6 +30,7 @@ connectedSockets = Gauge('socket_io_connected', "Number of currently connected s
 ########################################################################################################################################################################################################
 
 games = {}
+schedule = {}
 #maxGameLength = 55 + (10 * gridSize) + (90 * (howManyEachAction * clientCount))
 
 ### I may have stole this from https://stackoverflow.com/a/25588771 and edited it quite a bit. -used to make printing pretty of course! ###
@@ -304,12 +305,9 @@ class gameHandler():
                 self.writeAboutToBoards()
 
                 self.about["openGameLoop"] = False
-                T = threading.Timer(5, gameLoop, [self.about["name"]])
-                T.start()
-                T.join()
-                time.sleep(0.1)
-                print(T.is_alive())
-                #gameLoop(self.about["name"])
+                #TODO add time to dict that this game should be called.
+                schedule[self.about["gameName"]] = time.time() + 10
+                print(schedule)
 
 
         except Exception as e:
@@ -1245,6 +1243,13 @@ def Fconnect():
 def FdisConnect():
     #remove from game
     connectedSockets.dec()
+
+@socketio.on('looper')
+def FLoop():
+    print("running game loop")
+    for key, value in schedule:
+        if value > time.time():
+            gameLoop(key)
 
 @socketio.on('createGame')
 def FcreateGame(data):
