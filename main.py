@@ -9,6 +9,7 @@ import time
 import events
 import nameFilter
 import csv
+import traceback
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
@@ -272,6 +273,7 @@ class gameHandler():
         return out
         
     def gameLoop(self):
+        schedule[self.about["name"]] = None
         try:
             print("GAMELOOP", self.about["turnNum"])
             if self.about["status"] == "dormant":
@@ -305,13 +307,11 @@ class gameHandler():
                 self.writeAboutToBoards()
 
                 self.about["openGameLoop"] = False
-                #TODO add time to dict that this game should be called.
-                schedule[self.about["gameName"]] = time.time() + 10
-                print(schedule)
 
 
-        except Exception as e:
-            self.debugPrint("ERROR IN GAMELOOP THREAD! " + str(e))
+        except:
+            self.debugPrint("ERROR IN GAMELOOP THREAD! ")
+            traceback.print_exc()
     
     def start(self):
         #Tell clients that the game has started
@@ -401,10 +401,16 @@ class gameHandler():
                     for clientName in self.about["clients"].keys():
                         self.about["clients"][clientName].about["actQueue"] = []
                         self.about["clients"][clientName].about["beActedOnQueue"] = []
+
+                    #Add timer to start next round
+                    schedule[self.about["name"]] = time.time() + 5
+
             else:
                 #waiting for a response
                 if self.about["status"][-1] != "awaiting":
                     self.about["status"].append("awaiting")
+                if schedule[self.about["name"]] == None:
+                    schedule[self.about["name"]] = time.time() + self.about["turnTime"]
         elif self.about["turnNum"] == (self.about["gridDim"][0] * self.about["gridDim"][1]):
             self.about["turnNum"] += 1
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
@@ -474,8 +480,14 @@ class clientHandler():
         return whatIsDeleted
     
     def makeQuestionToFRONT(self, question):
-        self.game.debugPrint("A question has been raised. " + str(question))
+        self.game.debugPrint("A question has been raised. " + str(question) + " It should be answered by: ")
         question["timestamp"] = time.time()
+        print(time.time() + self.game.about["turnTime"])
+
+        
+        schedule[self.game.about["name"]] = time.time() + self.game.about["turnTime"]
+        print("SCHEDULE")
+        print(schedule)
 
         self.about["FRONTquestions"].append(question)
         if self.game.about["live"]:
@@ -1244,12 +1256,20 @@ def FdisConnect():
     #remove from game
     connectedSockets.dec()
 
+##################################################################################################################
+
 @socketio.on('looper')
 def FLoop():
-    print("running game loop")
-    for key, value in schedule:
-        if value > time.time():
-            gameLoop(key)
+    print("Checking if games need nudging")
+    print("current time: " + str(time.time()))
+    print(schedule)
+    for key, value in schedule.items():
+        if value != None:
+            if value < time.time():
+                print("nudging game" + str(key))
+                gameLoop(key)
+
+###################################################################################################################
 
 @socketio.on('createGame')
 def FcreateGame(data):
@@ -1264,7 +1284,6 @@ def FcreateGame(data):
     debug=True
     gridDim = (Sizex, Sizey)
     turnTime = 10
-    decisionTime = 15
     nameUniqueFilter = True
     nameNaughtyFilter = True
     quickplay = False
@@ -1398,13 +1417,13 @@ def FmodifyGame(data):
     authCode = data["authCode"]
     naughty = data["naughty"]
     similar = data["similar"]
-    DecisionTime = data["DecisionTime"]
+    turnTime = data["turnTime"]
     randomiseOnly = data["randomiseOnly"]
     playerCap = int(data["playerLimit"])
 
     if auth(playerName, gameName, authCode):
         if isHost(gameName, playerName):
-            alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":DecisionTime, "playerCap": playerCap, "randomiseOnly": randomiseOnly})
+            alterGames([gameName], {"nameUniqueFilter":similar, "nameNaughtyFilter":naughty, "turnTime":turnTime, "playerCap": playerCap, "randomiseOnly": randomiseOnly})
             data = ({"error": False})
             emit("modifyGameResponse", data)
         else:
