@@ -10,6 +10,7 @@ import events
 import nameFilter
 import csv
 import traceback
+import subprocess
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
@@ -1667,6 +1668,7 @@ if __name__ == "__main__":
         print("demo(d) or flask(f)?")
         ans = input()
         if ans == 'f':
+            subprocess.Popen(["python3","./looper.py"])
             socketio.run(app, debug=False, host="0.0.0.0")
         elif ans == "d":
             demo()
