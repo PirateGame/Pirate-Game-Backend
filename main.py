@@ -116,7 +116,7 @@ class gameHandler():
 
     def __init__(self, about, overwriteAbout):
         maxEstTime = about["turnTime"] * about["gridDim"][0] * about["gridDim"][1]
-        self.about = {"name":about["gameName"], "gameLoop":about["gameLoop"], "openGameLoop":False, "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "randomiseOnly":about["randomiseOnly"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
+        self.about = {"name":about["gameName"], "gameLoop":about["gameLoop"], "live":about["live"], "quickplay":about["quickplay"], "handleNum":0, "startTime":None, "debug":about["debug"], "status":["lobby"], "playerCap":about["playerCap"], "randomiseOnly":about["randomiseOnly"], "nameUniqueFilter":about["nameUniqueFilter"], "nameNaughtyFilter":about["nameNaughtyFilter"], "turnTime":about["turnTime"], "maxEstTime":maxEstTime, "admins":about["admins"], "gridDim":about["gridDim"], "turnNum":-1, "tileOverride":None, "chosenTiles":{}, "clients":{}, "gridTemplate":grid.grid(about["gridDim"])}
 
         if overwriteAbout == None:
             self.updateBOARDS(self.about["name"], [self.about, {}])
@@ -280,7 +280,6 @@ class gameHandler():
                 print("GAMELOOP CLOSED.")
                 return
             else:
-                self.about["openGameLoop"] = True
                 clientsShuffled = list(self.about["clients"].keys())
                 random.shuffle(clientsShuffled)
                 hasQuestions = {}
@@ -306,10 +305,10 @@ class gameHandler():
                 self.turnHandle()
                 self.writeAboutToBoards()
 
-                self.about["openGameLoop"] = False
         except:
             self.debugPrint("ERROR IN GAMELOOP!")
             traceback.print_exc()
+
 
     def turnLoop(self):
         schedule[self.about["name"]] = None
@@ -318,7 +317,6 @@ class gameHandler():
             if self.about["status"] == "dormant":
                 print("TURNLOOP CLOSED.")
                 return
-            self.about["openGameLoop"] = True
 
             for clientName, obj in self.about["clients"].items():
                 if len(obj.about["FRONTquestions"]) > 0:
@@ -326,9 +324,6 @@ class gameHandler():
                     self.about["clients"][clientName].FRONTresponse(choice)
             self.turnHandle()
             self.writeAboutToBoards()
-
-            self.about["openGameLoop"] = False
-
 
         except:
             self.debugPrint("ERROR IN TURNLOOP!")
@@ -1036,14 +1031,11 @@ def randomiseBoard(gameName, clientName):
     return games[gameName].about["clients"][clientName].buildRandomBoard()
 
 def FRONTresponse(gameName, clientName, choice):
-    if not games[gameName].about["openGameLoop"]:
-        games[gameName].about["clients"][clientName].FRONTresponse(choice)
-        if games[gameName].about["status"][-1] != "paused":
-            games[gameName].turnHandle()
-        else:
-            print("The response was recorded, but no turn processing was carried out due to the game being paused.")
+    games[gameName].about["clients"][clientName].FRONTresponse(choice)
+    if games[gameName].about["status"][-1] != "paused":
+        games[gameName].turnHandle()
     else:
-        print("You can't respond anymore, the game loop is open.")
+        print("The response was recorded, but no turn processing was carried out due to the game being paused.")
     
 
 def filterClients(gameName, requirements, clients=[]):
