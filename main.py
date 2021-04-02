@@ -19,12 +19,12 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
-eventlet.monkey_patch()
 
 CONNECTED_SOCKETS = Gauge('socket_io_connected', 'Number of currently connected sockets')
 REQUEST_TIME = Summary('turn_processing_seconds', 'Time spent processing turnhandle')
 TURN = Counter('turns_total', 'total number of turns')
 REQUEST = Counter('requests_total', 'socket requests', ['endpoint'])
+
 ERROR = Counter('error_total', 'socket errors')
 REQUEST.labels('/createGame')
 REQUEST.labels('/joinGame')
@@ -43,6 +43,7 @@ REQUEST.labels('/addAI')
 REQUEST.labels('/requestGameState')
 REQUEST.labels('/requestPlayerList')
 REQUEST.labels('/requstAllEvents')
+REQUEST.labels('/requstLeaderboard')
 
 ########################################################################################################################################################################################################
 #██████╗ ██╗██████╗  █████╗ ████████╗███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
@@ -451,6 +452,7 @@ class gameHandler():
                     self.about["status"].append("awaiting")
                 if schedule[self.about["name"]] == None:
                     schedule[self.about["name"]] = time.time() + self.about["turnTime"]
+        #Game is finished
         elif self.about["turnNum"] == (self.about["gridDim"][0] * self.about["gridDim"][1]):
             self.about["turnNum"] += 1
             self.about["status"].append("dormant") #this is for when the game doesn't end immediatedly after the turn count is up
@@ -458,7 +460,7 @@ class gameHandler():
             self.debugPrint("Leaderboard: " + str(leaderboard(self.about["name"])))
             self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"end", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[]}) #EVENT HANDLER
             self.about["eventHandlerWrap"].make({"owner":self, "public":True, "event":"leaderboard", "sources":[], "targets":[], "isMirrored":False, "isShielded":False, "other":[leaderboard(self.about["name"])]}) #EVENT HANDLER
-        self.about["openHandle"] = False
+            GotoLeaderboard(self.game.about["name"])
 
     def getAllMyClientsQuestions(self):
         out = []
@@ -1647,6 +1649,15 @@ def FrequestPlayerList(data):
     gameName = data["gameName"]
     sendPlayerListToClients(gameName)
 
+@socketio.on('requestLeaderboard')
+def FrequestLeaderboard(data):
+    REQUEST.labels('/requestLeaderboard').inc()
+
+    gameName = data["gameName"]
+    LB = leaderboard(gameName)
+    data = ({"error": False, "leaderboard": LB})
+    emit("leaderboard", data)
+
 @socketio.on('requestAllEvents')
 def retrieveEventList(gameName, playerName):
     REQUEST.labels('/requestAllEvents').inc()
@@ -1662,8 +1673,6 @@ def chat_error_handler(e):
 #Functions that send the client data to update them.
 
 def sendPlayerListToClients(gameName):
-    global app
-    global socketio
     print("sending player list to clients")
     session = gameInfo(gameName)
     if session == False:
@@ -1677,26 +1686,16 @@ def sendPlayerListToClients(gameName):
         text = str(about["type"]) + ": " + str(clientName)
         toSend.append(text)
     data = {"error": False, "names":toSend}
-    with app.app_context(): 
-        emit("playerList", data, namespace='/', room=gameName)
+    emit("playerList", data, namespace='/', room=gameName)
 
 def sendGameStatusToClient(gameName, data):
-    global app
-    global socketio
-    with app.app_context():
-        emit("status", data, namespace='/', room=gameName)
+    emit("status", data, namespace='/', room=gameName)
 
 def sendQuestionToClient(gameName, playerName, data):
-    global app
-    global socketio
     #data = {"labels":["this is the question", "this is the instrusctions"], "options":[]}
-    with app.app_context():
-        emit("Question", data, namespace='/', room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+    emit("Question", data, namespace='/', room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
 
 def turnUpdate(gameName, playerName, descriptions):
-    global app
-    global socketio
-
     tiles = gameInfo(gameName)["about"]["chosenTiles"]
     width = gameInfo(gameName)["about"]["gridDim"][1]
     ids = []
@@ -1711,8 +1710,11 @@ def turnUpdate(gameName, playerName, descriptions):
     mirror = clientInfo({"gameName":gameName, "clientName": playerName})["about"]["mirror"]
 
     data = {"error": False, "events": descriptions, "ids":ids, "money": money, "bank": bank, "shield": shield, "mirror": mirror}
-    with app.app_context():
-        emit("turn", data, namespace='/', room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+    emit("turn", data, namespace='/', room=clientInfo({"gameName":gameName, "clientName":playerName})["about"]["socket"])
+
+
+def GotoLeaderboard(gameName):
+    emit("End", namespace='/', room=gameName)
 
 ########################################################################################################################################################################################################
 #███╗   ███╗ █████╗ ██╗███╗   ██╗    ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ██████╗ 
