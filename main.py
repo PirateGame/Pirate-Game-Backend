@@ -274,7 +274,6 @@ class gameHandler():
         return out
         
     def gameLoop(self):
-        schedule[self.about["name"]] = None
         try:
             print("GAMELOOP", self.about["turnNum"])
             if self.about["status"] == "dormant":
@@ -308,10 +307,31 @@ class gameHandler():
                 self.writeAboutToBoards()
 
                 self.about["openGameLoop"] = False
+        except:
+            self.debugPrint("ERROR IN GAMELOOP!")
+            traceback.print_exc()
+
+    def turnLoop(self):
+        schedule[self.about["name"]] = None
+        try:
+            print(self.about["name"], "TURNLOOP", self.about["turnNum"])
+            if self.about["status"] == "dormant":
+                print("TURNLOOP CLOSED.")
+                return
+            self.about["openGameLoop"] = True
+
+            for clientName, obj in self.about["clients"].items():
+                if len(obj.about["FRONTquestions"]) > 0:
+                    choice = random.choice(obj.about["FRONTquestions"][0]["options"])
+                    self.about["clients"][clientName].FRONTresponse(choice)
+            self.turnHandle()
+            self.writeAboutToBoards()
+
+            self.about["openGameLoop"] = False
 
 
         except:
-            self.debugPrint("ERROR IN GAMELOOP THREAD! ")
+            self.debugPrint("ERROR IN TURNLOOP!")
             traceback.print_exc()
     
     def start(self):
@@ -972,6 +992,9 @@ def gameLoop(gameName):
     print("starting game loop")
     games[gameName].gameLoop()
 
+def turnLoop(gameName):
+    games[gameName].turnLoop()
+
 def start(gameName):
     temp = games[gameName].start()
     return temp
@@ -1268,7 +1291,7 @@ def FLoop():
         if value != None:
             if value < time.time():
                 print("nudging game" + str(key))
-                gameLoop(key)
+                turnLoop(key)
 
 ###################################################################################################################
 
