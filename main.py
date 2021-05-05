@@ -1731,19 +1731,6 @@ if __name__ == "__main__":
     print("If the program crashes, check the known issues section on our Github. If the crash doesn't appear to be there, please add it!")
     print("-" * 50)
 
-    #Bootstrap old games
-    print("Input ENTER to purge, otherwise - bootstrapped games won't be purged.")
-    ans = str(input())
-    if ans == "":
-        bootstrap({"purge":True})
-    else:
-        bootstrap({"purge":False})
-    ans = None
-    while ans not in ["f","d"]:
-        print("demo(d) or flask(f)?")
-        ans = input()
-        if ans == 'f':
-            subprocess.Popen(["python","./looper.py"])
-            socketio.run(app, debug=False, host="0.0.0.0")
-        elif ans == "d":
-            demo()
+    bootstrap({"purge":True})
+    subprocess.Popen(["python","./looper.py"])
+    socketio.run(app, debug=False, host="0.0.0.0")
