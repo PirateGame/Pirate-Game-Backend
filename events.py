@@ -89,7 +89,7 @@ class gameEventHandler():
             turnStr = str(event["turnNum"] + 1)
             if ownerClass == "gameHandler":
                 if event["event"] == "newTurn":
-                    out.append("~NEW TURN: " + turnStr + "~")
+                    out.append("¦ TURN " + turnStr + " ¦")
                 if event["event"] == "start":
                     out.append("~THE GAME HAS STARTED~")
                 if event["event"] == "pause":
@@ -155,7 +155,7 @@ class gameEventHandler():
                 elif event["event"] == "E":
                     out.append(sourceStr + " swapped " + str(event["other"][0]) + str(" with ") + str(event["other"][1]) +str(" from ") + targetStr + mirrorStr + shieldStr)
                 elif event["event"] == "F":
-                    out.append(sourceStr + " chose the next tile: " + str((event["other"][0][1] + 1, event["other"][0][0] + 1)))
+                    out.append(sourceStr + " chose the next tile: " + str((event["other"][0][0] + 1, event["other"][0][1] + 1)))
                 else:
                     out.append(sourceStr + " " + self.eventSentenceFillers[str(event["event"])] + " " + targetStr + mirrorStr + shieldStr)
         return out

@@ -65,7 +65,3 @@ def checkString(otherNames, name, nameNaughtyFilter, nameUniqueFilter):
         return fails[max(fails.keys())]
     else:
         return None
-
-result = checkString(["Kenny", "AwesomeKid123"], "Bitch", nameNaughtyFilter = 0.85, nameUniqueFilter = 0.85)
-if result == None:
-    print(result)
