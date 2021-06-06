@@ -15,7 +15,6 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 import eventlet
 app = Flask(__name__)
-metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
 
@@ -1269,6 +1268,7 @@ def Fconnect():
 @socketio.on('disconnect')
 def FdisConnect():
     #remove from game
+    pass
 
 ##################################################################################################################
 
