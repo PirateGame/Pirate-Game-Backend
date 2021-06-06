@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from prometheus_flask_exporter import PrometheusMetrics, Gauge, Counter, Summary
 import random, string
 import numpy as np
 import random, string, time, os, ast
@@ -20,30 +19,6 @@ metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True, logger=True)
 
-CONNECTED_SOCKETS = Gauge('socket_io_connected', 'Number of currently connected sockets')
-REQUEST_TIME = Summary('turn_processing_seconds', 'Time spent processing turnhandle')
-TURN = Counter('turns_total', 'total number of turns')
-REQUEST = Counter('requests_total', 'socket requests', ['endpoint'])
-
-ERROR = Counter('error_total', 'socket errors')
-REQUEST.labels('/createGame')
-REQUEST.labels('/joinGame')
-REQUEST.labels('/getTiles')
-REQUEST.labels('/getGridDim')
-REQUEST.labels('/startGame')
-REQUEST.labels('/submitResponse')
-REQUEST.labels('/modifyGame')
-REQUEST.labels('/setTeam')
-REQUEST.labels('/saveBoard')
-REQUEST.labels('/randomiseBoard')
-REQUEST.labels('/getBoard')
-REQUEST.labels('/amIHost')
-REQUEST.labels('/kickPlayer')
-REQUEST.labels('/addAI')
-REQUEST.labels('/requestGameState')
-REQUEST.labels('/requestPlayerList')
-REQUEST.labels('/requstAllEvents')
-REQUEST.labels('/requstLeaderboard')
 
 ########################################################################################################################################################################################################
 #██████╗ ██╗██████╗  █████╗ ████████╗███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
@@ -404,7 +379,6 @@ class gameHandler():
         else:
             return False
     
-    @REQUEST_TIME.time()
     def turnHandle(self):
         TURN.inc()
         print("turn handle")
@@ -1290,13 +1264,11 @@ def isHost(gameName, playerName):
 
 @socketio.on('connect')
 def Fconnect():
-    CONNECTED_SOCKETS.inc()
     emit('response', {'data': 'Connected'})
 
 @socketio.on('disconnect')
 def FdisConnect():
     #remove from game
-    CONNECTED_SOCKETS.dec()
 
 ##################################################################################################################
 
@@ -1315,8 +1287,6 @@ def FLoop():
 
 @socketio.on('createGame')
 def FcreateGame(data):
-    REQUEST.labels('/createGame').inc()
-
     gameName = data["gameName"]
     ownerName = data["ownerName"]
     Sizex = int(data["Sizex"])
@@ -1367,8 +1337,6 @@ def FcreateGame(data):
 
 @socketio.on('joinGame')
 def FjoinGame(data):
-    REQUEST.labels('/joinGame').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
 
@@ -1404,8 +1372,6 @@ def FjoinGame(data):
 
 @socketio.on('getTiles')
 def FgetTiles(data):
-    REQUEST.labels('/getTiles').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     
@@ -1415,8 +1381,6 @@ def FgetTiles(data):
 
 @socketio.on('getGridDim')
 def FgetGridDim(data):
-    REQUEST.labels('/getGridDim').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
 
@@ -1427,8 +1391,6 @@ def FgetGridDim(data):
 
 @socketio.on('startGame')
 def FstartGame(data):
-    REQUEST.labels('/startGame').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1450,8 +1412,6 @@ def FstartGame(data):
 
 @socketio.on('submitResponse')
 def FsubmitResponse(data):
-    REQUEST.labels('/submitResponse').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1465,8 +1425,6 @@ def FsubmitResponse(data):
 
 @socketio.on('modifyGame')
 def FmodifyGame(data):
-    REQUEST.labels('/modifyGame').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1491,8 +1449,6 @@ def FmodifyGame(data):
 
 @socketio.on('setTeam')
 def FsetTeam(data):
-    REQUEST.labels('/setTeam').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1513,8 +1469,6 @@ def FsetTeam(data):
 
 @socketio.on('saveBoard')
 def FsaveBoard(data):
-    REQUEST.labels('/saveBoard').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1535,8 +1489,6 @@ def FsaveBoard(data):
 
 @socketio.on('randomiseBoard')
 def FrandomiseBoard(data):
-    REQUEST.labels('/randomiseBoard').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1552,8 +1504,6 @@ def FrandomiseBoard(data):
 
 @socketio.on('getBoard')
 def FgetBoard(data):
-    REQUEST.labels('/getBoard').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1567,8 +1517,6 @@ def FgetBoard(data):
     
 @socketio.on('amIHost')
 def FamIHost(data):
-    REQUEST.labels('/amIhost').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1587,8 +1535,6 @@ def FamIHost(data):
 
 @socketio.on('kickPlayer')
 def FkickPlayer(data):
-    REQUEST.labels('/kickPlayer').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1613,8 +1559,6 @@ def FkickPlayer(data):
 
 @socketio.on('addAI')
 def FaddAI(data):
-    REQUEST.labels('/addAI').inc()
-
     gameName = data["gameName"]
     playerName = data["playerName"]
     authCode = data["authCode"]
@@ -1637,22 +1581,16 @@ def FaddAI(data):
 
 @socketio.on('requestGameState')
 def FrequestGameState(data):
-    REQUEST.labels('/requestGameState').inc()
-
     gameName = data["gameName"]
     checkGameState(gameName)
 
 @socketio.on('requestPlayerList')
 def FrequestPlayerList(data):
-    REQUEST.labels('/requestPlayerList').inc()
-
     gameName = data["gameName"]
     sendPlayerListToClients(gameName)
 
 @socketio.on('requestLeaderboard')
 def FrequestLeaderboard(data):
-    REQUEST.labels('/requestLeaderboard').inc()
-
     gameName = data["gameName"]
     LB = leaderboard(gameName)
     data = ({"error": False, "leaderboard": LB})
@@ -1660,14 +1598,11 @@ def FrequestLeaderboard(data):
 
 @socketio.on('requestAllEvents')
 def retrieveEventList(gameName, playerName):
-    REQUEST.labels('/requestAllEvents').inc()
-
     events = games[gameName].about["eventLogs"][playerName]
     emit("requestAllEventsResponse", events)
 
 @socketio.on_error()
 def chat_error_handler(e):
-    ERROR.inc()
     print('An error has occurred: ' + str(e))
 
 #Functions that send the client data to update them.
